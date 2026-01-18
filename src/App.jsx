@@ -26,8 +26,8 @@ const PublicHome = ({ onLoginClick, loading }) => {
               <Scale size={24} strokeWidth={2.5} />
             </div>
             <div>
-              <h1 className="text-2xl font-serif font-bold text-slate-900 tracking-tight leading-none">LEXSWORD</h1>
-              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">Chambers of Law</p>
+              <h1 className="text-2xl font-serif font-bold text-slate-900 tracking-tight leading-none">LexSword</h1>
+              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">Your Justice, Our Mission</p>
             </div>
           </div>
 
@@ -35,7 +35,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
             <a href="#home" className="hover:text-[#c5a059] transition">HOME</a>
             <a href="#about" className="hover:text-[#c5a059] transition">WHY US</a>
             <a href="#practice" className="hover:text-[#c5a059] transition">PRACTICE AREAS</a>
-            <a href="#team" className="hover:text-[#c5a059] transition">ATTORNEYS</a>
+            <a href="#team" className="hover:text-[#c5a059] transition">LAWYERS</a>
             <a href="#contact" className="hover:text-[#c5a059] transition">CONTACT</a>
           </div>
 
