@@ -90,11 +90,11 @@ const PublicHome = ({ onLoginClick, loading }) => {
                <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl hidden md:block"></div>
                <img 
                  src="/head.jpg" 
-                 alt="Md. Azadur Rahman, Head of LexSword" 
+                 alt="Adv. Azadur Rahman, Head of LexSword" 
                  className="relative rounded-lg shadow-2xl border-4 border-white object-cover object-top h-[500px] md:h-[650px] w-full"
                />
                <div className="absolute -bottom-6 -left-6 bg-white p-6 shadow-xl rounded-sm border-l-4 border-[#c5a059] hidden md:block">
-                  <p className="text-xl font-serif font-bold text-slate-900">Md. Azadur Rahman</p>
+                  <p className="text-xl font-serif font-bold text-slate-900">Adv. Azadur Rahman</p>
                   <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">Head of Chamber</p>
                </div>
             </div>
@@ -197,7 +197,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                         <img src="/head.jpg" alt="Md. Azadur Rahman" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                         <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition"></div>
                      </div>
-                     <h4 className="text-3xl font-serif font-bold text-slate-900">Md. Azadur Rahman</h4>
+                     <h4 className="text-3xl font-serif font-bold text-slate-900">Adv. Azadur Rahman</h4>
                      <p className="text-[#c5a059] font-bold uppercase text-sm tracking-wider mt-1">Head of Chamber</p>
                      <p className="text-gray-500 text-sm mt-1">Supreme Court of Bangladesh</p>
                   </div>
