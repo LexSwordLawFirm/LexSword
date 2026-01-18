@@ -161,7 +161,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- Team Section (Unchanged) --- */}
+      {/* --- Team Section (Modified for Associates) --- */}
       <section id="team" className="py-24 bg-white">
          <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
@@ -169,29 +169,50 @@ const PublicHome = ({ onLoginClick, loading }) => {
                <h3 className="text-4xl font-serif font-bold text-slate-900">Meet Our Team</h3>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-10">
+               {/* 1. Head of Chamber */}
                <div className="md:col-span-3 flex justify-center mb-8">
                   <div className="text-center group">
-                     <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto shadow-lg">
-                        <img src="/head.jpg" alt="Head" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
+                     <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto shadow-2xl border-4 border-white">
+                        <img src="/head.jpg" alt="Md. Azadur Rahman" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                         <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition"></div>
                      </div>
-                     <h4 className="text-2xl font-serif font-bold text-slate-900">Md. Azadur Rahman</h4>
-                     <p className="text-[#c5a059] font-bold uppercase text-sm tracking-wider">Head of Chamber</p>
+                     <h4 className="text-3xl font-serif font-bold text-slate-900">Md. Azadur Rahman</h4>
+                     <p className="text-[#c5a059] font-bold uppercase text-sm tracking-wider mt-1">Head of Chamber</p>
+                     <p className="text-gray-500 text-sm mt-1">Supreme Court of Bangladesh</p>
                   </div>
                </div>
 
-               {[1, 2, 3].map((m) => (
-                  <div key={m} className="text-center group">
-                     <div className="relative overflow-hidden rounded-lg mb-4 h-64 mx-auto w-full max-w-xs bg-slate-100">
-                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                           <User size={64}/>
-                        </div>
-                     </div>
-                     <h4 className="text-lg font-bold text-slate-900">Associate Lawyer</h4>
-                     <p className="text-gray-500 text-sm">Supreme Court of Bangladesh</p>
+               {/* 2. Associate Lawyer 1 */}
+               <div className="text-center group">
+                  <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
+                     {/* ছবি আপলোড করে নাম দিন team1.jpg */}
+                     <img src="/team1.jpg" alt="Associate 1" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                   </div>
-               ))}
+                  <h4 className="text-xl font-bold text-slate-900">Adv. Name Here</h4>
+                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Senior Associate</p>
+               </div>
+
+               {/* 3. Associate Lawyer 2 */}
+               <div className="text-center group">
+                  <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
+                     {/* ছবি আপলোড করে নাম দিন team2.jpg */}
+                     <img src="/team2.jpg" alt="Associate 2" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
+                  </div>
+                  <h4 className="text-xl font-bold text-slate-900">Adv. Name Here</h4>
+                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
+               </div>
+
+               {/* 4. Associate Lawyer 3 */}
+               <div className="text-center group">
+                  <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
+                     {/* ছবি আপলোড করে নাম দিন team3.jpg */}
+                     <img src="/team3.jpg" alt="Associate 3" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
+                  </div>
+                  <h4 className="text-xl font-bold text-slate-900">Adv. Name Here</h4>
+                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Junior Associate</p>
+               </div>
+
             </div>
          </div>
       </section>
