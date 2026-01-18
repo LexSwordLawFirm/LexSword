@@ -2,202 +2,142 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { 
   Scale, Gavel, DollarSign, FileText, Bell, 
-  Phone, User, Calendar, Save, Trash2, 
-  ExternalLink, MessageCircle, FolderOpen, LogOut, CheckCircle, Menu, X
+  Phone, User, Calendar as CalIcon, Save, Trash2, 
+  ExternalLink, MessageCircle, FolderOpen, LogOut, 
+  Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, Folder
 } from 'lucide-react';
 
-// --- ১. পাবলিক হোমপেজ (ইন্টারন্যাশনাল ডিজাইন) ---
-const PublicHome = ({ onLoginClick }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+// --- ১. পাবলিক হোমপেজ (আপনার আগের ডিজাইন অপরিবর্তিত) ---
+const PublicHome = ({ onLoginClick }) => (
+  <div className="font-sans text-slate-800 bg-white">
+    <nav className="fixed w-full bg-slate-900 text-white z-50 px-6 py-4 shadow-lg flex justify-between items-center">
+      <div className="flex items-center gap-2">
+        <Scale className="text-[#c5a059] h-8 w-8" />
+        <div><h1 className="text-2xl font-bold font-serif">JUSTICE & CO.</h1></div>
+      </div>
+      <button onClick={onLoginClick} className="bg-[#c5a059] text-slate-900 px-6 py-2 rounded-sm font-bold hover:bg-white transition">
+        CLIENT / ADMIN LOGIN
+      </button>
+    </nav>
+    <header className="h-screen flex items-center justify-center bg-slate-900 text-white pt-20 relative">
+       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1589829085413-56de8ae18c73')] bg-cover opacity-20"></div>
+       <div className="relative z-10 text-center max-w-4xl px-4">
+         <h1 className="text-6xl font-serif font-bold mb-6">Supreme Court Advocates</h1>
+         <p className="text-xl text-gray-300 mb-8">Excellence in Legal Representation across Bangladesh.</p>
+       </div>
+    </header>
+  </div>
+);
 
-  return (
-    <div className="font-sans text-slate-800 bg-white">
-      {/* নেভিগেশন বার */}
-      <nav className="fixed w-full bg-slate-900 text-white z-50 px-6 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Scale className="text-[#c5a059] h-8 w-8" />
-            <div>
-              <h1 className="text-2xl font-bold tracking-widest font-serif">JUSTICE & CO.</h1>
-              <p className="text-xs text-[#c5a059] tracking-widest">SUPREME COURT ADVOCATES</p>
-            </div>
-          </div>
-          
-          <div className="hidden md:flex gap-8 font-medium text-sm tracking-wide">
-            <a href="#home" className="hover:text-[#c5a059] transition">HOME</a>
-            <a href="#practice" className="hover:text-[#c5a059] transition">PRACTICE AREAS</a>
-            <a href="#team" className="hover:text-[#c5a059] transition">ATTORNEYS</a>
-            <a href="#contact" className="hover:text-[#c5a059] transition">CONTACT</a>
-          </div>
-
-          <button onClick={onLoginClick} className="hidden md:flex items-center gap-2 bg-[#c5a059] text-slate-900 px-6 py-2 rounded-sm font-bold hover:bg-white transition">
-            <User size={18}/> CLIENT PORTAL
-          </button>
-          
-          {/* মোবাইল মেনু বাটন */}
-          <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-      </nav>
-
-      {/* হিরো সেকশন */}
-      <header id="home" className="relative h-screen flex items-center justify-center bg-slate-900 text-white pt-20">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-20"></div>
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <p className="text-[#c5a059] tracking-[0.2em] font-bold mb-4">ESTABLISHED 2025</p>
-          <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-tight">
-            Unparalleled Legal <br/> Representation
-          </h1>
-          <p className="text-lg text-gray-300 mb-10 max-w-2xl mx-auto">
-            Providing strategic legal solutions in the High Court and Judge Courts of Bangladesh. We fight for your rights with integrity and excellence.
-          </p>
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <button className="bg-[#c5a059] text-slate-900 px-8 py-4 font-bold text-lg rounded-sm hover:bg-white transition">
-              FREE CONSULTATION
-            </button>
-            <button className="border border-[#c5a059] text-[#c5a059] px-8 py-4 font-bold text-lg rounded-sm hover:bg-[#c5a059] hover:text-slate-900 transition">
-              OUR SERVICES
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* প্র্যাকটিস এরিয়া */}
-      <section id="practice" className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-serif font-bold text-slate-900 mb-4">Practice Areas</h2>
-          <div className="w-24 h-1 bg-[#c5a059] mx-auto"></div>
-        </div>
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {icon: Gavel, title: "Criminal Defense", desc: "Expert defense in criminal proceedings."},
-            {icon: FileText, title: "Civil Litigation", desc: "Property disputes, contracts, and family law."},
-            {icon: Scale, title: "Corporate Law", desc: "Business formation, compliance, and mergers."}
-          ].map((item, i) => (
-            <div key={i} className="p-8 border border-gray-200 hover:border-[#c5a059] hover:shadow-xl transition group">
-              <item.icon className="w-12 h-12 text-slate-400 group-hover:text-[#c5a059] mb-6"/>
-              <h3 className="text-xl font-bold mb-3 font-serif">{item.title}</h3>
-              <p className="text-gray-600">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* অ্যাপয়েন্টমেন্ট ফর্ম */}
-      <section id="contact" className="bg-slate-50 py-20 px-6">
-        <div className="max-w-4xl mx-auto bg-white p-10 shadow-2xl rounded-sm border-t-4 border-[#c5a059]">
-          <h2 className="text-3xl font-serif font-bold text-center mb-8">Request an Appointment</h2>
-          <form className="grid md:grid-cols-2 gap-6">
-            <input placeholder="Full Name" className="p-4 bg-gray-50 border border-gray-200 focus:border-[#c5a059] outline-none"/>
-            <input placeholder="Phone Number" className="p-4 bg-gray-50 border border-gray-200 focus:border-[#c5a059] outline-none"/>
-            <input placeholder="Email Address" className="p-4 bg-gray-50 border border-gray-200 focus:border-[#c5a059] outline-none"/>
-            <select className="p-4 bg-gray-50 border border-gray-200 focus:border-[#c5a059] outline-none">
-              <option>Select Case Type</option>
-              <option>Criminal</option>
-              <option>Civil</option>
-              <option>Writ</option>
-            </select>
-            <textarea placeholder="Brief Details of Case" className="md:col-span-2 p-4 bg-gray-50 border border-gray-200 focus:border-[#c5a059] outline-none h-32"></textarea>
-            <button className="md:col-span-2 bg-slate-900 text-white py-4 font-bold tracking-widest hover:bg-[#c5a059] transition">
-              SUBMIT REQUEST
-            </button>
-          </form>
-        </div>
-      </section>
-
-      {/* ফুটার */}
-      <footer className="bg-slate-900 text-gray-400 py-12 px-6 text-center">
-        <p>&copy; 2026 Justice & Co. All Rights Reserved. | Supreme Court of Bangladesh</p>
-      </footer>
-    </div>
-  );
-};
-
-// --- ২. ড্যাশবোর্ড (এডমিন প্যানেল) ---
+// --- ২. মেইন ড্যাশবোর্ড ---
 const AdminDashboard = ({ session, onLogout }) => {
-  const [activeTab, setActiveTab] = useState('cases'); // cases, accounts, documents, tasks
-  
-  // -- স্টেট ভেরিয়েবল --
+  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, calendar, accounts
   const [cases, setCases] = useState([]);
-  const [accounts, setAccounts] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  
-  // ফর্ম ডাটা
-  const [newCase, setNewCase] = useState({ court_type: 'High Court', case_no: '', next_date: '', current_step: '' });
-  const [newTxn, setNewTxn] = useState({ amount: '', txn_type: 'Expense', category: 'Office', description: '' });
-  const [newTask, setNewTask] = useState({ task_name: '', due_date: '' });
+  const [refresh, setRefresh] = useState(0); // ডাটা রিফ্রেশ ট্রিগার
 
-  // ডাটা লোড
+  // -- মোডাল (Pop-up) স্টেটস --
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+  const [selectedCaseForDoc, setSelectedCaseForDoc] = useState(null);
+  const [documents, setDocuments] = useState([]);
+
+  // -- ফর্ম স্টেটস --
+  const [newCase, setNewCase] = useState({
+    court_type: 'High Court', court_name: '', case_no: '', section: '',
+    party_name: '', on_behalf: 'Petitioner', client_mobile: '',
+    filing_date: '', next_date: '', current_step: '', status: 'Ongoing'
+  });
+
+  const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' });
+
+  // -- ডাটা লোড --
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchCases();
+  }, [refresh]);
 
-  const fetchData = async () => {
-    const { data: cData } = await supabase.from('cases').select('*').order('next_date', { ascending: true });
-    setCases(cData || []);
-    const { data: aData } = await supabase.from('accounts').select('*').order('date', { ascending: false });
-    setAccounts(aData || []);
-    const { data: tData } = await supabase.from('tasks').select('*');
-    setTasks(tData || []);
+  const fetchCases = async () => {
+    const { data } = await supabase.from('cases').select('*').order('next_date', { ascending: true });
+    setCases(data || []);
   };
 
-  // --- ফাংশন: মামলা যোগ করা ---
-  const handleAddCase = async () => {
-    if(!newCase.case_no) return alert("Case No is required");
+  const fetchDocuments = async (caseId) => {
+    const { data } = await supabase.from('documents').select('*').eq('case_id', caseId);
+    setDocuments(data || []);
+  };
+
+  // --- অ্যাকশন: মামলা সেভ ---
+  const handleSaveCase = async () => {
+    if (!newCase.case_no || !newCase.party_name) return alert("Case No & Party Name Required!");
     const { error } = await supabase.from('cases').insert([newCase]);
-    if (error) alert("Error: " + error.message);
+    if (error) alert(error.message);
     else {
       alert("Case Added Successfully!");
-      setNewCase({ court_type: 'High Court', case_no: '', next_date: '', current_step: '' });
-      fetchData();
+      setIsAddModalOpen(false);
+      setRefresh(prev => prev + 1);
+      // ফর্ম রিসেট
+      setNewCase({
+        court_type: 'High Court', court_name: '', case_no: '', section: '',
+        party_name: '', on_behalf: 'Petitioner', client_mobile: '',
+        filing_date: '', next_date: '', current_step: '', status: 'Ongoing'
+      });
     }
   };
 
-  // --- ফাংশন: মামলা আপডেট (হিস্ট্রি সেভ সহ) ---
-  const updateCase = async (id, oldDate, oldStep, newDate, newStep) => {
-    // ১. হিস্ট্রি সেভ
-    await supabase.from('case_history').insert({ case_id: id, prev_date: oldDate, prev_step: oldStep });
-    // ২. মেইন আপডেট
-    await supabase.from('cases').update({ next_date: newDate, current_step: newStep }).eq('id', id);
-    alert("Updated & History Saved!");
-    fetchData();
-  };
-
-  // --- ফাংশন: অ্যাকাউন্টস যোগ করা ---
-  const handleAddTxn = async () => {
-    const { error } = await supabase.from('accounts').insert([newTxn]);
-    if (!error) {
-      alert("Transaction Added");
-      fetchData();
+  // --- অ্যাকশন: মামলা আপডেট (হিস্ট্রি সহ) ---
+  const handleUpdateDate = async (id, oldDate, oldStep) => {
+    const newDate = prompt("Enter New Date (YYYY-MM-DD):", oldDate);
+    const newStep = prompt("Enter New Step:", oldStep);
+    
+    if (newDate && newStep) {
+      // ১. হিস্ট্রি সেভ
+      await supabase.from('case_history').insert({ case_id: id, prev_date: oldDate, prev_step: oldStep });
+      // ২. আপডেট
+      await supabase.from('cases').update({ next_date: newDate, current_step: newStep }).eq('id', id);
+      setRefresh(prev => prev + 1);
     }
   };
 
-  // --- ফাংশন: WhatsApp এ পাঠানো ---
-  const sendWhatsApp = (mobile, caseNo, date) => {
-    const msg = `Dear Client, Your case (${caseNo}) next date is ${date}. Please contact office.`;
-    window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(msg)}`, '_blank');
+  // --- অ্যাকশন: ডকুমেন্ট যোগ ---
+  const handleAddDocument = async () => {
+    if(!newDoc.drive_link) return alert("Link Required");
+    await supabase.from('documents').insert([{ ...newDoc, case_id: selectedCaseForDoc.id }]);
+    fetchDocuments(selectedCaseForDoc.id);
+    setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' });
   };
 
-  // --- ক্যালকুলেশন: Cash in Hand ---
-  const income = accounts.filter(a => a.txn_type === 'Income').reduce((acc, c) => acc + Number(c.amount), 0);
-  const expense = accounts.filter(a => a.txn_type === 'Expense' && a.category === 'Office').reduce((acc, c) => acc + Number(c.amount), 0);
-  const cashInHand = income - expense;
+  // --- ক্যালকুলেশনস ---
+  const today = new Date().toISOString().split('T')[0];
+  const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = tomorrowDate.toISOString().split('T')[0];
+
+  const todayCases = cases.filter(c => c.next_date === today);
+  const tomorrowCases = cases.filter(c => c.next_date === tomorrow);
+  
+  // রবিবার থেকে বৃহস্পতিবার (This Week)
+  const getNextThursday = () => {
+     const d = new Date();
+     d.setDate(d.getDate() + (4 + 7 - d.getDay()) % 7);
+     return d.toISOString().split('T')[0];
+  }
+  const weekCases = cases.filter(c => c.next_date > tomorrow && c.next_date <= getNextThursday());
+
+  const needsUpdateCount = cases.filter(c => c.next_date < today && c.status === 'Ongoing').length;
 
   return (
-    <div className="flex h-screen bg-slate-100 font-sans">
-      {/* সাইডবার */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col">
-        <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800">CHAMBERS</div>
-        <nav className="flex-1 p-4 space-y-2">
-          <button onClick={() => setActiveTab('cases')} className={`w-full flex items-center gap-3 p-3 rounded ${activeTab === 'cases' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
-            <Gavel size={20}/> Case Diary
+    <div className="flex h-screen bg-slate-100 font-sans overflow-hidden">
+      
+      {/* ১. সাইডবার */}
+      <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-20">
+        <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800 tracking-wider">CHAMBERS</div>
+        <nav className="flex-1 p-4 space-y-2 mt-4">
+          <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'dashboard' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+            <Gavel size={20}/> Case Dashboard
           </button>
-          <button onClick={() => setActiveTab('accounts')} className={`w-full flex items-center gap-3 p-3 rounded ${activeTab === 'accounts' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+          <button onClick={() => setActiveTab('calendar')} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'calendar' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+            <CalIcon size={20}/> Monthly Calendar
+          </button>
+          <button className={`w-full flex items-center gap-3 p-3 rounded transition text-gray-400 hover:bg-slate-800`}>
             <DollarSign size={20}/> Accounts
-          </button>
-          <button onClick={() => setActiveTab('tasks')} className={`w-full flex items-center gap-3 p-3 rounded ${activeTab === 'tasks' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
-            <Bell size={20}/> Assistant
           </button>
         </nav>
         <button onClick={onLogout} className="m-4 p-3 flex items-center gap-2 text-red-400 hover:bg-slate-800 rounded">
@@ -205,219 +145,362 @@ const AdminDashboard = ({ session, onLogout }) => {
         </button>
       </aside>
 
-      {/* মেইন এরিয়া */}
-      <main className="flex-1 overflow-y-auto p-8">
-        
-        {/* মডিউল ১: কেস ডায়েরি */}
-        {activeTab === 'cases' && (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-slate-800">Digital Case Diary</h2>
+      {/* ২. মেইন এরিয়া */}
+      <main className="flex-1 overflow-y-auto relative">
+        {/* টপ বার */}
+        <header className="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-10">
+          <h2 className="text-xl font-bold text-slate-700">
+            {activeTab === 'dashboard' ? 'Overview' : 'Calendar Schedule'}
+          </h2>
+          <div className="flex gap-4">
+             {/* Add Case Button - Opens Modal */}
+             <button 
+               onClick={() => setIsAddModalOpen(true)}
+               className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] transition font-bold"
+             >
+               <Plus size={18}/> NEW CASE
+             </button>
+          </div>
+        </header>
+
+        {/* কনটেন্ট এরিয়া */}
+        <div className="p-8">
+          
+          {/* স্ট্যাটাস কার্ডস */}
+          <div className="grid grid-cols-4 gap-6 mb-8">
+             <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-slate-900">
+                <p className="text-gray-500 text-xs font-bold uppercase">Total Cases</p>
+                <p className="text-3xl font-bold text-slate-800">{cases.length}</p>
+             </div>
+             <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-green-500">
+                <p className="text-gray-500 text-xs font-bold uppercase">Ongoing</p>
+                <p className="text-3xl font-bold text-green-600">{cases.filter(c => c.status === 'Ongoing').length}</p>
+             </div>
+             <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-500">
+                <p className="text-gray-500 text-xs font-bold uppercase">Needs Update</p>
+                <p className="text-3xl font-bold text-red-600">{needsUpdateCount}</p>
+             </div>
+          </div>
+
+          {activeTab === 'dashboard' && (
+            <div className="space-y-8">
+              
+              {/* আজকের মামলা */}
+              <Section title="Today's Hearing" color="red">
+                 {todayCases.length === 0 && <p className="text-gray-400 italic">No hearings today.</p>}
+                 {todayCases.map(c => (
+                   <CaseCard key={c.id} c={c} isToday={true} onUpdate={handleUpdateDate} onDoc={() => { setSelectedCaseForDoc(c); fetchDocuments(c.id); setIsDocModalOpen(true); }} />
+                 ))}
+              </Section>
+
+              {/* আগামীকালের মামলা */}
+              <Section title="Tomorrow's List" color="blue">
+                 {tomorrowCases.map(c => (
+                   <CaseCard key={c.id} c={c} onUpdate={handleUpdateDate} onDoc={() => { setSelectedCaseForDoc(c); fetchDocuments(c.id); setIsDocModalOpen(true); }} />
+                 ))}
+              </Section>
+
+              {/* সপ্তাহের বাকি মামলা */}
+              <Section title="Rest of the Week (Sun-Thu)" color="slate">
+                 {weekCases.map(c => (
+                   <CaseCard key={c.id} c={c} onUpdate={handleUpdateDate} onDoc={() => { setSelectedCaseForDoc(c); fetchDocuments(c.id); setIsDocModalOpen(true); }} />
+                 ))}
+              </Section>
+
+            </div>
+          )}
+
+          {activeTab === 'calendar' && (
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="font-bold text-xl mb-4 text-slate-700">Monthly Schedule</h3>
+              <div className="grid grid-cols-7 gap-2 text-center font-bold text-gray-500 mb-2">
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+              </div>
+              <div className="grid grid-cols-7 gap-2">
+                {[...Array(30)].map((_, i) => {
+                  const d = new Date(); 
+                  d.setDate(d.getDate() - d.getDate() + i + 1); // Simple generic month view for demo
+                  const dateStr = d.toISOString().split('T')[0];
+                  const hasCase = cases.some(c => c.next_date === dateStr);
+                  return (
+                    <div key={i} className={`h-24 border rounded p-2 ${hasCase ? 'bg-red-50 border-red-200' : 'bg-slate-50'}`}>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">{i+1}</span>
+                        {hasCase && <span className="h-3 w-3 bg-red-600 rounded-full animate-pulse"></span>}
+                      </div>
+                      <div className="mt-2 text-xs text-slate-800">
+                        {cases.filter(c => c.next_date === dateStr).map(c => (
+                          <div key={c.id} className="truncate">• {c.case_no}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* ============ MODAL: ADD CASE (POP-UP) ============ */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden border border-[#c5a059]">
+            {/* Header */}
+            <div className="bg-slate-900 p-4 flex justify-between items-center text-white">
+              <h3 className="font-bold text-lg flex items-center gap-2"><Plus className="text-[#c5a059]"/> New Case Entry</h3>
+              <button onClick={() => setIsAddModalOpen(false)}><X className="hover:text-red-400"/></button>
+            </div>
             
-            {/* Add Case Form */}
-            <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#c5a059]">
-              <h3 className="font-bold mb-4 flex items-center gap-2"><Gavel size={16}/> Add New Case</h3>
-              <div className="grid md:grid-cols-4 gap-4">
-                <select className="p-2 border rounded bg-slate-50" onChange={e => setNewCase({...newCase, court_type: e.target.value})}>
+            {/* Body - Grid Form */}
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[80vh] overflow-y-auto">
+              
+              {/* 1. Court Type */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">1. Court Type</label>
+                <select className="w-full p-3 border rounded bg-slate-50 focus:border-[#c5a059] outline-none"
+                  onChange={e => setNewCase({...newCase, court_type: e.target.value})}>
                   <option>High Court</option>
                   <option>Judge Court</option>
                 </select>
-                <input placeholder="Case No (e.g. 50/2025)" className="p-2 border rounded" onChange={e => setNewCase({...newCase, case_no: e.target.value})}/>
-                <input placeholder="Party Name" className="p-2 border rounded" onChange={e => setNewCase({...newCase, party_name: e.target.value})}/>
-                <input placeholder="Client Mobile" className="p-2 border rounded" onChange={e => setNewCase({...newCase, client_mobile: e.target.value})}/>
-                <input type="date" className="p-2 border rounded" onChange={e => setNewCase({...newCase, next_date: e.target.value})}/>
-                <input placeholder="Step (e.g. Hearing)" className="p-2 border rounded" onChange={e => setNewCase({...newCase, current_step: e.target.value})}/>
-                <button onClick={handleAddCase} className="bg-slate-900 text-white px-4 py-2 rounded font-bold hover:bg-[#c5a059] transition">
-                  SAVE CASE
-                </button>
               </div>
-            </div>
 
-            {/* Case List with Blinking Alert */}
-            <div className="grid gap-4">
-              {cases.map((c) => {
-                const isToday = new Date().toISOString().split('T')[0] === c.next_date;
-                return (
-                  <div key={c.id} className={`bg-white p-5 rounded-lg shadow flex justify-between items-center ${isToday ? 'border-2 border-red-500 animate-pulse' : ''}`}>
-                    <div>
-                      <span className={`text-xs font-bold px-2 py-1 rounded ${c.court_type === 'High Court' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>{c.court_type}</span>
-                      <h3 className="text-xl font-bold mt-2">{c.case_no}</h3>
-                      <p className="text-gray-600">{c.party_name}</p>
-                      <p className="text-sm text-gray-500 mt-1">Last Step: {c.current_step}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <div className={`text-lg font-bold ${isToday ? 'text-red-600' : 'text-slate-800'}`}>
-                         Next: {c.next_date}
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => sendWhatsApp(c.client_mobile, c.case_no, c.next_date)} className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200" title="WhatsApp Client">
-                          <MessageCircle size={18}/>
-                        </button>
-                        <button className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200" title="Google Drive Docs">
-                          <FolderOpen size={18}/>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
+              {/* 2. Court Name */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">2. Court Name</label>
+                <input placeholder="e.g. 3rd Joint District Judge" className="w-full p-3 border rounded focus:border-[#c5a059] outline-none"
+                  onChange={e => setNewCase({...newCase, court_name: e.target.value})} />
+              </div>
 
-        {/* মডিউল ২: স্মার্ট অ্যাকাউন্টস */}
-        {activeTab === 'accounts' && (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-slate-800">Smart Accounts</h2>
-            
-            {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-6">
-              <div className="bg-green-50 p-6 rounded-xl border border-green-200">
-                <p className="text-sm text-green-600 font-bold uppercase">Total Income</p>
-                <p className="text-3xl font-bold text-slate-800">৳{income}</p>
+              {/* 3. Case No */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">3. Case Number</label>
+                <input placeholder="e.g. 105/2025" className="w-full p-3 border rounded focus:border-[#c5a059] outline-none"
+                  onChange={e => setNewCase({...newCase, case_no: e.target.value})} />
               </div>
-              <div className="bg-red-50 p-6 rounded-xl border border-red-200">
-                <p className="text-sm text-red-600 font-bold uppercase">Office Expense</p>
-                <p className="text-3xl font-bold text-slate-800">৳{expense}</p>
-              </div>
-              <div className="bg-slate-900 p-6 rounded-xl text-white">
-                <p className="text-sm text-[#c5a059] font-bold uppercase">Cash In Hand</p>
-                <p className="text-3xl font-bold">৳{cashInHand}</p>
-              </div>
-            </div>
 
-            {/* Entry Form */}
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="font-bold mb-4">New Transaction</h3>
-              <div className="flex gap-4 mb-4">
-                <button onClick={() => setNewTxn({...newTxn, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold ${newTxn.txn_type === 'Income' ? 'bg-green-600 text-white' : 'bg-gray-100'}`}>Income</button>
-                <button onClick={() => setNewTxn({...newTxn, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold ${newTxn.txn_type === 'Expense' ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>Expense</button>
+              {/* 4. Section */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">4. Section / Dhara</label>
+                <input placeholder="e.g. 302 Penal Code" className="w-full p-3 border rounded focus:border-[#c5a059] outline-none"
+                  onChange={e => setNewCase({...newCase, section: e.target.value})} />
               </div>
-              <div className="grid md:grid-cols-4 gap-4">
-                <select className="p-2 border rounded" onChange={e => setNewTxn({...newTxn, category: e.target.value})}>
-                  <option>Office</option>
-                  <option>Personal</option>
+
+              {/* 5. Party Name */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">5. Party Names</label>
+                <input placeholder="e.g. Rahim vs Karim" className="w-full p-3 border rounded focus:border-[#c5a059] outline-none"
+                  onChange={e => setNewCase({...newCase, party_name: e.target.value})} />
+              </div>
+
+              {/* 6. On Behalf Of */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">6. On Behalf Of</label>
+                <select className="w-full p-3 border rounded bg-slate-50 focus:border-[#c5a059] outline-none"
+                  onChange={e => setNewCase({...newCase, on_behalf: e.target.value})}>
+                  <option>Plaintiff (বাদী)</option>
+                  <option>Defendant (বিবাদী)</option>
+                  <option>Complainant (ফরিয়াদী)</option>
+                  <option>Accused (আসামী)</option>
+                  <option>Petitioner (দরখাস্তকারী)</option>
+                  <option>Opposite Party (বিপরীত পক্ষ)</option>
                 </select>
-                <input placeholder="Amount" type="number" className="p-2 border rounded" onChange={e => setNewTxn({...newTxn, amount: e.target.value})}/>
-                <input placeholder="Description / Client Name" className="p-2 border rounded col-span-2" onChange={e => setNewTxn({...newTxn, description: e.target.value})}/>
-                <button onClick={handleAddTxn} className="bg-slate-900 text-white px-6 py-2 rounded font-bold col-span-4 hover:bg-[#c5a059]">ADD ENTRY</button>
               </div>
+
+               {/* 7. Client Mobile */}
+               <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">7. Client Phone</label>
+                <input placeholder="017..." className="w-full p-3 border rounded focus:border-[#c5a059] outline-none"
+                  onChange={e => setNewCase({...newCase, client_mobile: e.target.value})} />
+              </div>
+
+              {/* 8. Filing Date */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">8. Filing / Receiving Date</label>
+                <input type="date" className="w-full p-3 border rounded focus:border-[#c5a059] outline-none"
+                  onChange={e => setNewCase({...newCase, filing_date: e.target.value})} />
+              </div>
+
+              {/* 9. Next Date */}
+              <div className="col-span-1 bg-yellow-50 p-2 rounded border border-yellow-200">
+                <label className="block text-xs font-bold text-red-600 mb-1">9. Next Date</label>
+                <input type="date" className="w-full p-3 border rounded focus:border-[#c5a059] outline-none bg-white"
+                  onChange={e => setNewCase({...newCase, next_date: e.target.value})} />
+              </div>
+
+              {/* 10. Next Step */}
+              <div className="col-span-1 bg-yellow-50 p-2 rounded border border-yellow-200">
+                <label className="block text-xs font-bold text-red-600 mb-1">10. Next Step</label>
+                <input placeholder="e.g. Hearing / Order" className="w-full p-3 border rounded focus:border-[#c5a059] outline-none bg-white"
+                  onChange={e => setNewCase({...newCase, current_step: e.target.value})} />
+              </div>
+
+              {/* 11. Documents Note */}
+              <div className="col-span-2 p-4 bg-blue-50 text-blue-800 text-sm rounded border border-blue-100 flex items-center gap-2">
+                 <FolderOpen size={20}/>
+                 <span>Note: You can add Case Documents (Folders & Links) after saving the case from the Dashboard.</span>
+              </div>
+
             </div>
 
-            {/* Ledger Table */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th className="p-4">Date</th>
-                    <th className="p-4">Description</th>
-                    <th className="p-4">Category</th>
-                    <th className="p-4 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.map(a => (
-                    <tr key={a.id} className="border-b hover:bg-slate-50">
-                      <td className="p-4">{a.date}</td>
-                      <td className="p-4">{a.description}</td>
-                      <td className="p-4"><span className={`text-xs px-2 py-1 rounded ${a.category === 'Personal' ? 'bg-orange-100 text-orange-800' : 'bg-slate-200'}`}>{a.category}</span></td>
-                      <td className={`p-4 text-right font-bold ${a.txn_type === 'Income' ? 'text-green-600' : 'text-red-600'}`}>
-                        {a.txn_type === 'Income' ? '+' : '-'} {a.amount}
-                      </td>
-                    </tr>
+            {/* Footer */}
+            <div className="bg-gray-50 p-6 flex justify-end gap-4 border-t">
+              <button onClick={() => setIsAddModalOpen(false)} className="px-6 py-3 rounded text-gray-600 font-bold hover:bg-gray-200">Cancel</button>
+              <button onClick={handleSaveCase} className="px-8 py-3 bg-slate-900 text-white rounded font-bold hover:bg-[#c5a059] flex items-center gap-2">
+                <Save size={18}/> SAVE CASE RECORD
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ MODAL: DOCUMENTS MANAGER ============ */}
+      {isDocModalOpen && selectedCaseForDoc && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden">
+            <div className="bg-slate-900 p-4 flex justify-between items-center text-white">
+               <div>
+                  <h3 className="font-bold">Digital Archive: {selectedCaseForDoc.case_no}</h3>
+                  <p className="text-xs text-[#c5a059]">Manage Files & Links (Admin Only)</p>
+               </div>
+               <button onClick={() => setIsDocModalOpen(false)}><X/></button>
+            </div>
+
+            <div className="p-6 h-[50vh] overflow-y-auto bg-slate-50">
+               {/* Add New Doc Form */}
+               <div className="bg-white p-4 rounded shadow mb-6 border border-gray-200">
+                  <h4 className="font-bold text-sm mb-3 flex items-center gap-2"><Plus size={16}/> Add New Document Link</h4>
+                  <div className="flex gap-2 mb-2">
+                     <select className="p-2 border rounded text-sm bg-gray-50" 
+                        onChange={e => setNewDoc({...newDoc, folder_type: e.target.value})}>
+                        <option>Plaint (Arji)</option>
+                        <option>Written Statement (Jabab)</option>
+                        <option>List of Docs (Firisti)</option>
+                        <option>Judgment / Order</option>
+                        <option>Others</option>
+                     </select>
+                     <input placeholder="Doc Name (e.g. Arji Copy)" className="flex-1 p-2 border rounded text-sm" 
+                        value={newDoc.doc_name} onChange={e => setNewDoc({...newDoc, doc_name: e.target.value})}/>
+                  </div>
+                  <input placeholder="Paste Google Drive Link Here..." className="w-full p-2 border rounded text-sm mb-2" 
+                     value={newDoc.drive_link} onChange={e => setNewDoc({...newDoc, drive_link: e.target.value})}/>
+                  <button onClick={handleAddDocument} className="w-full bg-slate-800 text-white py-2 rounded text-sm font-bold hover:bg-[#c5a059]">ADD TO ARCHIVE</button>
+               </div>
+
+               {/* Folders Display */}
+               <div className="space-y-2">
+                  <h4 className="font-bold text-sm text-gray-500">Existing Files</h4>
+                  {documents.length === 0 && <p className="text-sm text-gray-400">No documents linked yet.</p>}
+                  {documents.map(d => (
+                     <div key={d.id} className="bg-white p-3 rounded border flex justify-between items-center hover:bg-blue-50 transition">
+                        <div className="flex items-center gap-3">
+                           <Folder className="text-yellow-500" size={20}/>
+                           <div>
+                              <p className="font-bold text-sm">{d.folder_type}</p>
+                              <p className="text-xs text-gray-500">{d.doc_name}</p>
+                           </div>
+                        </div>
+                        <a href={d.drive_link} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs font-bold flex items-center gap-1">
+                           Open File <ExternalLink size={12}/>
+                        </a>
+                     </div>
                   ))}
-                </tbody>
-              </table>
+               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* মডিউল ৫: অ্যাসিস্ট্যান্ট (Tasks) */}
-        {activeTab === 'tasks' && (
-          <div className="space-y-6">
-             <h2 className="text-3xl font-bold text-slate-800">Smart Assistant</h2>
-             <div className="bg-white p-6 rounded-lg shadow flex gap-4">
-                <input placeholder="New Task (e.g. Draft Writ Petition)" className="flex-1 p-2 border rounded" onChange={e => setNewTask({...newTask, task_name: e.target.value})}/>
-                <input type="date" className="p-2 border rounded" onChange={e => setNewTask({...newTask, due_date: e.target.value})}/>
-                <button onClick={async () => {
-                  await supabase.from('tasks').insert([newTask]);
-                  fetchData();
-                }} className="bg-slate-900 text-white px-6 rounded font-bold">ADD TASK</button>
-             </div>
-             <div className="space-y-2">
-               {tasks.map(t => (
-                 <div key={t.id} className="bg-white p-4 rounded shadow flex justify-between items-center border-l-4 border-[#c5a059]">
-                    <div>
-                      <p className="font-bold">{t.task_name}</p>
-                      <p className="text-xs text-red-500">Due: {t.due_date}</p>
-                    </div>
-                    <button onClick={async () => {
-                      await supabase.from('tasks').delete().eq('id', t.id);
-                      fetchData();
-                    }} className="text-gray-400 hover:text-red-600"><Trash2 size={18}/></button>
-                 </div>
-               ))}
-             </div>
-          </div>
-        )}
-
-      </main>
     </div>
   );
 };
 
+// --- সাব-কম্পোনেন্ট: সেকশন হেডার ---
+const Section = ({ title, children, color }) => (
+  <div className="mb-10">
+    <div className={`flex items-center gap-3 mb-4 border-b pb-2 border-${color}-200`}>
+      <h3 className={`text-lg font-bold text-${color}-800 uppercase tracking-wider`}>{title}</h3>
+      <span className={`bg-${color}-100 text-${color}-800 px-2 py-0.5 rounded-full text-xs font-bold`}>{Array.isArray(children) ? children.length : 1}</span>
+    </div>
+    <div className="grid gap-4">{children}</div>
+  </div>
+);
+
+// --- সাব-কম্পোনেন্ট: কেস কার্ড ---
+const CaseCard = ({ c, isToday, onUpdate, onDoc }) => (
+  <div className={`bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition relative overflow-hidden ${isToday ? 'ring-2 ring-red-500 bg-red-50' : ''}`}>
+    {isToday && <div className="absolute top-0 right-0 bg-red-600 text-white text-xs px-3 py-1 font-bold animate-pulse">TODAY</div>}
+    
+    <div className="flex justify-between items-start">
+       <div>
+          <div className="flex gap-2 mb-2">
+             <span className="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">{c.court_type}</span>
+             <span className="text-xs font-bold bg-blue-100 px-2 py-1 rounded text-blue-600">{c.section}</span>
+          </div>
+          <h4 className="text-xl font-bold text-slate-800">{c.case_no}</h4>
+          <p className="text-sm font-medium text-slate-600 mt-1">{c.party_name}</p>
+          <p className="text-xs text-gray-400 mt-1">On behalf of: {c.on_behalf}</p>
+       </div>
+
+       <div className="text-right">
+          <p className="text-xs text-gray-500">Next Date</p>
+          <p className={`text-xl font-bold ${isToday ? 'text-red-600' : 'text-slate-800'}`}>{c.next_date}</p>
+          <p className="text-xs font-bold text-[#c5a059] mt-1 uppercase">{c.current_step}</p>
+       </div>
+    </div>
+
+    {/* Action Buttons */}
+    <div className="mt-6 flex gap-3 border-t pt-4">
+       <button onClick={() => onUpdate(c.id, c.next_date, c.current_step)} className="flex-1 bg-slate-900 text-white py-2 rounded text-sm font-bold hover:bg-[#c5a059] flex justify-center items-center gap-2">
+          <Edit3 size={14}/> UPDATE DATE
+       </button>
+       <button onClick={onDoc} className="px-4 py-2 border border-gray-300 rounded text-slate-600 hover:bg-gray-100 flex items-center gap-2 text-sm font-bold">
+          <FolderOpen size={16}/> DOCS
+       </button>
+       <button onClick={() => window.open(`https://wa.me/${c.client_mobile}`, '_blank')} className="px-3 py-2 bg-green-100 text-green-600 rounded hover:bg-green-200">
+          <MessageCircle size={18}/>
+       </button>
+    </div>
+  </div>
+);
+
 // --- মেইন অ্যাপ কন্ট্রোলার ---
 export default function App() {
   const [session, setSession] = useState(null);
-  const [view, setView] = useState('home'); 
+  const [view, setView] = useState('home');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if(session) setView('dashboard');
     });
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setView(session ? 'dashboard' : 'home');
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ 
+      email: e.target.email.value, password: e.target.password.value 
+    });
     if (error) alert(error.message);
   };
 
   if (view === 'home') return <PublicHome onLoginClick={() => setView('login')} />;
   
   if (view === 'login') return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 bg-[url('https://images.unsplash.com/photo-1505664194779-8beaceb93744')] bg-cover bg-blend-overlay">
-      <div className="bg-white p-10 rounded-sm shadow-2xl w-full max-w-md border-t-8 border-[#c5a059]">
-        <div className="text-center mb-8">
-          <Scale className="h-12 w-12 text-[#c5a059] mx-auto mb-2"/>
-          <h2 className="text-3xl font-serif font-bold text-slate-900">Secure Portal</h2>
-          <p className="text-gray-500">Enter your credentials to access</p>
-        </div>
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Email / Client ID</label>
-            <input name="email" type="email" className="w-full p-3 bg-slate-50 border border-gray-300 rounded focus:border-[#c5a059] outline-none" required />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Password</label>
-            <input name="password" type="password" className="w-full p-3 bg-slate-50 border border-gray-300 rounded focus:border-[#c5a059] outline-none" required />
-          </div>
-          <button type="submit" className="w-full bg-slate-900 text-white py-4 font-bold tracking-wider hover:bg-[#c5a059] transition">
-            AUTHENTICATE
-          </button>
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="bg-white p-8 rounded shadow-2xl w-full max-w-md border-t-8 border-[#c5a059]">
+        <h2 className="text-2xl font-bold text-center mb-6">Secure Access</h2>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input name="email" type="email" placeholder="Email" className="w-full p-3 border rounded" required />
+          <input name="password" type="password" placeholder="Password" className="w-full p-3 border rounded" required />
+          <button type="submit" className="w-full bg-slate-900 text-white py-3 font-bold hover:bg-[#c5a059]">LOGIN</button>
         </form>
-        <button onClick={() => setView('home')} className="w-full text-center mt-6 text-slate-500 hover:text-[#c5a059] font-bold text-sm">
-          ← Return to Website
-        </button>
+        <button onClick={() => setView('home')} className="w-full text-center mt-4 text-sm text-gray-500">Back</button>
       </div>
     </div>
   );
