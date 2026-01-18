@@ -27,7 +27,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
             </div>
             <div>
               <h1 className="text-2xl font-serif font-bold text-slate-900 tracking-tight leading-none">LexSword</h1>
-              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">Your Justice, Our Mission</p>
+              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">LaW Firm</p>
             </div>
           </div>
 
@@ -228,7 +228,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
                </div>
             </div>
-         </div>
+         </div> 
       </section>
 
       {/* --- Appointment Form --- */}
@@ -266,7 +266,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
             </div>
 
             <div className="bg-white p-5 md:p-8 rounded-sm shadow-2xl order-1 md:order-2">
-               <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+               <form action="https://formspree.io/f/xqeepnrr" method="POST" className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div className="col-span-1 md:col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Full Name</label>
                      <input name="name" type="text" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="Your Name" required/>
@@ -309,7 +309,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-center md:text-left">
                <h2 className="text-2xl font-serif font-bold text-white tracking-wide">LEXSWORD</h2>
-               <p className="text-sm mt-2">&copy; {new Date().getFullYear()} LexSword Chambers. All Rights Reserved.</p>
+               <p className="text-sm mt-2">&copy; {new Date().getFullYear()} LexSword Law Firm. All Rights Reserved.</p>
             </div>
             <div className="flex gap-6 text-sm font-bold">
                <a href="#" className="hover:text-white transition">Privacy Policy</a>
