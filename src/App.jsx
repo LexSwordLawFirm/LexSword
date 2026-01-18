@@ -73,7 +73,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5a059] to-yellow-600">Securing Futures</span>
                </h1>
                <p className="text-lg text-slate-600 leading-relaxed max-w-lg mx-auto md:mx-0">
-                  Legal battles are won by precision, not just passion. An experienced attorney stands between you and injustice, navigating complex laws to secure the outcome you deserve. At LexSword, we fight for your legacy.
+                  An experienced lawyer stands between you and injustice, navigating complex laws to secure the outcome you deserve. At LexSword, we fight for your legacy.
                </p>
                
                <div className="flex flex-col md:flex-row gap-4 justify-center md:justify-start">
