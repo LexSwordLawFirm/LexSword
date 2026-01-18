@@ -5,11 +5,11 @@ import {
   Calendar as CalIcon, Save, Trash2, 
   ExternalLink, MessageCircle, FolderOpen, LogOut, 
   Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, 
-  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, ArrowRight
+  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, ArrowRight, Menu
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (Height Fixed for Visibility)
+// 1. LEXSWORD PUBLIC HOMEPAGE (Unchanged)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
@@ -18,7 +18,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
   return (
     <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white">
       
-      {/* --- Navbar (Unchanged) --- */}
+      {/* --- Navbar --- */}
       <nav className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 py-4 px-6 md:px-12 transition-all">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -44,7 +44,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
           </button>
 
           <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-slate-900">
-             {menuOpen ? <X/> : <div className="space-y-1.5"><div className="w-6 h-0.5 bg-slate-900"></div><div className="w-6 h-0.5 bg-slate-900"></div><div className="w-6 h-0.5 bg-slate-900"></div></div>}
+             {menuOpen ? <X/> : <Menu/>}
           </button>
         </div>
 
@@ -58,7 +58,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
         )}
       </nav>
 
-      {/* --- Hero Section (FIXED: Changed h-screen to min-h-screen & added bottom padding) --- */}
+      {/* --- Hero Section --- */}
       <header id="home" className="relative min-h-screen flex items-center justify-center bg-slate-50 pt-32 pb-20 overflow-hidden">
          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]"></div>
          
@@ -86,7 +86,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                </div>
             </div>
             
-            {/* Hero Image (Your Photo) */}
             <div className="relative">
                <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl hidden md:block"></div>
                <img 
@@ -102,7 +101,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </header>
 
-      {/* --- Why Choose Us (Unchanged) --- */}
+      {/* --- Why Choose Us --- */}
       <section id="about" className="py-24 bg-white">
          <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16 max-w-2xl mx-auto">
@@ -129,7 +128,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- Practice Areas (Unchanged) --- */}
+      {/* --- Practice Areas --- */}
       <section id="practice" className="py-24 bg-slate-50">
          <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row justify-between items-end mb-12">
@@ -161,11 +160,11 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- Team Section (Modified for Associates) --- */}
+      {/* --- Team Section --- */}
       <section id="team" className="py-24 bg-white">
          <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
-               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">The Lawyerss</h2>
+               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">The Lawyers</h2>
                <h3 className="text-4xl font-serif font-bold text-slate-900">Meet Our Team</h3>
             </div>
 
@@ -183,41 +182,35 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   </div>
                </div>
 
-               {/* 2. Associate Lawyer 1 */}
+               {/* Associates */}
                <div className="text-center group">
                   <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
-                     {/* ছবি আপলোড করে নাম দিন team1.jpg */}
                      <img src="/team1.jpg" alt="Associate 1" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                   </div>
                   <h4 className="text-xl font-bold text-slate-900">Adv. Anisuru Rahman</h4>
                   <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Senior Associate</p>
                </div>
 
-               {/* 3. Associate Lawyer 2 */}
                <div className="text-center group">
                   <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
-                     {/* ছবি আপলোড করে নাম দিন team2.jpg */}
                      <img src="/team2.jpg" alt="Associate 2" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                   </div>
                   <h4 className="text-xl font-bold text-slate-900">Adv. Abdur Razzak</h4>
                   <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
                </div>
 
-               {/* 4. Associate Lawyer 3 */}
                <div className="text-center group">
                   <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
-                     {/* ছবি আপলোড করে নাম দিন team3.jpg */}
                      <img src="/team3.jpg" alt="Associate 3" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                   </div>
                   <h4 className="text-xl font-bold text-slate-900">Adv. Tariqul Islam</h4>
                   <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
                </div>
-
             </div>
          </div>
       </section>
 
-      {/* --- Appointment Form (Unchanged - Mobile Friendly) --- */}
+      {/* --- Appointment Form --- */}
       <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
@@ -253,22 +246,18 @@ const PublicHome = ({ onLoginClick, loading }) => {
 
             <div className="bg-white p-5 md:p-8 rounded-sm shadow-2xl order-1 md:order-2">
                <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                  
                   <div className="col-span-1 md:col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Full Name</label>
                      <input name="name" type="text" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="Your Name" required/>
                   </div>
-                  
                   <div className="col-span-1">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Phone Number</label>
                      <input name="phone" type="tel" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="+880..." required/>
                   </div>
-
                   <div className="col-span-1">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Email Address</label>
                      <input name="email" type="email" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="email@example.com"/>
                   </div>
-
                   <div className="col-span-1 md:col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Practice Area</label>
                      <select name="service" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm">
@@ -280,12 +269,10 @@ const PublicHome = ({ onLoginClick, loading }) => {
                         <option>Other Legal Matter</option>
                      </select>
                   </div>
-
                   <div className="col-span-1 md:col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Case Details</label>
                      <textarea name="message" rows="4" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="Briefly describe your legal issue..."></textarea>
                   </div>
-
                   <div className="col-span-1 md:col-span-2">
                      <button type="submit" className="w-full bg-[#c5a059] text-slate-900 py-3 md:py-4 font-bold tracking-widest hover:bg-slate-900 hover:text-white transition uppercase text-sm md:text-base rounded-sm">
                         Submit Request
@@ -296,7 +283,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- Footer (Unchanged) --- */}
+      {/* --- Footer --- */}
       <footer className="bg-slate-950 text-slate-400 py-12 px-6 border-t border-slate-900">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-center md:text-left">
@@ -315,10 +302,10 @@ const PublicHome = ({ onLoginClick, loading }) => {
 };
 
 // ==============================================================================
-// 2. DASHBOARD & MODULES (UNCHANGED)
+// 2. DASHBOARD & MODULES (MOBILE RESPONSIVE FIX APPLIED HERE)
 // ==============================================================================
 
-// --- ক্লায়েন্ট ড্যাশবোর্ড (শুধুমাত্র রিড-অনলি) ---
+// --- ক্লায়েন্ট ড্যাশবোর্ড ---
 const ClientDashboard = ({ session, onLogout }) => {
   const [myCases, setMyCases] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -326,7 +313,6 @@ const ClientDashboard = ({ session, onLogout }) => {
   useEffect(() => {
     const fetchClientData = async () => {
       const { data: profile } = await supabase.from('profiles').select('mobile_no').eq('id', session.user.id).single();
-      
       if (profile && profile.mobile_no) {
         const { data: cases } = await supabase.from('cases').select('*').eq('client_mobile', profile.mobile_no);
         setMyCases(cases || []);
@@ -343,7 +329,7 @@ const ClientDashboard = ({ session, onLogout }) => {
         <button onClick={onLogout} className="text-red-400 font-bold flex gap-2"><LogOut size={20}/> Logout</button>
       </nav>
 
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="max-w-4xl mx-auto p-4 md:p-6">
         <h2 className="text-2xl font-bold mb-6 text-slate-800">My Ongoing Cases</h2>
         {loading && <p>Loading records...</p>}
         {!loading && myCases.length === 0 && <p className="text-gray-500">No cases found linked to your mobile number.</p>}
@@ -374,10 +360,11 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- এডমিন ড্যাশবোর্ড (UNCHANGED) ---
+// --- এডমিন ড্যাশবোর্ড (MOBILE RESPONSIVE UPDATE) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // New state for mobile sidebar
 
   // ডাটা স্টেটস
   const [cases, setCases] = useState([]);
@@ -497,17 +484,35 @@ const AdminDashboard = ({ session, onLogout }) => {
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden">
       
-      {/* সাইডবার */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-20">
-        <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800 tracking-wider">CHAMBERS</div>
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        ></div>
+      )}
+
+      {/* Sidebar (Responsive) */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0 md:static
+      `}>
+        <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800 tracking-wider flex justify-between items-center">
+          CHAMBERS
+          {/* Close button for mobile sidebar */}
+          <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(false)}>
+            <X size={24}/>
+          </button>
+        </div>
         <nav className="flex-1 p-4 space-y-2 mt-4">
-          <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'dashboard' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+          <button onClick={() => {setActiveTab('dashboard'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'dashboard' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
             <Gavel size={20}/> Case Dashboard
           </button>
-          <button onClick={() => setActiveTab('calendar')} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'calendar' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+          <button onClick={() => {setActiveTab('calendar'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'calendar' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
             <CalIcon size={20}/> Calendar
           </button>
-          <button onClick={() => setActiveTab('accounts')} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'accounts' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+          <button onClick={() => {setActiveTab('accounts'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'accounts' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
             <DollarSign size={20}/> Accounts & Ledger
           </button>
         </nav>
@@ -516,210 +521,224 @@ const AdminDashboard = ({ session, onLogout }) => {
         </button>
       </aside>
 
-      {/* মেইন এরিয়া */}
-      <main className="flex-1 overflow-y-auto relative p-6">
+      {/* মেইন এরিয়া */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         
-        {/* --- মডিউল ১: কেস ড্যাশবোর্ড --- */}
-        {activeTab === 'dashboard' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold text-slate-800">Case Dashboard</h2>
-              <button onClick={() => { setFormData({}); setModalMode('addCase'); }} className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold">
-                <Plus size={18}/> NEW CASE
-              </button>
-            </div>
+        {/* Mobile Header (Menu Button) */}
+        <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0">
+           <span className="font-bold font-serif text-[#c5a059]">LEXSWORD</span>
+           <button onClick={() => setMobileMenuOpen(true)}>
+             <Menu size={24}/>
+           </button>
+        </div>
 
-            <div className="flex flex-wrap gap-2 mb-6">
-              {[
-                {id: 'week', label: 'This Week'}, {id: 'today', label: 'Today'}, {id: 'tomorrow', label: 'Tomorrow'}, 
-                {id: 'all', label: 'All Cases'}, {id: 'update', label: 'Needs Update'}, {id: 'disposed', label: 'Disposed'}
-              ].map(f => (
-                <button key={f.id} onClick={() => setCaseFilter(f.id)} 
-                  className={`px-4 py-2 rounded-full text-sm font-bold border transition ${caseFilter === f.id ? 'bg-[#c5a059] text-slate-900 border-[#c5a059]' : 'bg-white text-gray-500 border-gray-300'}`}>
-                  {f.label}
+        <main className="flex-1 overflow-y-auto relative p-4 md:p-6">
+          
+          {/* --- মডিউল ১: কেস ড্যাশবোর্ড --- */}
+          {activeTab === 'dashboard' && (
+            <div>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Case Dashboard</h2>
+                <button onClick={() => { setFormData({}); setModalMode('addCase'); }} className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold w-full md:w-auto justify-center">
+                  <Plus size={18}/> NEW CASE
                 </button>
-              ))}
-            </div>
+              </div>
 
-            <div className="grid gap-4">
-              {getFilteredCases().length === 0 && <p className="text-gray-400 italic">No cases found in this filter.</p>}
-              {getFilteredCases().map(c => (
-                <div key={c.id} className="bg-white p-5 rounded-lg shadow border-l-4 border-slate-900 flex justify-between items-center hover:bg-slate-50 transition">
-                  <div>
-                    <div className="flex gap-2 mb-1">
-                      <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 rounded">{c.court_type}</span>
-                      <span className="text-xs font-bold bg-gray-200 text-gray-700 px-2 rounded">{c.court_name}</span>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {[
+                  {id: 'week', label: 'This Week'}, {id: 'today', label: 'Today'}, {id: 'tomorrow', label: 'Tomorrow'}, 
+                  {id: 'all', label: 'All Cases'}, {id: 'update', label: 'Needs Update'}, {id: 'disposed', label: 'Disposed'}
+                ].map(f => (
+                  <button key={f.id} onClick={() => setCaseFilter(f.id)} 
+                    className={`px-3 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold border transition ${caseFilter === f.id ? 'bg-[#c5a059] text-slate-900 border-[#c5a059]' : 'bg-white text-gray-500 border-gray-300'}`}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid gap-4">
+                {getFilteredCases().length === 0 && <p className="text-gray-400 italic">No cases found in this filter.</p>}
+                {getFilteredCases().map(c => (
+                  <div key={c.id} className="bg-white p-4 md:p-5 rounded-lg shadow border-l-4 border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 transition">
+                    <div className="flex-1">
+                      <div className="flex gap-2 mb-1">
+                        <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 rounded">{c.court_type}</span>
+                        <span className="text-xs font-bold bg-gray-200 text-gray-700 px-2 rounded truncate max-w-[150px]">{c.court_name}</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-800">{c.case_no}</h3>
+                      <p className="text-slate-600 font-medium">{c.party_name}</p>
+                      <p className="text-xs text-gray-400">Section: {c.section}</p>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-800">{c.case_no}</h3>
-                    <p className="text-slate-600 font-medium">{c.party_name}</p>
-                    <p className="text-xs text-gray-400">Section: {c.section}</p>
-                  </div>
-                  
-                  <div className="text-right mr-6">
-                    <p className="text-xs text-gray-500">Next Date</p>
-                    <p className="text-lg font-bold text-red-600">{c.next_date}</p>
-                    <p className="text-xs font-bold text-[#c5a059] uppercase">{c.current_step}</p>
-                  </div>
+                    
+                    <div className="text-left md:text-right w-full md:w-auto">
+                      <p className="text-xs text-gray-500">Next Date</p>
+                      <p className="text-lg font-bold text-red-600">{c.next_date}</p>
+                      <p className="text-xs font-bold text-[#c5a059] uppercase">{c.current_step}</p>
+                    </div>
 
-                  <div className="flex gap-2">
-                    <button onClick={() => { setSelectedCase(c); setModalMode('viewCase'); }} className="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-200" title="View Details & Docs">
-                      <Eye size={18}/>
-                    </button>
-                    <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-200" title="Edit">
-                      <Edit3 size={18}/>
-                    </button>
-                    <button onClick={() => handleDeleteCase(c.id)} className="p-2 bg-red-50 text-red-600 rounded hover:bg-red-200" title="Delete">
-                      <Trash2 size={18}/>
-                    </button>
-                    <button onClick={() => window.open(`https://wa.me/${c.client_mobile}`, '_blank')} className="p-2 bg-green-50 text-green-600 rounded hover:bg-green-200">
-                      <MessageCircle size={18}/>
-                    </button>
+                    <div className="flex gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
+                      <button onClick={() => { setSelectedCase(c); setModalMode('viewCase'); }} className="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-200" title="View Details & Docs">
+                        <Eye size={18}/>
+                      </button>
+                      <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-200" title="Edit">
+                        <Edit3 size={18}/>
+                      </button>
+                      <button onClick={() => handleDeleteCase(c.id)} className="p-2 bg-red-50 text-red-600 rounded hover:bg-red-200" title="Delete">
+                        <Trash2 size={18}/>
+                      </button>
+                      <button onClick={() => window.open(`https://wa.me/${c.client_mobile}`, '_blank')} className="p-2 bg-green-50 text-green-600 rounded hover:bg-green-200">
+                        <MessageCircle size={18}/>
+                      </button>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* --- মডিউল ২: ক্যালেন্ডার --- */}
+          {activeTab === 'calendar' && (
+            <div className="bg-white p-4 md:p-6 rounded shadow h-full flex flex-col">
+              <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                 <h2 className="text-2xl font-bold">Monthly Schedule</h2>
+                 <div className="flex items-center gap-4 bg-slate-100 p-2 rounded">
+                   <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-slate-200 rounded"><ChevronLeft/></button>
+                   <span className="font-bold text-lg w-32 text-center">
+                     {calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                   </span>
+                   <button onClick={() => changeMonth(1)} className="p-2 hover:bg-slate-200 rounded"><ChevronRight/></button>
+                 </div>
+              </div>
+              
+              <div className="grid grid-cols-7 gap-1 font-bold text-center bg-slate-100 p-2 rounded mb-2 text-xs md:text-base">
+                 <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+              </div>
+              <div className="grid grid-cols-7 gap-1 flex-1">
+                 {[...Array(35)].map((_, i) => {
+                   const year = calendarDate.getFullYear();
+                   const month = calendarDate.getMonth();
+                   const firstDay = new Date(year, month, 1).getDay();
+                   const d = new Date(year, month, 1 + i - firstDay);
+                   
+                   const dateStr = d.toISOString().split('T')[0];
+                   const isCurrentMonth = d.getMonth() === month;
+                   const hasCase = cases.filter(c => c.next_date === dateStr);
+                   
+                   return (
+                     <div key={i} onClick={() => isCurrentMonth && setSelectedDateCases(hasCase)} 
+                       className={`border p-1 md:p-2 h-16 md:h-24 rounded cursor-pointer transition 
+                       ${!isCurrentMonth ? 'bg-gray-50 opacity-50' : hasCase.length > 0 ? 'bg-red-50 border-red-200 hover:bg-red-100' : 'bg-white hover:bg-blue-50'}`}>
+                       <div className="flex justify-between items-start">
+                         <span className={`text-[10px] md:text-xs font-bold ${isCurrentMonth ? 'text-gray-600' : 'text-gray-300'}`}>{d.getDate()}</span>
+                         {isCurrentMonth && hasCase.length > 0 && <span className="text-[10px] md:text-xs bg-red-600 text-white px-1 rounded-full">{hasCase.length}</span>}
+                       </div>
+                       <div className="mt-1 overflow-hidden h-8 md:h-14">
+                         {isCurrentMonth && hasCase.map(c => <div key={c.id} className="text-[8px] md:text-[10px] truncate text-slate-800">• {c.case_no}</div>)}
+                       </div>
+                     </div>
+                   )
+                 })}
+              </div>
+              
+              {selectedDateCases && (
+                 <div className="mt-4 border-t pt-4">
+                   <h3 className="font-bold text-lg mb-2">Cases on Selected Date:</h3>
+                   {selectedDateCases.length === 0 ? <p>No cases.</p> : 
+                     selectedDateCases.map(c => (
+                       <div key={c.id} className="flex gap-4 items-center bg-slate-50 p-2 mb-2 rounded border text-sm">
+                         <span className="font-bold">{c.case_no}</span>
+                         <span className="truncate flex-1">{c.party_name}</span>
+                         <span className="text-[#c5a059] font-bold">{c.current_step}</span>
+                       </div>
+                     ))
+                   }
+                 </div>
+              )}
+            </div>
+          )}
+
+          {/* --- মডিউল ৩: একাউন্টস --- */}
+          {activeTab === 'accounts' && (
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 className="text-3xl font-bold text-slate-800">Accounts & Ledger</h2>
+                <button onClick={() => { setFormData({txn_type: 'Income', category: 'Office', payment_status: 'Paid'}); setModalMode('addTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] w-full md:w-auto">
+                   + ADD TRANSACTION
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-green-100 p-4 rounded border border-green-300">
+                   <p className="text-xs font-bold text-green-800 uppercase">Income (Paid)</p>
+                   <p className="text-xl md:text-2xl font-bold text-slate-800">৳{totalIncome - totalDueIncome}</p>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* --- মডিউল ২: ক্যালেন্ডার --- */}
-        {activeTab === 'calendar' && (
-          <div className="bg-white p-6 rounded shadow h-full flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-               <h2 className="text-2xl font-bold">Monthly Schedule</h2>
-               <div className="flex items-center gap-4 bg-slate-100 p-2 rounded">
-                 <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-slate-200 rounded"><ChevronLeft/></button>
-                 <span className="font-bold text-lg w-32 text-center">
-                   {calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
-                 </span>
-                 <button onClick={() => changeMonth(1)} className="p-2 hover:bg-slate-200 rounded"><ChevronRight/></button>
-               </div>
-            </div>
-            
-            <div className="grid grid-cols-7 gap-1 font-bold text-center bg-slate-100 p-2 rounded mb-2">
-               <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-            </div>
-            <div className="grid grid-cols-7 gap-1 flex-1">
-               {[...Array(35)].map((_, i) => {
-                 const year = calendarDate.getFullYear();
-                 const month = calendarDate.getMonth();
-                 const firstDay = new Date(year, month, 1).getDay();
-                 const d = new Date(year, month, 1 + i - firstDay);
-                 
-                 const dateStr = d.toISOString().split('T')[0];
-                 const isCurrentMonth = d.getMonth() === month;
-                 const hasCase = cases.filter(c => c.next_date === dateStr);
-                 
-                 return (
-                   <div key={i} onClick={() => isCurrentMonth && setSelectedDateCases(hasCase)} 
-                     className={`border p-2 h-24 rounded cursor-pointer transition 
-                     ${!isCurrentMonth ? 'bg-gray-50 opacity-50' : hasCase.length > 0 ? 'bg-red-50 border-red-200 hover:bg-red-100' : 'bg-white hover:bg-blue-50'}`}>
-                     <div className="flex justify-between">
-                       <span className={`text-xs font-bold ${isCurrentMonth ? 'text-gray-600' : 'text-gray-300'}`}>{d.getDate()}</span>
-                       {isCurrentMonth && hasCase.length > 0 && <span className="text-xs bg-red-600 text-white px-1 rounded-full">{hasCase.length}</span>}
-                     </div>
-                     <div className="mt-1 overflow-hidden h-14">
-                       {isCurrentMonth && hasCase.map(c => <div key={c.id} className="text-[10px] truncate text-slate-800">• {c.case_no}</div>)}
-                     </div>
-                   </div>
-                 )
-               })}
-            </div>
-            
-            {selectedDateCases && (
-               <div className="mt-4 border-t pt-4">
-                 <h3 className="font-bold text-lg mb-2">Cases on Selected Date:</h3>
-                 {selectedDateCases.length === 0 ? <p>No cases.</p> : 
-                   selectedDateCases.map(c => (
-                     <div key={c.id} className="flex gap-4 items-center bg-slate-50 p-2 mb-2 rounded border">
-                       <span className="font-bold">{c.case_no}</span>
-                       <span>{c.party_name}</span>
-                       <span className="text-[#c5a059] font-bold">{c.current_step}</span>
-                     </div>
-                   ))
-                 }
-               </div>
-            )}
-          </div>
-        )}
-
-        {/* --- মডিউল ৩: একাউন্টস --- */}
-        {activeTab === 'accounts' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-3xl font-bold text-slate-800">Accounts & Ledger</h2>
-              <button onClick={() => { setFormData({txn_type: 'Income', category: 'Office', payment_status: 'Paid'}); setModalMode('addTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059]">
-                 + ADD TRANSACTION
-              </button>
-            </div>
-
-            <div className="grid grid-cols-4 gap-4">
-              <div className="bg-green-100 p-4 rounded border border-green-300">
-                 <p className="text-xs font-bold text-green-800 uppercase">Total Income (Paid)</p>
-                 <p className="text-2xl font-bold text-slate-800">৳{totalIncome - totalDueIncome}</p>
+                <div className="bg-red-100 p-4 rounded border border-red-300">
+                   <p className="text-xs font-bold text-red-800 uppercase">Expense (Paid)</p>
+                   <p className="text-xl md:text-2xl font-bold text-slate-800">৳{totalExpense - totalDueExpense}</p>
+                </div>
+                <div className="bg-slate-800 text-white p-4 rounded">
+                   <p className="text-xs font-bold text-[#c5a059] uppercase">Cash In Hand</p>
+                   <p className="text-xl md:text-2xl font-bold">৳{(totalIncome - totalDueIncome) - (totalExpense - totalDueExpense)}</p>
+                </div>
+                <div className="bg-orange-100 p-4 rounded border border-orange-300">
+                   <p className="text-xs font-bold text-orange-800 uppercase">Dues (Pending)</p>
+                   <p className="text-xs md:text-sm font-bold">In: ৳{totalDueIncome}</p>
+                   <p className="text-xs md:text-sm font-bold">Out: ৳{totalDueExpense}</p>
+                </div>
               </div>
-              <div className="bg-red-100 p-4 rounded border border-red-300">
-                 <p className="text-xs font-bold text-red-800 uppercase">Total Expense (Paid)</p>
-                 <p className="text-2xl font-bold text-slate-800">৳{totalExpense - totalDueExpense}</p>
-              </div>
-              <div className="bg-slate-800 text-white p-4 rounded">
-                 <p className="text-xs font-bold text-[#c5a059] uppercase">Cash In Hand</p>
-                 <p className="text-2xl font-bold">৳{(totalIncome - totalDueIncome) - (totalExpense - totalDueExpense)}</p>
-              </div>
-              <div className="bg-orange-100 p-4 rounded border border-orange-300">
-                 <p className="text-xs font-bold text-orange-800 uppercase">Dues (Pending)</p>
-                 <p className="text-sm font-bold">Receive: ৳{totalDueIncome}</p>
-                 <p className="text-sm font-bold">Pay: ৳{totalDueExpense}</p>
-              </div>
-            </div>
 
-            <div className="bg-white p-4 rounded shadow flex gap-4 items-center">
-               <Filter size={18} className="text-gray-400"/>
-               <input placeholder="Filter by Client Name (e.g. Rahim)" className="border p-2 rounded flex-1" 
-                  onChange={e => setAccountFilter({...accountFilter, client: e.target.value})} />
-               <input type="month" className="border p-2 rounded" 
-                  onChange={e => setAccountFilter({...accountFilter, month: e.target.value})} />
-            </div>
+              <div className="bg-white p-4 rounded shadow flex flex-col md:flex-row gap-4 items-center">
+                 <div className="flex items-center gap-2 w-full md:w-auto">
+                    <Filter size={18} className="text-gray-400"/>
+                    <span className="font-bold text-sm text-gray-500">Filter:</span>
+                 </div>
+                 <input placeholder="Client Name..." className="border p-2 rounded flex-1 w-full" 
+                    onChange={e => setAccountFilter({...accountFilter, client: e.target.value})} />
+                 <input type="month" className="border p-2 rounded w-full md:w-auto" 
+                    onChange={e => setAccountFilter({...accountFilter, month: e.target.value})} />
+              </div>
 
-            <div className="bg-white rounded shadow overflow-hidden">
-               <table className="w-full text-left">
-                  <thead className="bg-slate-50 border-b">
-                    <tr>
-                      <th className="p-3">Date</th>
-                      <th className="p-3">Client / Name</th>
-                      <th className="p-3">Description</th>
-                      <th className="p-3">Category</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3 text-right">Amount</th>
-                      <th className="p-3 text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAccounts.map(a => (
-                      <tr key={a.id} className="border-b hover:bg-gray-50">
-                        <td className="p-3 text-sm">{a.date}</td>
-                        <td className="p-3 font-bold text-slate-700">{a.client_name || '-'}</td>
-                        <td className="p-3 text-sm">{a.description}</td>
-                        <td className="p-3"><span className="bg-slate-100 px-2 py-1 rounded text-xs">{a.category}</span></td>
-                        <td className="p-3">
-                           <span className={`px-2 py-1 rounded text-xs font-bold ${a.payment_status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                             {a.payment_status}
-                           </span>
-                        </td>
-                        <td className={`p-3 text-right font-bold ${a.txn_type === 'Income' ? 'text-green-600' : 'text-red-600'}`}>
-                           {a.txn_type === 'Income' ? '+' : '-'} {a.amount}
-                        </td>
-                        <td className="p-3 flex justify-center gap-2">
-                           <button onClick={() => { setFormData(a); setModalMode('addTxn'); }} className="text-blue-500 hover:bg-blue-50 p-1 rounded"><Edit3 size={16}/></button>
-                           <button onClick={() => handleDeleteTxn(a.id)} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={16}/></button>
-                        </td>
+              <div className="bg-white rounded shadow overflow-x-auto">
+                 <table className="w-full text-left min-w-[600px]">
+                    <thead className="bg-slate-50 border-b">
+                      <tr>
+                        <th className="p-3">Date</th>
+                        <th className="p-3">Client / Name</th>
+                        <th className="p-3">Description</th>
+                        <th className="p-3">Category</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3 text-right">Amount</th>
+                        <th className="p-3 text-center">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-               </table>
+                    </thead>
+                    <tbody>
+                      {filteredAccounts.map(a => (
+                        <tr key={a.id} className="border-b hover:bg-gray-50">
+                          <td className="p-3 text-sm">{a.date}</td>
+                          <td className="p-3 font-bold text-slate-700">{a.client_name || '-'}</td>
+                          <td className="p-3 text-sm">{a.description}</td>
+                          <td className="p-3"><span className="bg-slate-100 px-2 py-1 rounded text-xs">{a.category}</span></td>
+                          <td className="p-3">
+                             <span className={`px-2 py-1 rounded text-xs font-bold ${a.payment_status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                               {a.payment_status}
+                             </span>
+                          </td>
+                          <td className={`p-3 text-right font-bold ${a.txn_type === 'Income' ? 'text-green-600' : 'text-red-600'}`}>
+                             {a.txn_type === 'Income' ? '+' : '-'} {a.amount}
+                          </td>
+                          <td className="p-3 flex justify-center gap-2">
+                             <button onClick={() => { setFormData(a); setModalMode('addTxn'); }} className="text-blue-500 hover:bg-blue-50 p-1 rounded"><Edit3 size={16}/></button>
+                             <button onClick={() => handleDeleteTxn(a.id)} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={16}/></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                 </table>
+              </div>
             </div>
-          </div>
-        )}
-      </main>
+          )}
+        </main>
+      </div>
 
       {/* ================= MODALS ================= */}
       {modalMode === 'addCase' && (
