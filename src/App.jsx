@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (Input Colors Fixed)
+// 1. LEXSWORD PUBLIC HOMEPAGE (Unchanged)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
@@ -143,17 +143,38 @@ const PublicHome = ({ onLoginClick, loading }) => {
 
             <div className="grid md:grid-cols-3 gap-6">
                {[
-                  "Civil Litigation", "Criminal Defense", "Writ Petition", 
-                  "Family Law", "Commercial Law", "Documentation"
-               ].map((area, i) => (
+                  {
+                    title: "Civil Litigation", 
+                    desc: "We handle complex property disputes, land matters, and contract enforcement. Our team ensures your civil rights are protected through skilled advocacy. We fight for favorable decrees in all tiers of the civil courts."
+                  },
+                  {
+                    title: "Criminal Defense", 
+                    desc: "Expert defense in sessions and magistrate courts for bail and trial proceedings. We protect the accused against false allegations with aggressive representation. Your liberty is our priority, ensuring fair treatment under the law."
+                  },
+                  {
+                    title: "Writ Petition", 
+                    desc: "Challenging government actions and enforcing fundamental rights in the High Court. We file Writ Petitions to secure immediate remedies for illegal detentions. Our expertise ensures constitutional protection against administrative excess."
+                  },
+                  {
+                    title: "Family Law", 
+                    desc: "Compassionate legal support for divorce, child custody, and dower issues. We assist in inheritance distribution according to Muslim and Hindu family laws. Resolving sensitive domestic matters with privacy and legal precision."
+                  },
+                  {
+                    title: "Commercial Law", 
+                    desc: "Comprehensive solutions for banking, Artha Rin suits, and corporate disputes. We guide businesses through regulatory compliance and contract drafting. Protecting your commercial interests with strategic legal counsel."
+                  },
+                  {
+                    title: "Documentation", 
+                    desc: "Professional drafting of deeds, contracts, wills, and legal notices. We provide expert vetting of land documents to prevent future litigation. Ensuring every document meets strict legal standards for validity."
+                  }
+               ].map((item, i) => (
                   <div key={i} className="bg-white p-8 border-l-4 border-[#c5a059] shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 group">
                      <div className="flex justify-between items-start mb-4">
                         <Gavel className="text-slate-300 group-hover:text-[#c5a059] transition"/>
                         <span className="text-5xl font-serif font-bold text-slate-100 group-hover:text-slate-200 transition">0{i+1}</span>
                      </div>
-                     <h4 className="text-2xl font-bold text-slate-900 font-serif mb-2">{area}</h4>
-                     <p className="text-gray-500 text-sm mb-4">Professional legal representation and consultancy services.</p>
-                     <span className="text-xs font-bold uppercase tracking-widest text-[#c5a059] group-hover:text-slate-900 transition">Learn More</span>
+                     <h4 className="text-2xl font-bold text-slate-900 font-serif mb-3">{item.title}</h4>
+                     <p className="text-gray-500 text-sm leading-relaxed text-justify">{item.desc}</p>
                   </div>
                ))}
             </div>
@@ -210,7 +231,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- Appointment Form (Input Color Fixed) --- */}
+      {/* --- Appointment Form --- */}
       <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
@@ -302,7 +323,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
 };
 
 // ==============================================================================
-// 2. DASHBOARD & MODULES (FIXED: Update Button & Input Colors)
+// 2. DASHBOARD & MODULES
 // ==============================================================================
 
 // --- ক্লায়েন্ট ড্যাশবোর্ড ---
@@ -360,7 +381,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- এডমিন ড্যাশবোর্ড (FIXED: Input Colors & Update Button) ---
+// --- এডমিন ড্যাশবোর্ড (UPDATED: Counts & Blinking Alert) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
@@ -379,7 +400,7 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [selectedDateCases, setSelectedDateCases] = useState(null);
 
   // মোডাল স্টেটস
-  const [modalMode, setModalMode] = useState(null); // 'addCase', 'updateStatus', etc.
+  const [modalMode, setModalMode] = useState(null); 
   const [selectedCase, setSelectedCase] = useState(null);
   const [formData, setFormData] = useState({});
   const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' });
@@ -408,17 +429,27 @@ const AdminDashboard = ({ session, onLogout }) => {
     setCalendarDate(new Date(newDate));
   };
 
-  const getFilteredCases = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-    const tomorrow = tomorrowDate.toISOString().split('T')[0];
-    
-    const curr = new Date();
-    const first = curr.getDate() - curr.getDay(); 
-    const last = first + 4; 
-    const sunday = new Date(curr.setDate(first)).toISOString().split('T')[0];
-    const thursday = new Date(curr.setDate(last)).toISOString().split('T')[0];
+  // --- Date Variables & Counts (Moved Up for Usage in Buttons) ---
+  const today = new Date().toISOString().split('T')[0];
+  const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = tomorrowDate.toISOString().split('T')[0];
+  
+  const curr = new Date();
+  const first = curr.getDate() - curr.getDay(); 
+  const last = first + 4; 
+  const sunday = new Date(curr.setDate(first)).toISOString().split('T')[0];
+  const thursday = new Date(curr.setDate(last)).toISOString().split('T')[0];
 
+  const counts = {
+    all: cases.length,
+    week: cases.filter(c => c.next_date >= sunday && c.next_date <= thursday).length,
+    today: cases.filter(c => c.next_date === today).length,
+    tomorrow: cases.filter(c => c.next_date === tomorrow).length,
+    update: cases.filter(c => c.next_date < today && c.status === 'Ongoing').length,
+    disposed: cases.filter(c => c.status === 'Disposed').length
+  };
+
+  const getFilteredCases = () => {
     return cases.filter(c => {
       if (caseFilter === 'all') return true;
       if (caseFilter === 'today') return c.next_date === today;
@@ -438,7 +469,6 @@ const AdminDashboard = ({ session, onLogout }) => {
     else { alert("Saved!"); setModalMode(null); setRefresh(r => r+1); }
   };
 
-  // --- NEW: Update Status/Date Function ---
   const handleUpdateStatus = async () => {
     const { error } = await supabase.from('cases').update({
         next_date: formData.next_date,
@@ -551,11 +581,17 @@ const AdminDashboard = ({ session, onLogout }) => {
 
               <div className="flex flex-wrap gap-2 mb-6">
                 {[
-                  {id: 'week', label: 'This Week'}, {id: 'today', label: 'Today'}, {id: 'tomorrow', label: 'Tomorrow'}, 
-                  {id: 'all', label: 'All Cases'}, {id: 'update', label: 'Needs Update'}, {id: 'disposed', label: 'Disposed'}
+                  {id: 'week', label: `This Week (${counts.week})`}, 
+                  {id: 'today', label: `Today (${counts.today})`}, 
+                  {id: 'tomorrow', label: `Tomorrow (${counts.tomorrow})`}, 
+                  {id: 'all', label: `All Cases (${counts.all})`}, 
+                  {id: 'update', label: `Needs Update (${counts.update})`, alert: counts.update > 0}, 
+                  {id: 'disposed', label: `Disposed (${counts.disposed})`}
                 ].map(f => (
                   <button key={f.id} onClick={() => setCaseFilter(f.id)} 
-                    className={`px-3 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold border transition ${caseFilter === f.id ? 'bg-[#c5a059] text-slate-900 border-[#c5a059]' : 'bg-white text-slate-600 border-gray-400'}`}>
+                    className={`px-3 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold border transition 
+                    ${f.alert ? 'bg-red-500 text-white border-red-600 animate-pulse' : 
+                      caseFilter === f.id ? 'bg-[#c5a059] text-slate-900 border-[#c5a059]' : 'bg-white text-slate-600 border-gray-400'}`}>
                     {f.label}
                   </button>
                 ))}
@@ -582,12 +618,9 @@ const AdminDashboard = ({ session, onLogout }) => {
                     </div>
 
                     <div className="flex gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
-                      
-                      {/* --- ADDED: QUICK UPDATE BUTTON --- */}
                       <button onClick={() => { setFormData(c); setModalMode('updateStatus'); }} className="p-2 bg-slate-900 text-white rounded hover:bg-[#c5a059] font-bold flex items-center gap-1" title="Update Date & Step">
                         <RefreshCw size={16}/> Update
                       </button>
-
                       <button onClick={() => { setSelectedCase(c); setModalMode('viewCase'); }} className="p-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200" title="View">
                         <Eye size={18}/>
                       </button>
