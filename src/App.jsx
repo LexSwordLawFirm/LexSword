@@ -189,7 +189,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                      {/* ছবি আপলোড করে নাম দিন team1.jpg */}
                      <img src="/team1.jpg" alt="Associate 1" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                   </div>
-                  <h4 className="text-xl font-bold text-slate-900">Adv. Name Here</h4>
+                  <h4 className="text-xl font-bold text-slate-900">Adv. Anisuru Rahman</h4>
                   <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Senior Associate</p>
                </div>
 
@@ -199,7 +199,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                      {/* ছবি আপলোড করে নাম দিন team2.jpg */}
                      <img src="/team2.jpg" alt="Associate 2" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                   </div>
-                  <h4 className="text-xl font-bold text-slate-900">Adv. Name Here</h4>
+                  <h4 className="text-xl font-bold text-slate-900">Adv. Abdur Razzak</h4>
                   <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
                </div>
 
@@ -209,8 +209,8 @@ const PublicHome = ({ onLoginClick, loading }) => {
                      {/* ছবি আপলোড করে নাম দিন team3.jpg */}
                      <img src="/team3.jpg" alt="Associate 3" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                   </div>
-                  <h4 className="text-xl font-bold text-slate-900">Adv. Name Here</h4>
-                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Junior Associate</p>
+                  <h4 className="text-xl font-bold text-slate-900">Adv. Tariqul Islam</h4>
+                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
                </div>
 
             </div>
