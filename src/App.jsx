@@ -5,15 +5,50 @@ import {
   Calendar as CalIcon, Save, Trash2, 
   ExternalLink, MessageCircle, FolderOpen, LogOut, 
   Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, 
-  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, ArrowRight, Menu, RefreshCw
+  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, ArrowRight, Menu, RefreshCw, CheckCircle
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (Unchanged)
+// 1. LEXSWORD PUBLIC HOMEPAGE (Custom Pop-up Added)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  
+  // --- New States for Form Submission ---
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // --- Handle Form Submit (AJAX) ---
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Stop page redirect
+    setIsSubmitting(true);
+
+    const form = e.target;
+    const data = new FormData(form);
+
+    try {
+      // Replace YOUR_FORM_ID with your actual Formspree ID
+      const response = await fetch("https://formspree.io/f/YOUR_FORM_ID", {
+        method: "POST",
+        body: data,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        setShowSuccessModal(true); // Show Success Modal
+        form.reset(); // Clear form fields
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      alert("Error connecting to server.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white">
@@ -27,7 +62,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
             </div>
             <div>
               <h1 className="text-2xl font-serif font-bold text-slate-900 tracking-tight leading-none">LexSword</h1>
-              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">Top LaW Firm</p>
+              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">Your Justice, Our Mission</p>
             </div>
           </div>
 
@@ -90,11 +125,11 @@ const PublicHome = ({ onLoginClick, loading }) => {
                <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl hidden md:block"></div>
                <img 
                  src="/head.jpg" 
-                 alt="Adv. Azadur Rahman, Head of LexSword" 
+                 alt="Md. Azadur Rahman, Head of LexSword" 
                  className="relative rounded-lg shadow-2xl border-4 border-white object-cover object-top h-[500px] md:h-[650px] w-full"
                />
                <div className="absolute -bottom-6 -left-6 bg-white p-6 shadow-xl rounded-sm border-l-4 border-[#c5a059] hidden md:block">
-                  <p className="text-xl font-serif font-bold text-slate-900">Adv. Azadur Rahman</p>
+                  <p className="text-xl font-serif font-bold text-slate-900">Md. Azadur Rahman</p>
                   <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">Head of Chamber</p>
                </div>
             </div>
@@ -190,20 +225,18 @@ const PublicHome = ({ onLoginClick, loading }) => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-10">
-               {/* 1. Head of Chamber */}
                <div className="md:col-span-3 flex justify-center mb-8">
                   <div className="text-center group">
                      <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto shadow-2xl border-4 border-white">
                         <img src="/head.jpg" alt="Md. Azadur Rahman" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                         <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition"></div>
                      </div>
-                     <h4 className="text-3xl font-serif font-bold text-slate-900">Adv. Azadur Rahman</h4>
+                     <h4 className="text-3xl font-serif font-bold text-slate-900">Md. Azadur Rahman</h4>
                      <p className="text-[#c5a059] font-bold uppercase text-sm tracking-wider mt-1">Head of Chamber</p>
                      <p className="text-gray-500 text-sm mt-1">Supreme Court of Bangladesh</p>
                   </div>
                </div>
 
-               {/* Associates */}
                <div className="text-center group">
                   <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
                      <img src="/team1.jpg" alt="Associate 1" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
@@ -228,10 +261,10 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
                </div>
             </div>
-         </div> 
+         </div>
       </section>
 
-      {/* --- Appointment Form --- */}
+      {/* --- Appointment Form (UPDATED: Custom Pop-up) --- */}
       <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
@@ -266,7 +299,8 @@ const PublicHome = ({ onLoginClick, loading }) => {
             </div>
 
             <div className="bg-white p-5 md:p-8 rounded-sm shadow-2xl order-1 md:order-2">
-               <form action="https://formspree.io/f/xqeepnrr" method="POST" className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+               {/* Updated Form Handling */}
+               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div className="col-span-1 md:col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Full Name</label>
                      <input name="name" type="text" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="Your Name" required/>
@@ -295,8 +329,8 @@ const PublicHome = ({ onLoginClick, loading }) => {
                      <textarea name="message" rows="4" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="Briefly describe your legal issue..."></textarea>
                   </div>
                   <div className="col-span-1 md:col-span-2">
-                     <button type="submit" className="w-full bg-[#c5a059] text-slate-900 py-3 md:py-4 font-bold tracking-widest hover:bg-slate-900 hover:text-white transition uppercase text-sm md:text-base rounded-sm">
-                        Submit Request
+                     <button type="submit" disabled={isSubmitting} className="w-full bg-[#c5a059] text-slate-900 py-3 md:py-4 font-bold tracking-widest hover:bg-slate-900 hover:text-white transition uppercase text-sm md:text-base rounded-sm flex justify-center items-center gap-2">
+                        {isSubmitting ? <span className="loading loading-spinner loading-sm"></span> : "Submit Request"}
                      </button>
                   </div>
                </form>
@@ -304,12 +338,33 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
+      {/* --- SUCCESS MODAL --- */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-sm shadow-2xl w-full max-w-md border-t-8 border-[#c5a059] text-center animate-bounce-in">
+             <div className="mb-4 flex justify-center">
+                <CheckCircle size={64} className="text-green-500"/>
+             </div>
+             <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Submission Received</h3>
+             <p className="text-slate-600 mb-6">
+                Thank you for contacting LexSword. We have received your details. Our team will review your case and get back to you within 24 hours.
+             </p>
+             <button 
+               onClick={() => setShowSuccessModal(false)}
+               className="bg-slate-900 text-white px-8 py-3 rounded-sm font-bold hover:bg-[#c5a059] transition uppercase tracking-wider w-full"
+             >
+               Close
+             </button>
+          </div>
+        </div>
+      )}
+
       {/* --- Footer --- */}
       <footer className="bg-slate-950 text-slate-400 py-12 px-6 border-t border-slate-900">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-center md:text-left">
                <h2 className="text-2xl font-serif font-bold text-white tracking-wide">LEXSWORD</h2>
-               <p className="text-sm mt-2">&copy; {new Date().getFullYear()} LexSword Law Firm. All Rights Reserved.</p>
+               <p className="text-sm mt-2">&copy; {new Date().getFullYear()} LexSword Chambers. All Rights Reserved.</p>
             </div>
             <div className="flex gap-6 text-sm font-bold">
                <a href="#" className="hover:text-white transition">Privacy Policy</a>
@@ -323,7 +378,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
 };
 
 // ==============================================================================
-// 2. DASHBOARD & MODULES
+// 2. DASHBOARD & MODULES (UNCHANGED)
 // ==============================================================================
 
 // --- ক্লায়েন্ট ড্যাশবোর্ড ---
@@ -381,7 +436,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- এডমিন ড্যাশবোর্ড (UPDATED: Counts & Blinking Alert) ---
+// --- এডমিন ড্যাশবোর্ড (FIXED: Input Colors & Update Button) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
@@ -400,7 +455,7 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [selectedDateCases, setSelectedDateCases] = useState(null);
 
   // মোডাল স্টেটস
-  const [modalMode, setModalMode] = useState(null); 
+  const [modalMode, setModalMode] = useState(null); // 'addCase', 'updateStatus', etc.
   const [selectedCase, setSelectedCase] = useState(null);
   const [formData, setFormData] = useState({});
   const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' });
@@ -469,6 +524,7 @@ const AdminDashboard = ({ session, onLogout }) => {
     else { alert("Saved!"); setModalMode(null); setRefresh(r => r+1); }
   };
 
+  // --- Update Status/Date Function ---
   const handleUpdateStatus = async () => {
     const { error } = await supabase.from('cases').update({
         next_date: formData.next_date,
@@ -640,6 +696,9 @@ const AdminDashboard = ({ session, onLogout }) => {
             </div>
           )}
 
+          {/* ... (Calendar and Accounts Modules remain the same but now inherit the new color fixes and responsiveness from previous steps) ... */}
+          {/* Note: I'm keeping the rest identical to the previous improved version to maintain consistency */}
+          
           {activeTab === 'calendar' && (
             <div className="bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900">
               <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
@@ -860,6 +919,7 @@ const AdminDashboard = ({ session, onLogout }) => {
         </div>
       )}
 
+      {/* ... (View Case Modal and Accounts Modal remain same but have text-slate-900 applied via parent) ... */}
       {modalMode === 'viewCase' && selectedCase && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto text-slate-900">
