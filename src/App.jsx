@@ -27,7 +27,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
             </div>
             <div>
               <h1 className="text-2xl font-serif font-bold text-slate-900 tracking-tight leading-none">LexSword</h1>
-              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">LaW Firm</p>
+              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">Reputed LaW Firm</p>
             </div>
           </div>
 
