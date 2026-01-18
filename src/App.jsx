@@ -165,7 +165,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
       <section id="team" className="py-24 bg-white">
          <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
-               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">The Attorneys</h2>
+               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">The Lawyerss</h2>
                <h3 className="text-4xl font-serif font-bold text-slate-900">Meet Our Team</h3>
             </div>
 
