@@ -9,10 +9,10 @@ import {
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (Text & Email Updated)
+// 1. LEXSWORD PUBLIC HOMEPAGE (Image & Login Animation Updated)
 // ==============================================================================
 
-const PublicHome = ({ onLoginClick }) => {
+const PublicHome = ({ onLoginClick, loading }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -40,7 +40,7 @@ const PublicHome = ({ onLoginClick }) => {
           </div>
 
           <button onClick={onLoginClick} className="hidden md:flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-sm font-bold text-sm tracking-wide hover:bg-[#c5a059] hover:text-white transition shadow-lg">
-            <User size={16}/> MEMBER LOGIN
+            {loading ? <span className="loading loading-spinner loading-xs"></span> : <User size={16}/>} MEMBER LOGIN
           </button>
 
           <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-slate-900">
@@ -53,12 +53,12 @@ const PublicHome = ({ onLoginClick }) => {
              <a href="#home" onClick={()=>setMenuOpen(false)}>Home</a>
              <a href="#practice" onClick={()=>setMenuOpen(false)}>Practice Areas</a>
              <a href="#contact" onClick={()=>setMenuOpen(false)}>Contact</a>
-             <button onClick={onLoginClick} className="text-[#c5a059]">Login Portal</button>
+             <button onClick={onLoginClick} className="text-[#c5a059]">{loading ? <span className="loading loading-spinner loading-xs"></span> : 'Login Portal'}</button>
           </div>
         )}
       </nav>
 
-      {/* --- Hero Section (Text Updated to Law Related) --- */}
+      {/* --- Hero Section (Image Updated to Law Related) --- */}
       <header id="home" className="relative h-screen flex items-center justify-center bg-slate-50 pt-16 overflow-hidden">
          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]"></div>
          
@@ -68,7 +68,6 @@ const PublicHome = ({ onLoginClick }) => {
                   <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Expert Legal Defense
                </div>
                
-               {/* --- UPDATED TEXT START --- */}
                <h1 className="text-5xl md:text-7xl font-serif font-bold text-slate-900 leading-[1.1]">
                   Protecting Rights <br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5a059] to-yellow-600">Securing Futures</span>
@@ -76,8 +75,7 @@ const PublicHome = ({ onLoginClick }) => {
                <p className="text-lg text-slate-600 leading-relaxed max-w-lg mx-auto md:mx-0">
                   Legal battles are won by precision, not just passion. An experienced attorney stands between you and injustice, navigating complex laws to secure the outcome you deserve. At LexSword, we fight for your legacy.
                </p>
-               {/* --- UPDATED TEXT END --- */}
-
+               
                <div className="flex flex-col md:flex-row gap-4 justify-center md:justify-start">
                   <a href="#contact" className="bg-slate-900 text-white px-8 py-4 rounded-sm font-bold tracking-widest hover:bg-[#c5a059] transition shadow-xl text-center">
                      CASE EVALUATION
@@ -88,11 +86,11 @@ const PublicHome = ({ onLoginClick }) => {
                </div>
             </div>
             
-            {/* Hero Image (Kept Exactly as it was) */}
+            {/* Hero Image (Updated to Law Related) */}
             <div className="relative hidden md:block">
                <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl"></div>
                <img 
-                 src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80" 
+                 src="https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80" 
                  alt="Legal Excellence" 
                  className="relative rounded-lg shadow-2xl border-4 border-white object-cover h-[600px] w-full grayscale hover:grayscale-0 transition duration-700"
                />
@@ -198,7 +196,7 @@ const PublicHome = ({ onLoginClick }) => {
          </div>
       </section>
 
-      {/* --- Appointment Form (Formspree Connected) --- */}
+      {/* --- Appointment Form (Unchanged) --- */}
       <section id="contact" className="py-24 bg-slate-900 text-white relative">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-6 relative z-10 grid md:grid-cols-2 gap-16">
@@ -898,7 +896,7 @@ const AdminDashboard = ({ session, onLogout }) => {
 };
 
 // ==============================================================================
-// 3. MAIN APP CONTROLLER
+// 3. MAIN APP CONTROLLER (UNCHANGED)
 // ==============================================================================
 export default function App() {
   const [session, setSession] = useState(null);
