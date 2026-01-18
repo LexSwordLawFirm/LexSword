@@ -5,60 +5,136 @@ import {
   Phone, User, Calendar as CalIcon, Save, Trash2, 
   ExternalLink, MessageCircle, FolderOpen, LogOut, 
   Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, 
-  Eye, History, CheckCircle, Search
+  Eye, History, Folder, Lock, CheckCircle
 } from 'lucide-react';
 
-// --- ১. পাবলিক হোমপেজ ---
-const PublicHome = ({ onLoginClick }) => (
-  <div className="font-sans text-slate-800 bg-white">
-    <nav className="fixed w-full bg-slate-900 text-white z-50 px-6 py-4 shadow-lg flex justify-between items-center">
-      <div className="flex items-center gap-2">
-        <Scale className="text-[#c5a059] h-8 w-8" />
-        <div><h1 className="text-2xl font-bold font-serif">JUSTICE & CO.</h1></div>
+// --- ১. পাবলিক হোমপেজ (International Standard) ---
+const PublicHome = ({ onAdminLogin, onClientLogin }) => (
+  <div className="font-sans text-slate-800 bg-slate-50 min-h-screen flex flex-col">
+    {/* Navigation */}
+    <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="bg-[#c5a059] p-2 rounded-full text-white"><Scale size={24} /></div>
+          <div>
+            <h1 className="text-2xl font-bold font-serif tracking-tight text-slate-900">JUSTICE & CO.</h1>
+            <p className="text-[10px] tracking-widest text-gray-500 uppercase">Supreme Court Chambers</p>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <button onClick={onClientLogin} className="px-6 py-2 rounded-full border border-gray-300 text-sm font-bold text-gray-600 hover:bg-gray-50 transition flex items-center gap-2">
+            <User size={16}/> CLIENT PORTAL
+          </button>
+          <button onClick={onAdminLogin} className="px-6 py-2 rounded-full bg-slate-900 text-white text-sm font-bold hover:bg-[#c5a059] transition flex items-center gap-2">
+            <Lock size={16}/> ADMIN ACCESS
+          </button>
+        </div>
       </div>
-      <button onClick={onLoginClick} className="bg-[#c5a059] text-slate-900 px-6 py-2 rounded-sm font-bold hover:bg-white transition">
-        CLIENT / ADMIN LOGIN
-      </button>
     </nav>
-    <header className="h-screen flex items-center justify-center bg-slate-900 text-white pt-20 relative">
-       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1589829085413-56de8ae18c73')] bg-cover opacity-20"></div>
-       <div className="relative z-10 text-center max-w-4xl px-4">
-         <h1 className="text-6xl font-serif font-bold mb-6">Supreme Court Advocates</h1>
-         <p className="text-xl text-gray-300 mb-8">Excellence in Legal Representation across Bangladesh.</p>
+
+    {/* Hero Section */}
+    <header className="flex-1 flex items-center justify-center relative overflow-hidden">
+       <div className="absolute inset-0 z-0 opacity-5 bg-[radial-gradient(#c5a059_1px,transparent_1px)] [background-size:16px_16px]"></div>
+       <div className="text-center max-w-4xl px-6 relative z-10">
+         <span className="text-[#c5a059] font-bold tracking-widest text-xs uppercase mb-4 block">Est. 2025 • Dhaka, Bangladesh</span>
+         <h1 className="text-5xl md:text-7xl font-serif font-bold text-slate-900 mb-8 leading-tight">
+           Unwavering Commitment <br/> to Justice
+         </h1>
+         <p className="text-lg text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+           Providing strategic legal solutions in the High Court & Judge Courts. 
+           We combine deep legal knowledge with modern efficiency.
+         </p>
+         <div className="flex justify-center gap-6">
+            <div className="flex flex-col items-center">
+               <span className="text-3xl font-bold text-slate-900">500+</span>
+               <span className="text-xs text-gray-400 uppercase">Cases Solved</span>
+            </div>
+            <div className="w-px bg-gray-300 h-12"></div>
+            <div className="flex flex-col items-center">
+               <span className="text-3xl font-bold text-slate-900">98%</span>
+               <span className="text-xs text-gray-400 uppercase">Success Rate</span>
+            </div>
+         </div>
        </div>
     </header>
   </div>
 );
 
-// --- ২. মেইন ড্যাশবোর্ড ---
-const AdminDashboard = ({ session, onLogout }) => {
-  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, calendar, accounts
-  const [refresh, setRefresh] = useState(0);
+// --- ২. মেইন অ্যাপ (লজিক ও ড্যাশবোর্ড) ---
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [userRole, setUserRole] = useState(null); // 'admin' or 'client'
+  const [view, setView] = useState('home'); // home, loginAdmin, loginClient, dashboard
 
-  // -- ডাটা স্টেটস --
+  // --- ডাটা স্টেটস ---
+  const [activeTab, setActiveTab] = useState('cases');
+  const [refresh, setRefresh] = useState(0);
   const [cases, setCases] = useState([]);
+  const [filteredCases, setFilteredCases] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [historyLog, setHistoryLog] = useState([]);
-  const [caseFilter, setCaseFilter] = useState('week'); // all, today, tomorrow, week, disposed
-  const [accountFilter, setAccountFilter] = useState({ client: '', month: '', type: 'All' });
-  const [selectedDateCases, setSelectedDateCases] = useState(null); // ক্যালেন্ডার ক্লিকের জন্য
-
-  // -- মোডাল (Popup) স্টেটস --
-  const [modalMode, setModalMode] = useState(null); // 'addCase', 'editCase', 'viewCase', 'history', 'docs', 'addTxn'
-  const [selectedCase, setSelectedCase] = useState(null);
-  const [selectedTxn, setSelectedTxn] = useState(null); // এডিট একাউন্টের জন্য
   
-  // -- ফর্ম ডাটা --
+  // --- ক্যালেন্ডার স্টেট ---
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  // --- মডাল স্টেট ---
+  const [modal, setModal] = useState({ type: null, data: null }); // type: addCase, viewCase, addDoc, history, addTxn
+
+  // --- ফর্ম ডাটা ---
   const [formData, setFormData] = useState({});
 
-  // -- ডাটা লোড --
-  useEffect(() => { fetchAllData(); }, [refresh]);
+  // Auth Check
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) handleAuthSuccess(session);
+    });
+  }, []);
 
-  const fetchAllData = async () => {
-    const { data: cData } = await supabase.from('cases').select('*').order('next_date', { ascending: true });
+  const handleAuthSuccess = async (session) => {
+    setSession(session);
+    // রোল চেক করা (প্রোফাইল টেবিল থেকে)
+    const { data } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+    if (data) {
+      setUserRole(data.role);
+      setView('dashboard');
+    } else {
+      // যদি প্রোফাইল না থাকে তবে ডিফল্ট ক্লায়েন্ট (সেফটি)
+      setUserRole('client'); 
+      setView('dashboard');
+    }
+  };
+
+  // ডাটা ফেচিং
+  useEffect(() => {
+    if (view === 'dashboard') fetchData();
+  }, [view, refresh, currentDate]);
+
+  const fetchData = async () => {
+    if (!session) return;
+
+    let caseQuery = supabase.from('cases').select('*').order('next_date', { ascending: true });
+    
+    // ক্লায়েন্ট হলে শুধু নিজের মামলা দেখবে
+    if (userRole === 'client') {
+       // মোবাইল নম্বর দিয়ে ফিল্টার (ধরি ইমেইল = mobile@lawfirm.com)
+       const mobile = session.user.email.split('@')[0];
+       caseQuery = caseQuery.eq('client_mobile', mobile);
+    }
+
+    const { data: cData } = await caseQuery;
     setCases(cData || []);
-    const { data: aData } = await supabase.from('accounts').select('*').order('date', { ascending: false });
-    setAccounts(aData || []);
+    setFilteredCases(cData || []); // ডিফল্ট সব শো করবে
+
+    if (userRole === 'admin') {
+      const { data: aData } = await supabase.from('accounts').select('*').order('date', { ascending: false });
+      setAccounts(aData || []);
+    }
+  };
+
+  const fetchDocs = async (caseId) => {
+    const { data } = await supabase.from('documents').select('*').eq('case_id', caseId);
+    setDocuments(data || []);
   };
 
   const fetchHistory = async (caseId) => {
@@ -66,488 +142,401 @@ const AdminDashboard = ({ session, onLogout }) => {
     setHistoryLog(data || []);
   };
 
-  // --- লজিক: কেস ফিল্টারিং ---
-  const getFilteredCases = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-    const tomorrow = tomorrowDate.toISOString().split('T')[0];
-    
-    // সপ্তাহ হিসাব (রবি-বৃহস্পতি)
-    const curr = new Date();
-    const first = curr.getDate() - curr.getDay(); // Sunday
-    const last = first + 4; // Thursday
-    const sunday = new Date(curr.setDate(first)).toISOString().split('T')[0];
-    const thursday = new Date(curr.setDate(last)).toISOString().split('T')[0];
-
-    return cases.filter(c => {
-      if (caseFilter === 'all') return true;
-      if (caseFilter === 'today') return c.next_date === today;
-      if (caseFilter === 'tomorrow') return c.next_date === tomorrow;
-      if (caseFilter === 'week') return c.next_date >= sunday && c.next_date <= thursday;
-      if (caseFilter === 'disposed') return c.status === 'Disposed';
-      if (caseFilter === 'update') return c.next_date < today && c.status === 'Ongoing';
-      return true;
-    });
-  };
-
-  // --- অ্যাকশন হ্যান্ডলার ---
+  // --- অ্যাকশন হ্যান্ডলার (সেভ/ডিলিট) ---
   const handleSaveCase = async () => {
-    const { error } = formData.id 
-      ? await supabase.from('cases').update(formData).eq('id', formData.id)
-      : await supabase.from('cases').insert([formData]);
+    if (!formData.case_no) return alert("Case No required");
+    const payload = { ...formData, client_mobile: formData.client_mobile?.trim() };
     
-    if(error) alert(error.message);
-    else { alert("Saved!"); setModalMode(null); setRefresh(r => r+1); }
-  };
-
-  const handleDeleteCase = async (id) => {
-    if(confirm("Are you sure? This will delete all history and docs for this case.")) {
-      await supabase.from('cases').delete().eq('id', id);
-      setRefresh(r => r+1);
-    }
-  };
-
-  const handleSaveTxn = async () => {
     const { error } = formData.id 
-      ? await supabase.from('accounts').update(formData).eq('id', formData.id)
-      : await supabase.from('accounts').insert([formData]);
-
-    if(error) alert(error.message);
-    else { alert("Transaction Saved!"); setModalMode(null); setRefresh(r => r+1); }
-  };
-
-  const handleDeleteTxn = async (id) => {
-    if(confirm("Delete this transaction?")) {
-      await supabase.from('accounts').delete().eq('id', id);
-      setRefresh(r => r+1);
-    }
-  };
-
-  // --- একাউন্টস ক্যালকুলেশন ---
-  const filteredAccounts = accounts.filter(a => {
-    const matchClient = accountFilter.client ? a.client_name?.toLowerCase().includes(accountFilter.client.toLowerCase()) : true;
-    const matchMonth = accountFilter.month ? a.date.startsWith(accountFilter.month) : true; // YYYY-MM
-    return matchClient && matchMonth;
-  });
-
-  const totalIncome = filteredAccounts.filter(a => a.txn_type === 'Income').reduce((sum, a) => sum + Number(a.amount), 0);
-  const totalExpense = filteredAccounts.filter(a => a.txn_type === 'Expense').reduce((sum, a) => sum + Number(a.amount), 0);
-  const totalDueIncome = filteredAccounts.filter(a => a.txn_type === 'Income' && a.payment_status === 'Due').reduce((sum, a) => sum + Number(a.amount), 0);
-  const totalDueExpense = filteredAccounts.filter(a => a.txn_type === 'Expense' && a.payment_status === 'Due').reduce((sum, a) => sum + Number(a.amount), 0);
-
-  return (
-    <div className="flex h-screen bg-slate-100 font-sans overflow-hidden">
-      
-      {/* ১. সাইডবার */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-20">
-        <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800 tracking-wider">CHAMBERS</div>
-        <nav className="flex-1 p-4 space-y-2 mt-4">
-          <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'dashboard' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
-            <Gavel size={20}/> Case Dashboard
-          </button>
-          <button onClick={() => setActiveTab('calendar')} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'calendar' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
-            <CalIcon size={20}/> Calendar
-          </button>
-          <button onClick={() => setActiveTab('accounts')} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'accounts' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
-            <DollarSign size={20}/> Accounts & Ledger
-          </button>
-        </nav>
-        <button onClick={onLogout} className="m-4 p-3 flex items-center gap-2 text-red-400 hover:bg-slate-800 rounded">
-          <LogOut size={20}/> Logout
-        </button>
-      </aside>
-
-      {/* ২. মেইন এরিয়া */}
-      <main className="flex-1 overflow-y-auto relative p-6">
-        
-        {/* --- মডিউল ১: কেস ড্যাশবোর্ড --- */}
-        {activeTab === 'dashboard' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold text-slate-800">Case Dashboard</h2>
-              <button onClick={() => { setFormData({}); setModalMode('addCase'); }} className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold">
-                <Plus size={18}/> NEW CASE
-              </button>
-            </div>
-
-            {/* ফিল্টার বাটনস */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {[
-                {id: 'week', label: 'This Week'}, 
-                {id: 'today', label: 'Today'}, 
-                {id: 'tomorrow', label: 'Tomorrow'}, 
-                {id: 'all', label: 'All Cases'}, 
-                {id: 'update', label: 'Needs Update'},
-                {id: 'disposed', label: 'Disposed'}
-              ].map(f => (
-                <button key={f.id} onClick={() => setCaseFilter(f.id)} 
-                  className={`px-4 py-2 rounded-full text-sm font-bold border transition ${caseFilter === f.id ? 'bg-[#c5a059] text-slate-900 border-[#c5a059]' : 'bg-white text-gray-500 border-gray-300'}`}>
-                  {f.label}
-                </button>
-              ))}
-            </div>
-
-            {/* কেস গ্রিড */}
-            <div className="grid gap-4">
-              {getFilteredCases().length === 0 && <p className="text-gray-400 italic">No cases found in this filter.</p>}
-              {getFilteredCases().map(c => (
-                <div key={c.id} className="bg-white p-5 rounded-lg shadow border-l-4 border-slate-900 flex justify-between items-center hover:bg-slate-50 transition">
-                  <div>
-                    <div className="flex gap-2 mb-1">
-                      <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 rounded">{c.court_type}</span>
-                      <span className="text-xs font-bold bg-gray-200 text-gray-700 px-2 rounded">{c.court_name}</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-800">{c.case_no}</h3>
-                    <p className="text-slate-600 font-medium">{c.party_name}</p>
-                    <p className="text-xs text-gray-400">Section: {c.section}</p>
-                  </div>
-                  
-                  <div className="text-right mr-6">
-                    <p className="text-xs text-gray-500">Next Date</p>
-                    <p className="text-lg font-bold text-red-600">{c.next_date}</p>
-                    <p className="text-xs font-bold text-[#c5a059] uppercase">{c.current_step}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button onClick={() => { setSelectedCase(c); setModalMode('viewCase'); }} className="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-200" title="View Details">
-                      <Eye size={18}/>
-                    </button>
-                    <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-200" title="Edit">
-                      <Edit3 size={18}/>
-                    </button>
-                    <button onClick={() => handleDeleteCase(c.id)} className="p-2 bg-red-50 text-red-600 rounded hover:bg-red-200" title="Delete">
-                      <Trash2 size={18}/>
-                    </button>
-                    <button onClick={() => window.open(`https://wa.me/${c.client_mobile}`, '_blank')} className="p-2 bg-green-50 text-green-600 rounded hover:bg-green-200">
-                      <MessageCircle size={18}/>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* --- মডিউল ২: ক্যালেন্ডার --- */}
-        {activeTab === 'calendar' && (
-          <div className="bg-white p-6 rounded shadow h-full flex flex-col">
-            <h2 className="text-2xl font-bold mb-4">Monthly Schedule</h2>
-            <div className="grid grid-cols-7 gap-1 font-bold text-center bg-slate-100 p-2 rounded mb-2">
-               <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-            </div>
-            <div className="grid grid-cols-7 gap-1 flex-1">
-               {[...Array(35)].map((_, i) => {
-                 const d = new Date();
-                 d.setDate(d.getDate() - d.getDay() + i); // Simple Logic
-                 const dateStr = d.toISOString().split('T')[0];
-                 const hasCase = cases.filter(c => c.next_date === dateStr);
-                 
-                 return (
-                   <div key={i} onClick={() => setSelectedDateCases(hasCase)} 
-                     className={`border p-2 h-24 rounded cursor-pointer hover:bg-blue-50 transition ${hasCase.length > 0 ? 'bg-red-50 border-red-200' : 'bg-white'}`}>
-                     <div className="flex justify-between">
-                       <span className="text-xs font-bold text-gray-400">{d.getDate()}</span>
-                       {hasCase.length > 0 && <span className="text-xs bg-red-600 text-white px-1 rounded-full">{hasCase.length}</span>}
-                     </div>
-                     <div className="mt-1 overflow-hidden h-14">
-                       {hasCase.map(c => <div key={c.id} className="text-[10px] truncate text-slate-800">• {c.case_no}</div>)}
-                     </div>
-                   </div>
-                 )
-               })}
-            </div>
-            
-            {/* Selected Date List */}
-            {selectedDateCases && (
-               <div className="mt-4 border-t pt-4">
-                 <h3 className="font-bold text-lg mb-2">Cases on Selected Date:</h3>
-                 {selectedDateCases.length === 0 ? <p>No cases.</p> : 
-                   selectedDateCases.map(c => (
-                     <div key={c.id} className="flex gap-4 items-center bg-slate-50 p-2 mb-2 rounded border">
-                       <span className="font-bold">{c.case_no}</span>
-                       <span>{c.party_name}</span>
-                       <span className="text-[#c5a059] font-bold">{c.current_step}</span>
-                     </div>
-                   ))
-                 }
-               </div>
-            )}
-          </div>
-        )}
-
-        {/* --- মডিউল ৩: একাউন্টস --- */}
-        {activeTab === 'accounts' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-3xl font-bold text-slate-800">Accounts & Ledger</h2>
-              <button onClick={() => { setFormData({txn_type: 'Income', category: 'Office', payment_status: 'Paid'}); setModalMode('addTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059]">
-                 + ADD TRANSACTION
-              </button>
-            </div>
-
-            {/* Stats Overview */}
-            <div className="grid grid-cols-4 gap-4">
-              <div className="bg-green-100 p-4 rounded border border-green-300">
-                 <p className="text-xs font-bold text-green-800 uppercase">Total Income (Paid)</p>
-                 <p className="text-2xl font-bold text-slate-800">৳{totalIncome - totalDueIncome}</p>
-              </div>
-              <div className="bg-red-100 p-4 rounded border border-red-300">
-                 <p className="text-xs font-bold text-red-800 uppercase">Total Expense (Paid)</p>
-                 <p className="text-2xl font-bold text-slate-800">৳{totalExpense - totalDueExpense}</p>
-              </div>
-              <div className="bg-slate-800 text-white p-4 rounded">
-                 <p className="text-xs font-bold text-[#c5a059] uppercase">Cash In Hand</p>
-                 <p className="text-2xl font-bold">৳{(totalIncome - totalDueIncome) - (totalExpense - totalDueExpense)}</p>
-              </div>
-              <div className="bg-orange-100 p-4 rounded border border-orange-300">
-                 <p className="text-xs font-bold text-orange-800 uppercase">Market Dues (Powna/Dena)</p>
-                 <p className="text-sm font-bold">To Receive: ৳{totalDueIncome}</p>
-                 <p className="text-sm font-bold">To Pay: ৳{totalDueExpense}</p>
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div className="bg-white p-4 rounded shadow flex gap-4 items-center">
-               <Filter size={18} className="text-gray-400"/>
-               <input placeholder="Filter by Client Name (e.g. Rahim)" className="border p-2 rounded flex-1" 
-                  onChange={e => setAccountFilter({...accountFilter, client: e.target.value})} />
-               <input type="month" className="border p-2 rounded" 
-                  onChange={e => setAccountFilter({...accountFilter, month: e.target.value})} />
-            </div>
-
-            {/* Ledger Table */}
-            <div className="bg-white rounded shadow overflow-hidden">
-               <table className="w-full text-left">
-                  <thead className="bg-slate-50 border-b">
-                    <tr>
-                      <th className="p-3">Date</th>
-                      <th className="p-3">Client / Name</th>
-                      <th className="p-3">Description</th>
-                      <th className="p-3">Category</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3 text-right">Amount</th>
-                      <th className="p-3 text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAccounts.map(a => (
-                      <tr key={a.id} className="border-b hover:bg-gray-50">
-                        <td className="p-3 text-sm">{a.date}</td>
-                        <td className="p-3 font-bold text-slate-700">{a.client_name || '-'}</td>
-                        <td className="p-3 text-sm">{a.description}</td>
-                        <td className="p-3"><span className="bg-slate-100 px-2 py-1 rounded text-xs">{a.category}</span></td>
-                        <td className="p-3">
-                           <span className={`px-2 py-1 rounded text-xs font-bold ${a.payment_status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                             {a.payment_status}
-                           </span>
-                        </td>
-                        <td className={`p-3 text-right font-bold ${a.txn_type === 'Income' ? 'text-green-600' : 'text-red-600'}`}>
-                           {a.txn_type === 'Income' ? '+' : '-'} {a.amount}
-                        </td>
-                        <td className="p-3 flex justify-center gap-2">
-                           <button onClick={() => { setFormData(a); setModalMode('addTxn'); }} className="text-blue-500 hover:bg-blue-50 p-1 rounded"><Edit3 size={16}/></button>
-                           <button onClick={() => handleDeleteTxn(a.id)} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={16}/></button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-               </table>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* ================= MODALS (POP-UPS) ================= */}
-
-      {/* 1. Add/Edit Case Modal */}
-      {modalMode === 'addCase' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
-            <div className="bg-slate-900 p-4 text-white flex justify-between">
-              <h3 className="font-bold flex items-center gap-2"><Gavel/> {formData.id ? 'Edit Case' : 'New Case Entry'}</h3>
-              <button onClick={() => setModalMode(null)}><X/></button>
-            </div>
-            <div className="p-6 grid md:grid-cols-2 gap-4">
-               {/* Fields */}
-               <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Court Type</label>
-               <select value={formData.court_type} onChange={e => setFormData({...formData, court_type: e.target.value})} className="w-full border p-2 rounded">
-                 <option>High Court</option><option>Judge Court</option>
-               </select></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Court Name</label>
-               <input placeholder="e.g. 5th Joint District Judge" value={formData.court_name} onChange={e => setFormData({...formData, court_name: e.target.value})} className="w-full border p-2 rounded"/></div>
-               
-               <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Case No</label>
-               <input value={formData.case_no} onChange={e => setFormData({...formData, case_no: e.target.value})} className="w-full border p-2 rounded"/></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Section</label>
-               <input value={formData.section} onChange={e => setFormData({...formData, section: e.target.value})} className="w-full border p-2 rounded"/></div>
-
-               <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Party Name</label>
-               <input value={formData.party_name} onChange={e => setFormData({...formData, party_name: e.target.value})} className="w-full border p-2 rounded"/></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-gray-500">On Behalf</label>
-               <select value={formData.on_behalf} onChange={e => setFormData({...formData, on_behalf: e.target.value})} className="w-full border p-2 rounded">
-                 <option>Petitioner</option><option>Defendant</option><option>Plaintiff</option><option>Accused</option>
-               </select></div>
-
-               <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Client Mobile</label>
-               <input value={formData.client_mobile} onChange={e => setFormData({...formData, client_mobile: e.target.value})} className="w-full border p-2 rounded"/></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Status</label>
-               <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border p-2 rounded">
-                 <option>Ongoing</option><option>Disposed</option>
-               </select></div>
-
-               <div className="col-span-2 grid grid-cols-2 gap-4 bg-yellow-50 p-4 rounded border border-yellow-200">
-                  <div className="space-y-1"><label className="text-xs font-bold text-red-600">Next Date</label>
-                  <input type="date" value={formData.next_date} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border p-2 rounded bg-white"/></div>
-                  <div className="space-y-1"><label className="text-xs font-bold text-red-600">Next Step</label>
-                  <input value={formData.current_step} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border p-2 rounded bg-white"/></div>
-               </div>
-            </div>
-            <div className="p-4 border-t flex justify-end gap-3">
-               <button onClick={() => setModalMode(null)} className="px-4 py-2 border rounded">Cancel</button>
-               <button onClick={handleSaveCase} className="px-6 py-2 bg-slate-900 text-white rounded font-bold">SAVE</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 2. View Details Modal with History */}
-      {modalMode === 'viewCase' && selectedCase && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden">
-             <div className="bg-slate-900 p-4 text-white flex justify-between">
-                <h3 className="font-bold flex items-center gap-2">Case Details: {selectedCase.case_no}</h3>
-                <button onClick={() => setModalMode(null)}><X/></button>
-             </div>
-             <div className="p-6">
-                <div className="grid grid-cols-2 gap-6 text-sm">
-                   <div>
-                      <p className="text-gray-500 font-bold uppercase text-xs">Court</p>
-                      <p className="font-bold text-lg">{selectedCase.court_name}</p>
-                      <p>{selectedCase.court_type}</p>
-                   </div>
-                   <div>
-                      <p className="text-gray-500 font-bold uppercase text-xs">Parties</p>
-                      <p className="font-bold text-lg">{selectedCase.party_name}</p>
-                      <p>For: {selectedCase.on_behalf}</p>
-                   </div>
-                   <div className="col-span-2 bg-slate-50 p-4 rounded border">
-                      <div className="flex justify-between items-center">
-                         <div>
-                            <p className="text-gray-500 font-bold uppercase text-xs">Current Status</p>
-                            <p className="text-xl font-bold text-red-600">{selectedCase.next_date}</p>
-                            <p className="font-bold">{selectedCase.current_step}</p>
-                         </div>
-                         <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded text-xs font-bold">
-                            <History size={16}/> VIEW HISTORY LOG
-                         </button>
-                      </div>
-                   </div>
-                </div>
-             </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. History Modal */}
-      {modalMode === 'history' && (
-         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
-               <div className="bg-slate-900 p-4 text-white flex justify-between">
-                  <h3 className="font-bold">History Log</h3>
-                  <button onClick={() => setModalMode('viewCase')}><ChevronLeft/></button>
-               </div>
-               <div className="p-4 h-96 overflow-y-auto">
-                  {historyLog.length === 0 && <p>No history recorded yet.</p>}
-                  {historyLog.map((h, i) => (
-                     <div key={i} className="flex gap-4 border-l-2 border-slate-300 pl-4 pb-6 relative">
-                        <div className="absolute -left-[9px] top-0 w-4 h-4 bg-slate-300 rounded-full"></div>
-                        <div>
-                           <p className="font-bold text-slate-800">{h.prev_date}</p>
-                           <p className="text-sm text-gray-600">{h.prev_step}</p>
-                           <p className="text-xs text-gray-400 mt-1">Recorded: {new Date(h.recorded_at).toLocaleDateString()}</p>
-                        </div>
-                     </div>
-                  ))}
-               </div>
-            </div>
-         </div>
-      )}
-
-      {/* 4. Add/Edit Transaction Modal */}
-      {modalMode === 'addTxn' && (
-         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl">
-               <div className="bg-slate-900 p-4 text-white flex justify-between">
-                  <h3 className="font-bold">{formData.id ? 'Edit Transaction' : 'New Transaction'}</h3>
-                  <button onClick={() => setModalMode(null)}><X/></button>
-               </div>
-               <div className="p-6 space-y-4">
-                  <div className="flex gap-2">
-                     <button onClick={() => setFormData({...formData, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Income' ? 'bg-green-600 text-white' : 'bg-gray-100'}`}>Income</button>
-                     <button onClick={() => setFormData({...formData, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Expense' ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>Expense</button>
-                  </div>
-                  <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border p-2 rounded"/>
-                  <input placeholder="Client Name (e.g. Rahim)" value={formData.client_name} onChange={e => setFormData({...formData, client_name: e.target.value})} className="w-full border p-2 rounded"/>
-                  <input placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border p-2 rounded"/>
-                  <div className="flex gap-2">
-                     <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-1/2 border p-2 rounded">
-                        <option>Office</option><option>Personal</option><option>Client</option>
-                     </select>
-                     <select value={formData.payment_status} onChange={e => setFormData({...formData, payment_status: e.target.value})} className="w-1/2 border p-2 rounded">
-                        <option>Paid</option><option>Due</option>
-                     </select>
-                  </div>
-                  <input type="number" placeholder="Amount" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full border p-2 rounded font-bold text-lg"/>
-                  <button onClick={handleSaveTxn} className="w-full bg-slate-900 text-white py-3 rounded font-bold">SAVE ENTRY</button>
-               </div>
-            </div>
-         </div>
-      )}
-
-    </div>
-  );
-};
-
-// --- মেইন অ্যাপ কন্ট্রোলার ---
-export default function App() {
-  const [session, setSession] = useState(null);
-  const [view, setView] = useState('home');
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if(session) setView('dashboard');
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setView(session ? 'dashboard' : 'home');
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({ 
-      email: e.target.email.value, password: e.target.password.value 
-    });
+      ? await supabase.from('cases').update(payload).eq('id', formData.id)
+      : await supabase.from('cases').insert([payload]);
+    
     if (error) alert(error.message);
+    else { alert("Saved Successfully"); setModal({ type: null }); setRefresh(prev => prev + 1); }
   };
 
-  if (view === 'home') return <PublicHome onLoginClick={() => setView('login')} />;
+  const handleSaveDoc = async () => {
+    if (!formData.drive_link) return alert("Link required");
+    await supabase.from('documents').insert([{ ...formData, case_id: modal.data.id }]);
+    fetchDocs(modal.data.id); // রিফ্রেশ ডকস
+    setFormData({ ...formData, doc_name: '', drive_link: '' }); // ফর্ম ক্লিয়ার (ফোল্ডার টাইপ বাদে)
+  };
+
+  // --- ক্যালেন্ডার নেভিগেশন ---
+  const changeMonth = (dir) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + dir);
+    setCurrentDate(newDate);
+  };
+
+  // --- লগিন লজিক ---
+  const handleLogin = async (e, type) => {
+    e.preventDefault();
+    const input = e.target.email.value;
+    const password = e.target.password.value;
+    
+    // ক্লায়েন্ট লগিন ট্রিক: মোবাইল নম্বরকে ইমেইল বানাও
+    let email = input;
+    if (type === 'client' && !input.includes('@')) {
+      email = `${input}@lawfirm.com`;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) alert("Login Failed: " + error.message);
+    else handleAuthSuccess(data.session);
+  };
+
+  // --- ভিউ কন্ট্রোল ---
+  if (view === 'home') return <PublicHome onAdminLogin={() => setView('loginAdmin')} onClientLogin={() => setView('loginClient')} />;
   
-  if (view === 'login') return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded shadow-2xl w-full max-w-md border-t-8 border-[#c5a059]">
-        <h2 className="text-2xl font-bold text-center mb-6">Secure Access</h2>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input name="email" type="email" placeholder="Email" className="w-full p-3 border rounded" required />
-          <input name="password" type="password" placeholder="Password" className="w-full p-3 border rounded" required />
-          <button type="submit" className="w-full bg-slate-900 text-white py-3 font-bold hover:bg-[#c5a059]">LOGIN</button>
+  if (view === 'loginAdmin' || view === 'loginClient') return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+        <div className="text-center mb-8">
+          <div className="inline-block p-3 rounded-full bg-slate-50 mb-4 text-[#c5a059]"><User size={32}/></div>
+          <h2 className="text-2xl font-serif font-bold text-slate-900">
+            {view === 'loginAdmin' ? 'Admin Portal' : 'Client Access'}
+          </h2>
+          <p className="text-gray-400 text-sm mt-2">Please enter your credentials</p>
+        </div>
+        <form onSubmit={(e) => handleLogin(e, view === 'loginAdmin' ? 'admin' : 'client')} className="space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">{view === 'loginAdmin' ? 'Email' : 'Mobile Number'}</label>
+            <input name="email" className="w-full p-4 bg-slate-50 border border-gray-200 rounded-lg outline-none focus:border-[#c5a059] transition" required />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-2 uppercase">Password</label>
+            <input name="password" type="password" className="w-full p-4 bg-slate-50 border border-gray-200 rounded-lg outline-none focus:border-[#c5a059] transition" required />
+          </div>
+          <button className="w-full py-4 bg-slate-900 text-white rounded-lg font-bold hover:bg-[#c5a059] transition">SECURE LOGIN</button>
         </form>
-        <button onClick={() => setView('home')} className="w-full text-center mt-4 text-sm text-gray-500">Back</button>
+        <button onClick={() => setView('home')} className="w-full text-center mt-6 text-sm text-gray-400 hover:text-slate-900">Cancel & Return</button>
       </div>
     </div>
   );
 
-  return <AdminDashboard session={session} onLogout={() => supabase.auth.signOut()} />;
+  // ================= DASHBOARD UI =================
+  return (
+    <div className="flex h-screen bg-[#f8f9fa] font-sans text-slate-800">
+      
+      {/* Sidebar */}
+      <aside className="w-72 bg-white border-r border-gray-200 flex flex-col z-20">
+        <div className="p-8 border-b border-gray-100">
+           <h2 className="font-serif font-bold text-xl tracking-tight text-slate-900">JUSTICE & CO.</h2>
+           <p className="text-xs text-[#c5a059] uppercase tracking-widest mt-1">Legal Management</p>
+        </div>
+        
+        <nav className="flex-1 p-6 space-y-2">
+           <MenuBtn label="Case Diary" icon={Gavel} active={activeTab === 'cases'} onClick={() => setActiveTab('cases')} />
+           <MenuBtn label="Calendar" icon={CalIcon} active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} />
+           {userRole === 'admin' && <MenuBtn label="Accounts" icon={DollarSign} active={activeTab === 'accounts'} onClick={() => setActiveTab('accounts')} />}
+        </nav>
+
+        <div className="p-6 border-t border-gray-100">
+           <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><User size={20}/></div>
+              <div>
+                <p className="text-sm font-bold text-slate-900">{userRole === 'admin' ? 'Administrator' : 'Client'}</p>
+                <p className="text-xs text-gray-400">Online</p>
+              </div>
+           </div>
+           <button onClick={() => { supabase.auth.signOut(); setView('home'); }} className="flex items-center gap-2 text-red-400 hover:text-red-600 text-sm font-bold">
+             <LogOut size={16}/> Sign Out
+           </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-8 relative">
+        
+        {/* --- CASES MODULE --- */}
+        {activeTab === 'cases' && (
+          <div className="max-w-7xl mx-auto">
+             <div className="flex justify-between items-end mb-8">
+               <div>
+                 <h1 className="text-3xl font-serif font-bold text-slate-900 mb-2">Case Diary</h1>
+                 <p className="text-gray-500">Manage all legal proceedings and records.</p>
+               </div>
+               {userRole === 'admin' && (
+                 <button onClick={() => { setFormData({}); setModal({ type: 'addCase' }); }} className="bg-slate-900 text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-[#c5a059] transition flex items-center gap-2">
+                   <Plus size={18}/> NEW CASE ENTRY
+                 </button>
+               )}
+             </div>
+
+             {/* Case Grid */}
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {cases.map(c => {
+                 const isNext = new Date(c.next_date) >= new Date();
+                 return (
+                   <div key={c.id} className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition group cursor-pointer" 
+                        onClick={() => { setModal({ type: 'viewCase', data: c }); fetchDocs(c.id); }}>
+                     <div className="flex justify-between items-start mb-4">
+                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${c.court_type === 'High Court' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>
+                         {c.court_type}
+                       </span>
+                       <span className={`text-xs font-bold ${c.status === 'Disposed' ? 'text-green-600' : 'text-gray-400'}`}>{c.status}</span>
+                     </div>
+                     
+                     <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-[#c5a059] transition">{c.case_no}</h3>
+                     <p className="text-sm text-gray-500 mb-4 line-clamp-1">{c.party_name}</p>
+                     
+                     <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
+                        <div>
+                          <p className="text-[10px] text-gray-400 uppercase font-bold">Next Date</p>
+                          <p className={`text-sm font-bold ${isNext ? 'text-red-500' : 'text-slate-700'}`}>{c.next_date}</p>
+                        </div>
+                        <div className="bg-slate-50 p-2 rounded-full text-slate-400 group-hover:bg-[#c5a059] group-hover:text-white transition">
+                          <Eye size={16}/>
+                        </div>
+                     </div>
+                   </div>
+                 )
+               })}
+             </div>
+          </div>
+        )}
+
+        {/* --- CALENDAR MODULE --- */}
+        {activeTab === 'calendar' && (
+           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 h-full flex flex-col">
+              <div className="flex justify-between items-center mb-8">
+                 <h2 className="text-2xl font-serif font-bold text-slate-900">
+                   {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                 </h2>
+                 <div className="flex gap-2">
+                    <button onClick={() => changeMonth(-1)} className="p-2 border rounded hover:bg-gray-50"><ChevronLeft/></button>
+                    <button onClick={() => changeMonth(1)} className="p-2 border rounded hover:bg-gray-50"><ChevronRight/></button>
+                 </div>
+              </div>
+              
+              <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden flex-1">
+                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                    <div key={d} className="bg-slate-50 p-4 text-center font-bold text-gray-400 text-xs uppercase">{d}</div>
+                 ))}
+                 
+                 {/* Calendar Days */}
+                 {[...Array(35)].map((_, i) => {
+                    // ক্যালেন্ডার লজিক (সিম্পলিফাইড)
+                    const d = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                    d.setDate(d.getDate() - d.getDay() + i);
+                    const dateStr = d.toISOString().split('T')[0];
+                    const dayCases = cases.filter(c => c.next_date === dateStr);
+                    const isToday = dateStr === new Date().toISOString().split('T')[0];
+
+                    return (
+                       <div key={i} className={`bg-white p-2 min-h-[100px] hover:bg-blue-50 transition relative group ${d.getMonth() !== currentDate.getMonth() ? 'opacity-40' : ''}`}>
+                          <span className={`text-xs font-bold p-1 rounded ${isToday ? 'bg-[#c5a059] text-white' : 'text-gray-400'}`}>
+                            {d.getDate()}
+                          </span>
+                          <div className="mt-2 space-y-1">
+                             {dayCases.map(c => (
+                               <div key={c.id} className="text-[10px] bg-slate-100 p-1 rounded border-l-2 border-slate-900 truncate cursor-pointer hover:bg-slate-200"
+                                    onClick={() => { setModal({ type: 'viewCase', data: c }); fetchDocs(c.id); }}>
+                                  {c.case_no}
+                               </div>
+                             ))}
+                          </div>
+                       </div>
+                    )
+                 })}
+              </div>
+           </div>
+        )}
+
+        {/* --- ACCOUNTS MODULE (ADMIN ONLY) --- */}
+        {activeTab === 'accounts' && userRole === 'admin' && (
+           <div className="max-w-7xl mx-auto">
+              <div className="flex justify-between items-center mb-8">
+                 <h1 className="text-3xl font-serif font-bold text-slate-900">Financial Ledger</h1>
+                 <button onClick={() => { setFormData({ txn_type: 'Income', category: 'Office', payment_status: 'Paid' }); setModal({ type: 'addTxn' }); }} 
+                    className="bg-slate-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-[#c5a059]">
+                    + ADD TRANSACTION
+                 </button>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                 <table className="w-full text-left">
+                    <thead className="bg-slate-50 border-b border-gray-100">
+                       <tr>
+                          <th className="p-4 text-xs font-bold text-gray-500 uppercase">Date</th>
+                          <th className="p-4 text-xs font-bold text-gray-500 uppercase">Description</th>
+                          <th className="p-4 text-xs font-bold text-gray-500 uppercase">Client</th>
+                          <th className="p-4 text-xs font-bold text-gray-500 uppercase">Type</th>
+                          <th className="p-4 text-right text-xs font-bold text-gray-500 uppercase">Amount</th>
+                       </tr>
+                    </thead>
+                    <tbody>
+                       {accounts.map(a => (
+                          <tr key={a.id} className="border-b border-gray-50 hover:bg-slate-50">
+                             <td className="p-4 text-sm text-gray-600">{a.date}</td>
+                             <td className="p-4 font-bold text-slate-800">{a.description}</td>
+                             <td className="p-4 text-sm text-gray-500">{a.client_name || '-'}</td>
+                             <td className="p-4"><span className={`text-xs px-2 py-1 rounded ${a.txn_type === 'Income' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{a.txn_type}</span></td>
+                             <td className={`p-4 text-right font-bold ${a.txn_type === 'Income' ? 'text-green-600' : 'text-red-500'}`}>
+                                {a.txn_type === 'Income' ? '+' : '-'} {a.amount}
+                             </td>
+                          </tr>
+                       ))}
+                    </tbody>
+                 </table>
+              </div>
+           </div>
+        )}
+      </main>
+
+      {/* ================= MODALS ================= */}
+      
+      {/* 1. Add Case Modal */}
+      {modal.type === 'addCase' && (
+         <Modal title="New Case Entry" onClose={() => setModal({ type: null })}>
+            <div className="grid grid-cols-2 gap-4">
+               <Input label="Court Type" type="select" options={['High Court', 'Judge Court']} value={formData.court_type} onChange={v => setFormData({...formData, court_type: v})} />
+               <Input label="Court Name" placeholder="e.g. 5th Joint District Judge" value={formData.court_name} onChange={v => setFormData({...formData, court_name: v})} />
+               <Input label="Case No" placeholder="e.g. 10/2025" value={formData.case_no} onChange={v => setFormData({...formData, case_no: v})} />
+               <Input label="Section" placeholder="e.g. 302 Penal Code" value={formData.section} onChange={v => setFormData({...formData, section: v})} />
+               <Input label="Party Name" value={formData.party_name} onChange={v => setFormData({...formData, party_name: v})} />
+               <Input label="On Behalf" type="select" options={['Petitioner', 'Defendant', 'Plaintiff', 'Accused']} value={formData.on_behalf} onChange={v => setFormData({...formData, on_behalf: v})} />
+               <Input label="Client Mobile" placeholder="017..." value={formData.client_mobile} onChange={v => setFormData({...formData, client_mobile: v})} />
+               <Input label="Filing Date" type="date" value={formData.filing_date} onChange={v => setFormData({...formData, filing_date: v})} />
+               <div className="col-span-2 bg-yellow-50 p-4 rounded border border-yellow-100 grid grid-cols-2 gap-4">
+                  <Input label="Next Date" type="date" value={formData.next_date} onChange={v => setFormData({...formData, next_date: v})} />
+                  <Input label="Next Step" value={formData.current_step} onChange={v => setFormData({...formData, current_step: v})} />
+               </div>
+               <button onClick={handleSaveCase} className="col-span-2 bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">SAVE RECORD</button>
+            </div>
+         </Modal>
+      )}
+
+      {/* 2. View Case Details (With Documents & History) */}
+      {modal.type === 'viewCase' && modal.data && (
+         <Modal title={`Case Details: ${modal.data.case_no}`} onClose={() => setModal({ type: null })}>
+            <div className="space-y-6">
+               {/* Info Grid */}
+               <div className="bg-slate-50 p-6 rounded-xl border border-gray-100 grid grid-cols-2 gap-6 text-sm">
+                  <div><p className="text-gray-400 text-xs uppercase font-bold">Court</p><p className="font-bold text-slate-900">{modal.data.court_name}</p><p>{modal.data.court_type}</p></div>
+                  <div><p className="text-gray-400 text-xs uppercase font-bold">Party</p><p className="font-bold text-slate-900">{modal.data.party_name}</p><p>For: {modal.data.on_behalf}</p></div>
+                  <div><p className="text-gray-400 text-xs uppercase font-bold">Next Date</p><p className="font-bold text-red-600 text-lg">{modal.data.next_date}</p></div>
+                  <div><p className="text-gray-400 text-xs uppercase font-bold">Step</p><p className="font-bold text-slate-900">{modal.data.current_step}</p></div>
+               </div>
+
+               {/* Tabs */}
+               <div className="border-b flex gap-6 text-sm font-bold text-gray-400">
+                  <span className="text-slate-900 border-b-2 border-slate-900 pb-2 cursor-pointer">Documents</span>
+                  <span className="hover:text-slate-900 pb-2 cursor-pointer" onClick={() => { fetchHistory(modal.data.id); setModal({ type: 'history', data: modal.data }); }}>History Log</span>
+                  {userRole === 'admin' && <span className="hover:text-slate-900 pb-2 cursor-pointer" onClick={() => { setFormData(modal.data); setModal({ type: 'addCase' }); }}>Edit Info</span>}
+               </div>
+
+               {/* Document List (Folder Style) */}
+               <div className="min-h-[200px]">
+                  {/* Add Doc Form (Admin Only) */}
+                  {userRole === 'admin' && (
+                     <div className="flex gap-2 mb-4 bg-blue-50 p-3 rounded items-end">
+                        <div className="flex-1">
+                           <label className="text-[10px] font-bold text-blue-800 uppercase">Folder Name</label>
+                           <input list="folders" className="w-full p-2 text-xs border rounded" placeholder="Select or Type..." 
+                              value={formData.folder_type || ''} onChange={e => setFormData({...formData, folder_type: e.target.value})} />
+                           <datalist id="folders"><option value="Arji (Plaint)"/><option value="Jabab (WS)"/><option value="Orders"/><option value="Evidence"/></datalist>
+                        </div>
+                        <div className="flex-[2]">
+                           <label className="text-[10px] font-bold text-blue-800 uppercase">Google Drive Link</label>
+                           <input className="w-full p-2 text-xs border rounded" placeholder="https://..." 
+                              value={formData.drive_link || ''} onChange={e => setFormData({...formData, drive_link: e.target.value})} />
+                        </div>
+                        <button onClick={handleSaveDoc} className="bg-blue-600 text-white p-2 rounded font-bold text-xs hover:bg-blue-700">ADD LINK</button>
+                     </div>
+                  )}
+
+                  {/* Display Docs Grouped */}
+                  {documents.length === 0 ? <p className="text-gray-400 text-sm italic">No documents attached.</p> : (
+                     <div className="grid grid-cols-2 gap-4">
+                        {/* We categorize docs simply by listing them */}
+                        {documents.map(d => (
+                           <a key={d.id} href={d.drive_link} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 border rounded hover:bg-gray-50 group">
+                              <Folder className="text-yellow-500 fill-yellow-500" size={24}/>
+                              <div className="overflow-hidden">
+                                 <p className="font-bold text-sm text-slate-800 truncate">{d.folder_type}</p>
+                                 <p className="text-xs text-blue-500 group-hover:underline truncate">Open Document</p>
+                              </div>
+                           </a>
+                        ))}
+                     </div>
+                  )}
+               </div>
+            </div>
+         </Modal>
+      )}
+
+      {/* 3. History Log Modal */}
+      {modal.type === 'history' && (
+         <Modal title="Case History Log" onClose={() => setModal({ type: 'viewCase', data: modal.data })}>
+            <div className="space-y-4 max-h-96 overflow-y-auto pl-2">
+               {historyLog.map((h, i) => (
+                  <div key={i} className="relative border-l-2 border-slate-200 pl-6 pb-2">
+                     <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-slate-400"></div>
+                     <p className="font-bold text-slate-800">{h.prev_date}</p>
+                     <p className="text-sm text-gray-500">{h.prev_step}</p>
+                     <p className="text-[10px] text-gray-300 mt-1">{new Date(h.recorded_at).toLocaleDateString()}</p>
+                  </div>
+               ))}
+            </div>
+         </Modal>
+      )}
+
+      {/* 4. Add Transaction Modal */}
+      {modal.type === 'addTxn' && (
+         <Modal title="New Transaction" onClose={() => setModal({ type: null })}>
+             <div className="space-y-4">
+               <div className="flex gap-2">
+                  <button onClick={() => setFormData({...formData, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold border ${formData.txn_type === 'Income' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white'}`}>Income</button>
+                  <button onClick={() => setFormData({...formData, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold border ${formData.txn_type === 'Expense' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white'}`}>Expense</button>
+               </div>
+               <Input label="Date" type="date" value={formData.date} onChange={v => setFormData({...formData, date: v})} />
+               <Input label="Client Name" value={formData.client_name} onChange={v => setFormData({...formData, client_name: v})} />
+               <Input label="Description" value={formData.description} onChange={v => setFormData({...formData, description: v})} />
+               <Input label="Amount" type="number" value={formData.amount} onChange={v => setFormData({...formData, amount: v})} />
+               <button onClick={async () => {
+                  await supabase.from('accounts').insert([formData]);
+                  alert("Added!"); setModal({type:null}); setRefresh(r=>r+1);
+               }} className="w-full bg-slate-900 text-white py-3 rounded font-bold">SAVE</button>
+             </div>
+         </Modal>
+      )}
+    </div>
+  );
 }
+
+// --- UI COMPONENTS (Milk Clean Design) ---
+const MenuBtn = ({ label, icon: Icon, active, onClick }) => (
+  <button onClick={onClick} className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${active ? 'bg-slate-900 text-white shadow-lg' : 'text-gray-500 hover:bg-slate-50 hover:text-slate-900'}`}>
+    <Icon size={20} className={active ? 'text-[#c5a059]' : ''}/>
+    <span className="font-medium text-sm">{label}</span>
+  </button>
+);
+
+const Modal = ({ title, children, onClose }) => (
+  <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+       <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-slate-50/50">
+          <h3 className="font-bold text-lg font-serif text-slate-800">{title}</h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><X size={20}/></button>
+       </div>
+       <div className="p-8 max-h-[80vh] overflow-y-auto">{children}</div>
+    </div>
+  </div>
+);
+
+const Input = ({ label, type = 'text', options, value, onChange, placeholder }) => (
+  <div className="space-y-1">
+    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</label>
+    {type === 'select' ? (
+      <select className="w-full p-3 bg-slate-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#c5a059]" value={value || ''} onChange={e => onChange(e.target.value)}>
+        <option value="">Select...</option>
+        {options.map(o => <option key={o}>{o}</option>)}
+      </select>
+    ) : (
+      <input type={type} className="w-full p-3 bg-slate-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#c5a059] transition" 
+        placeholder={placeholder} value={value || ''} onChange={e => onChange(e.target.value)} />
+    )}
+  </div>
+);
