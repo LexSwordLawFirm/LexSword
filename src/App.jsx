@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (INTERNATIONAL STANDARD)
+// 1. LEXSWORD PUBLIC HOMEPAGE (Text & Email Updated)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick }) => {
@@ -18,10 +18,9 @@ const PublicHome = ({ onLoginClick }) => {
   return (
     <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white">
       
-      {/* --- Navbar (Sticky & Clean) --- */}
+      {/* --- Navbar (Unchanged) --- */}
       <nav className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 py-4 px-6 md:px-12 transition-all">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          {/* Brand Logo */}
           <div className="flex items-center gap-2">
             <div className="bg-slate-900 text-[#c5a059] p-2 rounded-sm">
               <Scale size={24} strokeWidth={2.5} />
@@ -32,7 +31,6 @@ const PublicHome = ({ onLoginClick }) => {
             </div>
           </div>
 
-          {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-600 tracking-wide">
             <a href="#home" className="hover:text-[#c5a059] transition">HOME</a>
             <a href="#about" className="hover:text-[#c5a059] transition">WHY US</a>
@@ -41,18 +39,15 @@ const PublicHome = ({ onLoginClick }) => {
             <a href="#contact" className="hover:text-[#c5a059] transition">CONTACT</a>
           </div>
 
-          {/* Login Button */}
           <button onClick={onLoginClick} className="hidden md:flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-sm font-bold text-sm tracking-wide hover:bg-[#c5a059] hover:text-white transition shadow-lg">
             <User size={16}/> MEMBER LOGIN
           </button>
 
-          {/* Mobile Menu Icon */}
           <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-slate-900">
              {menuOpen ? <X/> : <div className="space-y-1.5"><div className="w-6 h-0.5 bg-slate-900"></div><div className="w-6 h-0.5 bg-slate-900"></div><div className="w-6 h-0.5 bg-slate-900"></div></div>}
           </button>
         </div>
 
-        {/* Mobile Menu Dropdown */}
         {menuOpen && (
           <div className="md:hidden absolute top-20 left-0 w-full bg-white shadow-xl border-t p-6 flex flex-col gap-4 font-bold text-center">
              <a href="#home" onClick={()=>setMenuOpen(false)}>Home</a>
@@ -63,26 +58,29 @@ const PublicHome = ({ onLoginClick }) => {
         )}
       </nav>
 
-      {/* --- Hero Section (Premium Look) --- */}
+      {/* --- Hero Section (Text Updated to Law Related) --- */}
       <header id="home" className="relative h-screen flex items-center justify-center bg-slate-50 pt-16 overflow-hidden">
-         {/* Background Subtle Pattern */}
          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]"></div>
          
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
             <div className="space-y-8 text-center md:text-left">
                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-900 text-xs font-bold tracking-widest border border-blue-100 uppercase">
-                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Available for Consultation
+                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Expert Legal Defense
                </div>
+               
+               {/* --- UPDATED TEXT START --- */}
                <h1 className="text-5xl md:text-7xl font-serif font-bold text-slate-900 leading-[1.1]">
-                  Defending Your <br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5a059] to-yellow-600">Rights & Legacy</span>
+                  Protecting Rights <br/>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5a059] to-yellow-600">Securing Futures</span>
                </h1>
                <p className="text-lg text-slate-600 leading-relaxed max-w-lg mx-auto md:mx-0">
-                  A full-service law firm in Bangladesh dedicated to providing strategic legal solutions. We combine legal expertise with a deep understanding of your needs.
+                  Legal battles are won by precision, not just passion. An experienced attorney stands between you and injustice, navigating complex laws to secure the outcome you deserve. At LexSword, we fight for your legacy.
                </p>
+               {/* --- UPDATED TEXT END --- */}
+
                <div className="flex flex-col md:flex-row gap-4 justify-center md:justify-start">
                   <a href="#contact" className="bg-slate-900 text-white px-8 py-4 rounded-sm font-bold tracking-widest hover:bg-[#c5a059] transition shadow-xl text-center">
-                     BOOK APPOINTMENT
+                     CASE EVALUATION
                   </a>
                   <a href="tel:+8801911008518" className="border border-slate-300 text-slate-900 px-8 py-4 rounded-sm font-bold tracking-widest hover:border-slate-900 transition flex items-center justify-center gap-2">
                      <Phone size={18}/> +88 01911 008 518
@@ -90,23 +88,23 @@ const PublicHome = ({ onLoginClick }) => {
                </div>
             </div>
             
-            {/* Hero Image / Graphic */}
+            {/* Hero Image (Kept Exactly as it was) */}
             <div className="relative hidden md:block">
                <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl"></div>
                <img 
                  src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80" 
-                 alt="Law Firm" 
+                 alt="Legal Excellence" 
                  className="relative rounded-lg shadow-2xl border-4 border-white object-cover h-[600px] w-full grayscale hover:grayscale-0 transition duration-700"
                />
                <div className="absolute -bottom-10 -left-10 bg-white p-6 shadow-xl rounded-sm border-l-4 border-[#c5a059]">
                   <p className="text-4xl font-serif font-bold text-slate-900">15+</p>
-                  <p className="text-sm text-gray-500 uppercase tracking-wider font-bold">Years of Experience</p>
+                  <p className="text-sm text-gray-500 uppercase tracking-wider font-bold">Years of Trust</p>
                </div>
             </div>
          </div>
       </header>
 
-      {/* --- Why Choose Us --- */}
+      {/* --- Why Choose Us (Unchanged) --- */}
       <section id="about" className="py-24 bg-white">
          <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16 max-w-2xl mx-auto">
@@ -133,7 +131,7 @@ const PublicHome = ({ onLoginClick }) => {
          </div>
       </section>
 
-      {/* --- Practice Areas --- */}
+      {/* --- Practice Areas (Unchanged) --- */}
       <section id="practice" className="py-24 bg-slate-50">
          <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row justify-between items-end mb-12">
@@ -165,7 +163,7 @@ const PublicHome = ({ onLoginClick }) => {
          </div>
       </section>
 
-      {/* --- Team Section --- */}
+      {/* --- Team Section (Unchanged) --- */}
       <section id="team" className="py-24 bg-white">
          <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
@@ -174,7 +172,6 @@ const PublicHome = ({ onLoginClick }) => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-               {/* Head of Chamber */}
                <div className="md:col-span-3 flex justify-center mb-8">
                   <div className="text-center group">
                      <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto">
@@ -186,7 +183,6 @@ const PublicHome = ({ onLoginClick }) => {
                   </div>
                </div>
 
-               {/* Other Members Placeholder */}
                {[1, 2, 3].map((m) => (
                   <div key={m} className="text-center group">
                      <div className="relative overflow-hidden rounded-lg mb-4 h-64 mx-auto w-full max-w-xs bg-slate-100">
@@ -202,12 +198,11 @@ const PublicHome = ({ onLoginClick }) => {
          </div>
       </section>
 
-      {/* --- Appointment & Case Evaluation Form (Grid Style) --- */}
+      {/* --- Appointment Form (Formspree Connected) --- */}
       <section id="contact" className="py-24 bg-slate-900 text-white relative">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-6 relative z-10 grid md:grid-cols-2 gap-16">
             
-            {/* Contact Info */}
             <div className="space-y-8">
                <h2 className="text-4xl font-serif font-bold">Free Case Evaluation</h2>
                <p className="text-slate-400 text-lg">Please fill out the form to request an appointment. We will review your case and get back to you within 24 hours.</p>
@@ -237,10 +232,13 @@ const PublicHome = ({ onLoginClick }) => {
                </div>
             </div>
 
-            {/* Grid Form */}
             <div className="bg-white p-8 rounded-sm shadow-2xl">
+               {/* IMPORTANT: 
+                  1. Go to https://formspree.io/ and register your email (lexsword.bd@gmail.com)
+                  2. Create a new form there.
+                  3. Replace 'YOUR_FORM_ID' below with the ID they give you (e.g., 'xqywzzzz') 
+               */}
                <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Note: Replace YOUR_FORM_ID with your actual Formspree ID to receive emails */}
                   
                   <div className="col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Full Name</label>
@@ -284,7 +282,7 @@ const PublicHome = ({ onLoginClick }) => {
          </div>
       </section>
 
-      {/* --- Footer --- */}
+      {/* --- Footer (Unchanged) --- */}
       <footer className="bg-slate-950 text-slate-400 py-12 px-6 border-t border-slate-900">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-center md:text-left">
@@ -364,7 +362,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- এডমিন ড্যাশবোর্ড ---
+// --- এডমিন ড্যাশবোর্ড (UNCHANGED) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
@@ -373,12 +371,12 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [cases, setCases] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [historyLog, setHistoryLog] = useState([]);
-  const [documents, setDocuments] = useState([]); // ডকুমেন্টস লিস্ট
+  const [documents, setDocuments] = useState([]); 
   const [caseFilter, setCaseFilter] = useState('week');
   const [accountFilter, setAccountFilter] = useState({ client: '', month: '', type: 'All' });
   
   // ক্যালেন্ডার স্টেট
-  const [calendarDate, setCalendarDate] = useState(new Date()); // বর্তমান মাস দেখার জন্য
+  const [calendarDate, setCalendarDate] = useState(new Date()); 
   const [selectedDateCases, setSelectedDateCases] = useState(null);
 
   // মোডাল স্টেটস
@@ -406,13 +404,11 @@ const AdminDashboard = ({ session, onLogout }) => {
     setDocuments(data || []);
   };
 
-  // --- লজিক: ক্যালেন্ডার নেভিগেশন ---
   const changeMonth = (offset) => {
     const newDate = new Date(calendarDate.setMonth(calendarDate.getMonth() + offset));
     setCalendarDate(new Date(newDate));
   };
 
-  // --- লজিক: কেস ফিল্টারিং ---
   const getFilteredCases = () => {
     const today = new Date().toISOString().split('T')[0];
     const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
@@ -435,7 +431,6 @@ const AdminDashboard = ({ session, onLogout }) => {
     });
   };
 
-  // --- অ্যাকশন হ্যান্ডলার ---
   const handleSaveCase = async () => {
     const { error } = formData.id 
       ? await supabase.from('cases').update(formData).eq('id', formData.id)
@@ -476,7 +471,6 @@ const AdminDashboard = ({ session, onLogout }) => {
     }
   };
 
-  // --- একাউন্টস ক্যালকুলেশন ---
   const filteredAccounts = accounts.filter(a => {
     const matchClient = accountFilter.client ? a.client_name?.toLowerCase().includes(accountFilter.client.toLowerCase()) : true;
     const matchMonth = accountFilter.month ? a.date.startsWith(accountFilter.month) : true;
