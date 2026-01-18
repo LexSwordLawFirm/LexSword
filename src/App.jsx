@@ -5,35 +5,308 @@ import {
   Calendar as CalIcon, Save, Trash2, 
   ExternalLink, MessageCircle, FolderOpen, LogOut, 
   Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, 
-  Eye, History, User, Lock, Folder
+  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, ArrowRight
 } from 'lucide-react';
 
-// --- ১. পাবলিক হোমপেজ ---
-const PublicHome = ({ onLoginClick }) => (
-  <div className="font-sans text-slate-800 bg-white">
-    <nav className="fixed w-full bg-slate-900 text-white z-50 px-6 py-4 shadow-lg flex justify-between items-center">
-      <div className="flex items-center gap-2">
-        <Scale className="text-[#c5a059] h-8 w-8" />
-        <div><h1 className="text-2xl font-bold font-serif">JUSTICE & CO.</h1></div>
-      </div>
-      <div className="flex gap-4">
-        {/* ক্লায়েন্ট ও এডমিন উভয়ের জন্য একই লগিন পোর্টাল, সিস্টেম অটোমেটিক চিনবে */}
-        <button onClick={onLoginClick} className="bg-[#c5a059] text-slate-900 px-6 py-2 rounded-sm font-bold hover:bg-white transition flex items-center gap-2">
-           <User size={18}/> MEMBER LOGIN
-        </button>
-      </div>
-    </nav>
-    <header className="h-screen flex items-center justify-center bg-slate-900 text-white pt-20 relative">
-       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1589829085413-56de8ae18c73')] bg-cover opacity-20"></div>
-       <div className="relative z-10 text-center max-w-4xl px-4">
-         <h1 className="text-6xl font-serif font-bold mb-6">Supreme Court Advocates</h1>
-         <p className="text-xl text-gray-300 mb-8">Excellence in Legal Representation across Bangladesh.</p>
-       </div>
-    </header>
-  </div>
-);
+// ==============================================================================
+// 1. LEXSWORD PUBLIC HOMEPAGE (INTERNATIONAL STANDARD)
+// ==============================================================================
 
-// --- ২. ক্লায়েন্ট ড্যাশবোর্ড (শুধুমাত্র রিড-অনলি) ---
+const PublicHome = ({ onLoginClick }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white">
+      
+      {/* --- Navbar (Sticky & Clean) --- */}
+      <nav className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 py-4 px-6 md:px-12 transition-all">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          {/* Brand Logo */}
+          <div className="flex items-center gap-2">
+            <div className="bg-slate-900 text-[#c5a059] p-2 rounded-sm">
+              <Scale size={24} strokeWidth={2.5} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-serif font-bold text-slate-900 tracking-tight leading-none">LEXSWORD</h1>
+              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">Chambers of Law</p>
+            </div>
+          </div>
+
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-600 tracking-wide">
+            <a href="#home" className="hover:text-[#c5a059] transition">HOME</a>
+            <a href="#about" className="hover:text-[#c5a059] transition">WHY US</a>
+            <a href="#practice" className="hover:text-[#c5a059] transition">PRACTICE AREAS</a>
+            <a href="#team" className="hover:text-[#c5a059] transition">ATTORNEYS</a>
+            <a href="#contact" className="hover:text-[#c5a059] transition">CONTACT</a>
+          </div>
+
+          {/* Login Button */}
+          <button onClick={onLoginClick} className="hidden md:flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-sm font-bold text-sm tracking-wide hover:bg-[#c5a059] hover:text-white transition shadow-lg">
+            <User size={16}/> MEMBER LOGIN
+          </button>
+
+          {/* Mobile Menu Icon */}
+          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-slate-900">
+             {menuOpen ? <X/> : <div className="space-y-1.5"><div className="w-6 h-0.5 bg-slate-900"></div><div className="w-6 h-0.5 bg-slate-900"></div><div className="w-6 h-0.5 bg-slate-900"></div></div>}
+          </button>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        {menuOpen && (
+          <div className="md:hidden absolute top-20 left-0 w-full bg-white shadow-xl border-t p-6 flex flex-col gap-4 font-bold text-center">
+             <a href="#home" onClick={()=>setMenuOpen(false)}>Home</a>
+             <a href="#practice" onClick={()=>setMenuOpen(false)}>Practice Areas</a>
+             <a href="#contact" onClick={()=>setMenuOpen(false)}>Contact</a>
+             <button onClick={onLoginClick} className="text-[#c5a059]">Login Portal</button>
+          </div>
+        )}
+      </nav>
+
+      {/* --- Hero Section (Premium Look) --- */}
+      <header id="home" className="relative h-screen flex items-center justify-center bg-slate-50 pt-16 overflow-hidden">
+         {/* Background Subtle Pattern */}
+         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]"></div>
+         
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
+            <div className="space-y-8 text-center md:text-left">
+               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-900 text-xs font-bold tracking-widest border border-blue-100 uppercase">
+                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Available for Consultation
+               </div>
+               <h1 className="text-5xl md:text-7xl font-serif font-bold text-slate-900 leading-[1.1]">
+                  Defending Your <br/>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5a059] to-yellow-600">Rights & Legacy</span>
+               </h1>
+               <p className="text-lg text-slate-600 leading-relaxed max-w-lg mx-auto md:mx-0">
+                  A full-service law firm in Bangladesh dedicated to providing strategic legal solutions. We combine legal expertise with a deep understanding of your needs.
+               </p>
+               <div className="flex flex-col md:flex-row gap-4 justify-center md:justify-start">
+                  <a href="#contact" className="bg-slate-900 text-white px-8 py-4 rounded-sm font-bold tracking-widest hover:bg-[#c5a059] transition shadow-xl text-center">
+                     BOOK APPOINTMENT
+                  </a>
+                  <a href="tel:+8801911008518" className="border border-slate-300 text-slate-900 px-8 py-4 rounded-sm font-bold tracking-widest hover:border-slate-900 transition flex items-center justify-center gap-2">
+                     <Phone size={18}/> +88 01911 008 518
+                  </a>
+               </div>
+            </div>
+            
+            {/* Hero Image / Graphic */}
+            <div className="relative hidden md:block">
+               <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl"></div>
+               <img 
+                 src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80" 
+                 alt="Law Firm" 
+                 className="relative rounded-lg shadow-2xl border-4 border-white object-cover h-[600px] w-full grayscale hover:grayscale-0 transition duration-700"
+               />
+               <div className="absolute -bottom-10 -left-10 bg-white p-6 shadow-xl rounded-sm border-l-4 border-[#c5a059]">
+                  <p className="text-4xl font-serif font-bold text-slate-900">15+</p>
+                  <p className="text-sm text-gray-500 uppercase tracking-wider font-bold">Years of Experience</p>
+               </div>
+            </div>
+         </div>
+      </header>
+
+      {/* --- Why Choose Us --- */}
+      <section id="about" className="py-24 bg-white">
+         <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16 max-w-2xl mx-auto">
+               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">Our Values</h2>
+               <h3 className="text-4xl font-serif font-bold text-slate-900">Why Clients Trust LexSword</h3>
+               <div className="w-20 h-1 bg-slate-900 mx-auto mt-6"></div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-12 text-center">
+               {[
+                  {icon: Scale, title: "Integrity First", desc: "We uphold the highest standards of ethics and transparency in every case we handle."},
+                  {icon: Check, title: "Proven Track Record", desc: "Our history of favorable verdicts and settlements speaks for our dedication."},
+                  {icon: Gavel, title: "Strategic Defense", desc: "We don't just fight; we strategize to ensure the best possible outcome for you."}
+               ].map((item, i) => (
+                  <div key={i} className="group p-8 hover:bg-slate-50 transition duration-300 rounded-lg border border-transparent hover:border-slate-100">
+                     <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-[#c5a059] transition">
+                        <item.icon className="text-slate-900 group-hover:text-white" size={32}/>
+                     </div>
+                     <h4 className="text-xl font-bold mb-4 font-serif">{item.title}</h4>
+                     <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                  </div>
+               ))}
+            </div>
+         </div>
+      </section>
+
+      {/* --- Practice Areas --- */}
+      <section id="practice" className="py-24 bg-slate-50">
+         <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-12">
+               <div>
+                  <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">Expertise</h2>
+                  <h3 className="text-4xl font-serif font-bold text-slate-900">Our Practice Areas</h3>
+               </div>
+               <a href="#contact" className="hidden md:flex items-center gap-2 text-slate-900 font-bold hover:text-[#c5a059] transition">
+                  View All Services <ArrowRight size={18}/>
+               </a>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+               {[
+                  "Civil Litigation", "Criminal Defense", "Writ Petition", 
+                  "Family Law", "Commercial Law", "Documentation"
+               ].map((area, i) => (
+                  <div key={i} className="bg-white p-8 border-l-4 border-[#c5a059] shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 group">
+                     <div className="flex justify-between items-start mb-4">
+                        <Gavel className="text-slate-300 group-hover:text-[#c5a059] transition"/>
+                        <span className="text-5xl font-serif font-bold text-slate-100 group-hover:text-slate-200 transition">0{i+1}</span>
+                     </div>
+                     <h4 className="text-2xl font-bold text-slate-900 font-serif mb-2">{area}</h4>
+                     <p className="text-gray-500 text-sm mb-4">Professional legal representation and consultancy services.</p>
+                     <span className="text-xs font-bold uppercase tracking-widest text-[#c5a059] group-hover:text-slate-900 transition">Learn More</span>
+                  </div>
+               ))}
+            </div>
+         </div>
+      </section>
+
+      {/* --- Team Section --- */}
+      <section id="team" className="py-24 bg-white">
+         <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">The Attorneys</h2>
+               <h3 className="text-4xl font-serif font-bold text-slate-900">Meet Our Team</h3>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+               {/* Head of Chamber */}
+               <div className="md:col-span-3 flex justify-center mb-8">
+                  <div className="text-center group">
+                     <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto">
+                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80" alt="Head" className="w-full h-full object-cover group-hover:scale-110 transition duration-500"/>
+                        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition"></div>
+                     </div>
+                     <h4 className="text-2xl font-serif font-bold text-slate-900">Md. Azadur Rahman</h4>
+                     <p className="text-[#c5a059] font-bold uppercase text-sm tracking-wider">Head of Chamber</p>
+                  </div>
+               </div>
+
+               {/* Other Members Placeholder */}
+               {[1, 2, 3].map((m) => (
+                  <div key={m} className="text-center group">
+                     <div className="relative overflow-hidden rounded-lg mb-4 h-64 mx-auto w-full max-w-xs bg-slate-100">
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                           <User size={64}/>
+                        </div>
+                     </div>
+                     <h4 className="text-lg font-bold text-slate-900">Associate Lawyer</h4>
+                     <p className="text-gray-500 text-sm">Supreme Court of Bangladesh</p>
+                  </div>
+               ))}
+            </div>
+         </div>
+      </section>
+
+      {/* --- Appointment & Case Evaluation Form (Grid Style) --- */}
+      <section id="contact" className="py-24 bg-slate-900 text-white relative">
+         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+         <div className="max-w-7xl mx-auto px-6 relative z-10 grid md:grid-cols-2 gap-16">
+            
+            {/* Contact Info */}
+            <div className="space-y-8">
+               <h2 className="text-4xl font-serif font-bold">Free Case Evaluation</h2>
+               <p className="text-slate-400 text-lg">Please fill out the form to request an appointment. We will review your case and get back to you within 24 hours.</p>
+               
+               <div className="space-y-6 pt-8">
+                  <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900"><Phone/></div>
+                     <div>
+                        <p className="text-sm text-slate-400 uppercase font-bold">Call Us 24/7</p>
+                        <p className="text-xl font-bold">+88 01911 008 518</p>
+                     </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900"><Mail/></div>
+                     <div>
+                        <p className="text-sm text-slate-400 uppercase font-bold">Email Us</p>
+                        <p className="text-xl font-bold">lexsword.bd@gmail.com</p>
+                     </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900"><MapPin/></div>
+                     <div>
+                        <p className="text-sm text-slate-400 uppercase font-bold">Location</p>
+                        <p className="text-lg font-bold">Dhaka, Bangladesh</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* Grid Form */}
+            <div className="bg-white p-8 rounded-sm shadow-2xl">
+               <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Note: Replace YOUR_FORM_ID with your actual Formspree ID to receive emails */}
+                  
+                  <div className="col-span-2">
+                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Full Name</label>
+                     <input name="name" type="text" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900" placeholder="Your Name" required/>
+                  </div>
+                  
+                  <div>
+                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Phone Number</label>
+                     <input name="phone" type="tel" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900" placeholder="+880..." required/>
+                  </div>
+
+                  <div>
+                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Email Address</label>
+                     <input name="email" type="email" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900" placeholder="email@example.com"/>
+                  </div>
+
+                  <div className="col-span-2">
+                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Practice Area</label>
+                     <select name="service" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900">
+                        <option>Civil Litigation</option>
+                        <option>Criminal Defense</option>
+                        <option>Writ Petition</option>
+                        <option>Family Law</option>
+                        <option>Commercial Law</option>
+                        <option>Other Legal Matter</option>
+                     </select>
+                  </div>
+
+                  <div className="col-span-2">
+                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Case Details</label>
+                     <textarea name="message" rows="4" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900" placeholder="Briefly describe your legal issue..."></textarea>
+                  </div>
+
+                  <div className="col-span-2">
+                     <button type="submit" className="w-full bg-[#c5a059] text-slate-900 py-4 font-bold tracking-widest hover:bg-slate-900 hover:text-white transition uppercase">
+                        Submit Request
+                     </button>
+                  </div>
+               </form>
+            </div>
+         </div>
+      </section>
+
+      {/* --- Footer --- */}
+      <footer className="bg-slate-950 text-slate-400 py-12 px-6 border-t border-slate-900">
+         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-center md:text-left">
+               <h2 className="text-2xl font-serif font-bold text-white tracking-wide">LEXSWORD</h2>
+               <p className="text-sm mt-2">&copy; {new Date().getFullYear()} LexSword Chambers. All Rights Reserved.</p>
+            </div>
+            <div className="flex gap-6 text-sm font-bold">
+               <a href="#" className="hover:text-white transition">Privacy Policy</a>
+               <a href="#" className="hover:text-white transition">Terms of Service</a>
+               <a href="#" className="hover:text-white transition">Disclaimer</a>
+            </div>
+         </div>
+      </footer>
+    </div>
+  );
+};
+
+// ==============================================================================
+// 2. DASHBOARD & MODULES (DO NOT CHANGE)
+// ==============================================================================
+
+// --- ক্লায়েন্ট ড্যাশবোর্ড (শুধুমাত্র রিড-অনলি) ---
 const ClientDashboard = ({ session, onLogout }) => {
   const [myCases, setMyCases] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +364,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- ৩. এডমিন ড্যাশবোর্ড ---
+// --- এডমিন ড্যাশবোর্ড ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
@@ -321,7 +594,6 @@ const AdminDashboard = ({ session, onLogout }) => {
             </div>
             <div className="grid grid-cols-7 gap-1 flex-1">
                {[...Array(35)].map((_, i) => {
-                 // ক্যালেন্ডার লজিক (Current Month based)
                  const year = calendarDate.getFullYear();
                  const month = calendarDate.getMonth();
                  const firstDay = new Date(year, month, 1).getDay();
@@ -347,7 +619,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                })}
             </div>
             
-            {/* Selected Date List */}
             {selectedDateCases && (
                <div className="mt-4 border-t pt-4">
                  <h3 className="font-bold text-lg mb-2">Cases on Selected Date:</h3>
@@ -444,9 +715,7 @@ const AdminDashboard = ({ session, onLogout }) => {
         )}
       </main>
 
-      {/* ================= MODALS (POP-UPS) ================= */}
-
-      {/* 1. Add/Edit Case Modal */}
+      {/* ================= MODALS ================= */}
       {modalMode === 'addCase' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
@@ -455,33 +724,28 @@ const AdminDashboard = ({ session, onLogout }) => {
               <button onClick={() => setModalMode(null)}><X/></button>
             </div>
             <div className="p-6 grid md:grid-cols-2 gap-4">
-               {/* Fields */}
                <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Court Type</label>
                <select value={formData.court_type} onChange={e => setFormData({...formData, court_type: e.target.value})} className="w-full border p-2 rounded">
                  <option>High Court</option><option>Judge Court</option>
                </select></div>
                <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Court Name</label>
                <input placeholder="e.g. 5th Joint District Judge" value={formData.court_name} onChange={e => setFormData({...formData, court_name: e.target.value})} className="w-full border p-2 rounded"/></div>
-               
                <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Case No</label>
                <input value={formData.case_no} onChange={e => setFormData({...formData, case_no: e.target.value})} className="w-full border p-2 rounded"/></div>
                <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Section</label>
                <input value={formData.section} onChange={e => setFormData({...formData, section: e.target.value})} className="w-full border p-2 rounded"/></div>
-
                <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Party Name</label>
                <input value={formData.party_name} onChange={e => setFormData({...formData, party_name: e.target.value})} className="w-full border p-2 rounded"/></div>
                <div className="space-y-1"><label className="text-xs font-bold text-gray-500">On Behalf</label>
                <select value={formData.on_behalf} onChange={e => setFormData({...formData, on_behalf: e.target.value})} className="w-full border p-2 rounded">
                  <option>Petitioner</option><option>Defendant</option><option>Plaintiff</option><option>Accused</option>
                </select></div>
-
                <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Client Mobile (For Client Access)</label>
                <input placeholder="017xxxxxxxx" value={formData.client_mobile} onChange={e => setFormData({...formData, client_mobile: e.target.value})} className="w-full border p-2 rounded"/></div>
                <div className="space-y-1"><label className="text-xs font-bold text-gray-500">Status</label>
                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border p-2 rounded">
                  <option>Ongoing</option><option>Disposed</option>
                </select></div>
-
                <div className="col-span-2 grid grid-cols-2 gap-4 bg-yellow-50 p-4 rounded border border-yellow-200">
                   <div className="space-y-1"><label className="text-xs font-bold text-red-600">Next Date</label>
                   <input type="date" value={formData.next_date} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border p-2 rounded bg-white"/></div>
@@ -497,7 +761,6 @@ const AdminDashboard = ({ session, onLogout }) => {
         </div>
       )}
 
-      {/* 2. View Details Modal with Documents & History */}
       {modalMode === 'viewCase' && selectedCase && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
@@ -507,7 +770,6 @@ const AdminDashboard = ({ session, onLogout }) => {
              </div>
              
              <div className="p-6 space-y-6">
-                {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-6 text-sm bg-slate-50 p-4 rounded border">
                    <div>
                       <p className="text-gray-500 font-bold uppercase text-xs">Court Info</p>
@@ -531,14 +793,12 @@ const AdminDashboard = ({ session, onLogout }) => {
                    </div>
                 </div>
 
-                {/* --- DIGITAL ARCHIVE SECTION --- */}
                 <div>
                   <div className="flex justify-between items-center mb-4 border-b pb-2">
                     <h4 className="font-bold text-lg flex items-center gap-2"><FolderOpen className="text-[#c5a059]"/> Digital Archive</h4>
                     <button onClick={() => fetchDocuments(selectedCase.id)} className="text-xs underline">Refresh</button>
                   </div>
                   
-                  {/* Add New Doc Form */}
                   <div className="bg-blue-50 p-4 rounded flex gap-2 items-end mb-4 border border-blue-200">
                      <div className="flex-1 space-y-1">
                         <label className="text-xs font-bold text-slate-500">Folder</label>
@@ -561,7 +821,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                      <button onClick={handleSaveDoc} className="bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#c5a059]">ADD</button>
                   </div>
 
-                  {/* Documents List */}
                   <div className="space-y-2">
                      {documents.length === 0 && <p className="text-gray-400 text-sm italic">No documents linked yet.</p>}
                      {documents.map(d => (
@@ -586,7 +845,6 @@ const AdminDashboard = ({ session, onLogout }) => {
         </div>
       )}
 
-      {/* 3. History Modal */}
       {modalMode === 'history' && (
          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
@@ -611,7 +869,6 @@ const AdminDashboard = ({ session, onLogout }) => {
          </div>
       )}
 
-      {/* 4. Add/Edit Transaction Modal */}
       {modalMode === 'addTxn' && (
          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl">
@@ -646,7 +903,9 @@ const AdminDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- মেইন অ্যাপ কন্ট্রোলার (লগিন ও রাউটিং হ্যান্ডলার) ---
+// ==============================================================================
+// 3. MAIN APP CONTROLLER
+// ==============================================================================
 export default function App() {
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null); // 'admin' or 'client'
@@ -666,7 +925,6 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // ইউজার রোল চেক ফাংশন
   const checkRole = async (uid) => {
     const { data } = await supabase.from('profiles').select('role').eq('id', uid).single();
     if(data) {
@@ -683,7 +941,6 @@ export default function App() {
     if (error) alert(error.message);
   };
 
-  // --- ভিউ কন্ট্রোল ---
   if (view === 'home') return <PublicHome onLoginClick={() => setView('login')} />;
   
   if (view === 'login') return (
@@ -704,9 +961,7 @@ export default function App() {
     </div>
   );
 
-  // রোল অনুযায়ী ড্যাশবোর্ড
   if (userRole === 'client') return <ClientDashboard session={session} onLogout={() => supabase.auth.signOut()} />;
   
-  // ডিফল্টভাবে এডমিন ড্যাশবোর্ড
   return <AdminDashboard session={session} onLogout={() => supabase.auth.signOut()} />;
 }
