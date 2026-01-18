@@ -187,7 +187,7 @@ export default function App() {
           <input name="email" type="email" placeholder="Email" className="w-full bg-slate-800 p-3 rounded text-white border border-slate-600" />
           <input name="password" type="password" placeholder="Password" className="w-full bg-slate-800 p-3 rounded text-white border border-slate-600" />
           <button type="submit" className="w-full bg-law-gold text-slate-900 py-3 rounded font-bold">Sign In</button>
-        </button>
+        </form>
         <button onClick={() => setView('home')} className="w-full text-center mt-4 text-gray-400 text-sm">Back to Home</button>
       </div>
     </div>
