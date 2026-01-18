@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (Image & Mobile Responsive Form Updated)
+// 1. LEXSWORD PUBLIC HOMEPAGE (Padding Fixed for Hero Buttons)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
@@ -58,8 +58,8 @@ const PublicHome = ({ onLoginClick, loading }) => {
         )}
       </nav>
 
-      {/* --- Hero Section (Image Updated with Your Photo) --- */}
-      <header id="home" className="relative md:h-screen flex items-center justify-center bg-slate-50 pt-24 md:pt-16 overflow-hidden">
+      {/* --- Hero Section (Padding Updated to Fix Button Visibility) --- */}
+      <header id="home" className="relative md:h-screen flex items-center justify-center bg-slate-50 pt-24 md:pt-32 overflow-hidden">
          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]"></div>
          
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10 pb-12 md:pb-0">
@@ -86,10 +86,9 @@ const PublicHome = ({ onLoginClick, loading }) => {
                </div>
             </div>
             
-            {/* Hero Image (UPDATED: Your Photo) */}
+            {/* Hero Image (Your Photo) */}
             <div className="relative">
                <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl hidden md:block"></div>
-               {/* Note: Ensure you put your image in the public folder and name it 'head.jpg' */}
                <img 
                  src="/head.jpg" 
                  alt="Md. Azadur Rahman, Head of LexSword" 
@@ -174,7 +173,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                <div className="md:col-span-3 flex justify-center mb-8">
                   <div className="text-center group">
                      <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto shadow-lg">
-                        {/* Using the same photo as Hero for Head of Chamber */}
                         <img src="/head.jpg" alt="Head" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
                         <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition"></div>
                      </div>
@@ -198,12 +196,11 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- Appointment Form (UPDATED: Mobile Friendly & Responsive) --- */}
+      {/* --- Appointment Form (Unchanged) --- */}
       <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
             
-            {/* Contact Info */}
             <div className="space-y-8 order-2 md:order-1">
                <h2 className="text-3xl md:text-4xl font-serif font-bold">Free Case Evaluation</h2>
                <p className="text-slate-400 text-base md:text-lg">Please fill out the form to request an appointment. We will review your case and get back to you within 24 hours.</p>
@@ -233,9 +230,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                </div>
             </div>
 
-            {/* Grid Form - Formspree Connected & Mobile Optimized */}
             <div className="bg-white p-5 md:p-8 rounded-sm shadow-2xl order-1 md:order-2">
-               {/* IMPORTANT: Replace 'YOUR_FORM_ID' with your actual Formspree ID */}
                <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   
                   <div className="col-span-1 md:col-span-2">
