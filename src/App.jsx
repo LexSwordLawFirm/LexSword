@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (Image & Login Animation Updated)
+// 1. LEXSWORD PUBLIC HOMEPAGE (Image & Mobile Responsive Form Updated)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
@@ -58,11 +58,11 @@ const PublicHome = ({ onLoginClick, loading }) => {
         )}
       </nav>
 
-      {/* --- Hero Section (Image Updated to Law Related) --- */}
-      <header id="home" className="relative h-screen flex items-center justify-center bg-slate-50 pt-16 overflow-hidden">
+      {/* --- Hero Section (Image Updated with Your Photo) --- */}
+      <header id="home" className="relative md:h-screen flex items-center justify-center bg-slate-50 pt-24 md:pt-16 overflow-hidden">
          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]"></div>
          
-         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10 pb-12 md:pb-0">
             <div className="space-y-8 text-center md:text-left">
                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-900 text-xs font-bold tracking-widest border border-blue-100 uppercase">
                   <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Expert Legal Defense
@@ -86,17 +86,18 @@ const PublicHome = ({ onLoginClick, loading }) => {
                </div>
             </div>
             
-            {/* Hero Image (Updated to Law Related) */}
-            <div className="relative hidden md:block">
-               <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl"></div>
+            {/* Hero Image (UPDATED: Your Photo) */}
+            <div className="relative">
+               <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl hidden md:block"></div>
+               {/* Note: Ensure you put your image in the public folder and name it 'head.jpg' */}
                <img 
-                 src="https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80" 
-                 alt="Legal Excellence" 
-                 className="relative rounded-lg shadow-2xl border-4 border-white object-cover h-[600px] w-full grayscale hover:grayscale-0 transition duration-700"
+                 src="/head.jpg" 
+                 alt="Md. Azadur Rahman, Head of LexSword" 
+                 className="relative rounded-lg shadow-2xl border-4 border-white object-cover object-top h-[500px] md:h-[650px] w-full"
                />
-               <div className="absolute -bottom-10 -left-10 bg-white p-6 shadow-xl rounded-sm border-l-4 border-[#c5a059]">
-                  <p className="text-4xl font-serif font-bold text-slate-900">15+</p>
-                  <p className="text-sm text-gray-500 uppercase tracking-wider font-bold">Years of Trust</p>
+               <div className="absolute -bottom-6 -left-6 bg-white p-6 shadow-xl rounded-sm border-l-4 border-[#c5a059] hidden md:block">
+                  <p className="text-xl font-serif font-bold text-slate-900">Md. Azadur Rahman</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">Head of Chamber</p>
                </div>
             </div>
          </div>
@@ -172,9 +173,10 @@ const PublicHome = ({ onLoginClick, loading }) => {
             <div className="grid md:grid-cols-3 gap-8">
                <div className="md:col-span-3 flex justify-center mb-8">
                   <div className="text-center group">
-                     <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto">
-                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80" alt="Head" className="w-full h-full object-cover group-hover:scale-110 transition duration-500"/>
-                        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition"></div>
+                     <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto shadow-lg">
+                        {/* Using the same photo as Hero for Head of Chamber */}
+                        <img src="/head.jpg" alt="Head" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
+                        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition"></div>
                      </div>
                      <h4 className="text-2xl font-serif font-bold text-slate-900">Md. Azadur Rahman</h4>
                      <p className="text-[#c5a059] font-bold uppercase text-sm tracking-wider">Head of Chamber</p>
@@ -196,66 +198,64 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- Appointment Form (Unchanged) --- */}
-      <section id="contact" className="py-24 bg-slate-900 text-white relative">
+      {/* --- Appointment Form (UPDATED: Mobile Friendly & Responsive) --- */}
+      <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-         <div className="max-w-7xl mx-auto px-6 relative z-10 grid md:grid-cols-2 gap-16">
+         <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
             
-            <div className="space-y-8">
-               <h2 className="text-4xl font-serif font-bold">Free Case Evaluation</h2>
-               <p className="text-slate-400 text-lg">Please fill out the form to request an appointment. We will review your case and get back to you within 24 hours.</p>
+            {/* Contact Info */}
+            <div className="space-y-8 order-2 md:order-1">
+               <h2 className="text-3xl md:text-4xl font-serif font-bold">Free Case Evaluation</h2>
+               <p className="text-slate-400 text-base md:text-lg">Please fill out the form to request an appointment. We will review your case and get back to you within 24 hours.</p>
                
-               <div className="space-y-6 pt-8">
+               <div className="space-y-6 pt-4 md:pt-8">
                   <div className="flex items-center gap-4">
-                     <div className="w-12 h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900"><Phone/></div>
+                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900 shrink-0"><Phone size={20}/></div>
                      <div>
-                        <p className="text-sm text-slate-400 uppercase font-bold">Call Us 24/7</p>
-                        <p className="text-xl font-bold">+88 01911 008 518</p>
+                        <p className="text-xs md:text-sm text-slate-400 uppercase font-bold">Call Us 24/7</p>
+                        <p className="text-lg md:text-xl font-bold">+88 01911 008 518</p>
                      </div>
                   </div>
                   <div className="flex items-center gap-4">
-                     <div className="w-12 h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900"><Mail/></div>
-                     <div>
-                        <p className="text-sm text-slate-400 uppercase font-bold">Email Us</p>
-                        <p className="text-xl font-bold">lexsword.bd@gmail.com</p>
+                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900 shrink-0"><Mail size={20}/></div>
+                     <div className="overflow-hidden">
+                        <p className="text-xs md:text-sm text-slate-400 uppercase font-bold">Email Us</p>
+                        <p className="text-lg md:text-xl font-bold truncate">lexsword.bd@gmail.com</p>
                      </div>
                   </div>
                   <div className="flex items-center gap-4">
-                     <div className="w-12 h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900"><MapPin/></div>
+                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900 shrink-0"><MapPin size={20}/></div>
                      <div>
-                        <p className="text-sm text-slate-400 uppercase font-bold">Location</p>
+                        <p className="text-xs md:text-sm text-slate-400 uppercase font-bold">Location</p>
                         <p className="text-lg font-bold">Dhaka, Bangladesh</p>
                      </div>
                   </div>
                </div>
             </div>
 
-            <div className="bg-white p-8 rounded-sm shadow-2xl">
-               {/* IMPORTANT: 
-                  1. Go to https://formspree.io/ and register your email (lexsword.bd@gmail.com)
-                  2. Create a new form there.
-                  3. Replace 'YOUR_FORM_ID' below with the ID they give you (e.g., 'xqywzzzz') 
-               */}
-               <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Grid Form - Formspree Connected & Mobile Optimized */}
+            <div className="bg-white p-5 md:p-8 rounded-sm shadow-2xl order-1 md:order-2">
+               {/* IMPORTANT: Replace 'YOUR_FORM_ID' with your actual Formspree ID */}
+               <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   
-                  <div className="col-span-2">
+                  <div className="col-span-1 md:col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Full Name</label>
-                     <input name="name" type="text" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900" placeholder="Your Name" required/>
+                     <input name="name" type="text" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="Your Name" required/>
                   </div>
                   
-                  <div>
+                  <div className="col-span-1">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Phone Number</label>
-                     <input name="phone" type="tel" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900" placeholder="+880..." required/>
+                     <input name="phone" type="tel" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="+880..." required/>
                   </div>
 
-                  <div>
+                  <div className="col-span-1">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Email Address</label>
-                     <input name="email" type="email" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900" placeholder="email@example.com"/>
+                     <input name="email" type="email" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="email@example.com"/>
                   </div>
 
-                  <div className="col-span-2">
+                  <div className="col-span-1 md:col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Practice Area</label>
-                     <select name="service" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900">
+                     <select name="service" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm">
                         <option>Civil Litigation</option>
                         <option>Criminal Defense</option>
                         <option>Writ Petition</option>
@@ -265,13 +265,13 @@ const PublicHome = ({ onLoginClick, loading }) => {
                      </select>
                   </div>
 
-                  <div className="col-span-2">
+                  <div className="col-span-1 md:col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Case Details</label>
-                     <textarea name="message" rows="4" className="w-full bg-slate-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-slate-900" placeholder="Briefly describe your legal issue..."></textarea>
+                     <textarea name="message" rows="4" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="Briefly describe your legal issue..."></textarea>
                   </div>
 
-                  <div className="col-span-2">
-                     <button type="submit" className="w-full bg-[#c5a059] text-slate-900 py-4 font-bold tracking-widest hover:bg-slate-900 hover:text-white transition uppercase">
+                  <div className="col-span-1 md:col-span-2">
+                     <button type="submit" className="w-full bg-[#c5a059] text-slate-900 py-3 md:py-4 font-bold tracking-widest hover:bg-slate-900 hover:text-white transition uppercase text-sm md:text-base rounded-sm">
                         Submit Request
                      </button>
                   </div>
@@ -299,7 +299,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
 };
 
 // ==============================================================================
-// 2. DASHBOARD & MODULES (DO NOT CHANGE)
+// 2. DASHBOARD & MODULES (UNCHANGED)
 // ==============================================================================
 
 // --- ক্লায়েন্ট ড্যাশবোর্ড (শুধুমাত্র রিড-অনলি) ---
@@ -309,11 +309,9 @@ const ClientDashboard = ({ session, onLogout }) => {
 
   useEffect(() => {
     const fetchClientData = async () => {
-      // ১. ইউজারের প্রোফাইল থেকে মোবাইল নম্বর বের করা
       const { data: profile } = await supabase.from('profiles').select('mobile_no').eq('id', session.user.id).single();
       
       if (profile && profile.mobile_no) {
-        // ২. সেই মোবাইল নম্বরের সাথে মিল থাকা মামলাগুলো আনা
         const { data: cases } = await supabase.from('cases').select('*').eq('client_mobile', profile.mobile_no);
         setMyCases(cases || []);
       }
@@ -896,12 +894,13 @@ const AdminDashboard = ({ session, onLogout }) => {
 };
 
 // ==============================================================================
-// 3. MAIN APP CONTROLLER (UNCHANGED)
+// 3. MAIN APP CONTROLLER
 // ==============================================================================
 export default function App() {
   const [session, setSession] = useState(null);
-  const [userRole, setUserRole] = useState(null); // 'admin' or 'client'
+  const [userRole, setUserRole] = useState(null); 
   const [view, setView] = useState('home');
+  const [loading, setLoading] = useState(false); // Login Animation State
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -927,13 +926,18 @@ export default function App() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start animation
     const { error } = await supabase.auth.signInWithPassword({ 
       email: e.target.email.value, password: e.target.password.value 
     });
-    if (error) alert(error.message);
+    if (error) {
+      alert(error.message);
+      setLoading(false); // Stop if error
+    }
+    // If success, supabase listener will handle redirect
   };
 
-  if (view === 'home') return <PublicHome onLoginClick={() => setView('login')} />;
+  if (view === 'home') return <PublicHome onLoginClick={() => setView('login')} loading={loading} />;
   
   if (view === 'login') return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -946,7 +950,9 @@ export default function App() {
         <form onSubmit={handleLogin} className="space-y-4">
           <input name="email" type="email" placeholder="Email Address" className="w-full p-3 border rounded" required />
           <input name="password" type="password" placeholder="Password" className="w-full p-3 border rounded" required />
-          <button type="submit" className="w-full bg-slate-900 text-white py-3 font-bold hover:bg-[#c5a059]">AUTHENTICATE</button>
+          <button type="submit" className="w-full bg-slate-900 text-white py-3 font-bold hover:bg-[#c5a059] flex justify-center items-center gap-2">
+            {loading ? <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "AUTHENTICATE"}
+          </button>
         </form>
         <button onClick={() => setView('home')} className="w-full text-center mt-4 text-sm text-gray-500 hover:text-[#c5a059]">Return to Home</button>
       </div>
