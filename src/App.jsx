@@ -5,11 +5,11 @@ import {
   Calendar as CalIcon, Save, Trash2, 
   ExternalLink, MessageCircle, FolderOpen, LogOut, 
   Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, 
-  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, ArrowRight, Menu
+  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, ArrowRight, Menu, RefreshCw
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (Unchanged)
+// 1. LEXSWORD PUBLIC HOMEPAGE (Input Colors Fixed)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
@@ -169,6 +169,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-10">
+               {/* 1. Head of Chamber */}
                <div className="md:col-span-3 flex justify-center mb-8">
                   <div className="text-center group">
                      <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto shadow-2xl border-4 border-white">
@@ -181,6 +182,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   </div>
                </div>
 
+               {/* Associates */}
                <div className="text-center group">
                   <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
                      <img src="/team1.jpg" alt="Associate 1" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
@@ -208,7 +210,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- Appointment Form --- */}
+      {/* --- Appointment Form (Input Color Fixed) --- */}
       <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
@@ -300,7 +302,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
 };
 
 // ==============================================================================
-// 2. DASHBOARD & MODULES (COLORS & RESPONSIVENESS FIXED)
+// 2. DASHBOARD & MODULES (FIXED: Update Button & Input Colors)
 // ==============================================================================
 
 // --- ক্লায়েন্ট ড্যাশবোর্ড ---
@@ -358,7 +360,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- এডমিন ড্যাশবোর্ড (MOBILE & COLOR FIX) ---
+// --- এডমিন ড্যাশবোর্ড (FIXED: Input Colors & Update Button) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
@@ -377,7 +379,7 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [selectedDateCases, setSelectedDateCases] = useState(null);
 
   // মোডাল স্টেটস
-  const [modalMode, setModalMode] = useState(null);
+  const [modalMode, setModalMode] = useState(null); // 'addCase', 'updateStatus', etc.
   const [selectedCase, setSelectedCase] = useState(null);
   const [formData, setFormData] = useState({});
   const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' });
@@ -434,6 +436,17 @@ const AdminDashboard = ({ session, onLogout }) => {
       : await supabase.from('cases').insert([formData]);
     if(error) alert(error.message);
     else { alert("Saved!"); setModalMode(null); setRefresh(r => r+1); }
+  };
+
+  // --- NEW: Update Status/Date Function ---
+  const handleUpdateStatus = async () => {
+    const { error } = await supabase.from('cases').update({
+        next_date: formData.next_date,
+        current_step: formData.current_step
+    }).eq('id', formData.id);
+
+    if(error) alert(error.message);
+    else { alert("Status Updated & History Saved!"); setModalMode(null); setRefresh(r => r+1); }
   };
 
   const handleDeleteCase = async (id) => {
@@ -569,6 +582,12 @@ const AdminDashboard = ({ session, onLogout }) => {
                     </div>
 
                     <div className="flex gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
+                      
+                      {/* --- ADDED: QUICK UPDATE BUTTON --- */}
+                      <button onClick={() => { setFormData(c); setModalMode('updateStatus'); }} className="p-2 bg-slate-900 text-white rounded hover:bg-[#c5a059] font-bold flex items-center gap-1" title="Update Date & Step">
+                        <RefreshCw size={16}/> Update
+                      </button>
+
                       <button onClick={() => { setSelectedCase(c); setModalMode('viewCase'); }} className="p-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200" title="View">
                         <Eye size={18}/>
                       </button>
@@ -730,7 +749,39 @@ const AdminDashboard = ({ session, onLogout }) => {
         </main>
       </div>
 
-      {/* ================= MODALS (With Darker Text) ================= */}
+      {/* ================= MODALS (With Darker Text & Update Status) ================= */}
+      
+      {/* --- NEW: Quick Update Status Modal --- */}
+      {modalMode === 'updateStatus' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
+            <div className="bg-slate-900 p-4 text-white flex justify-between">
+              <h3 className="font-bold flex items-center gap-2"><RefreshCw size={18}/> Update Status</h3>
+              <button onClick={() => setModalMode(null)}><X/></button>
+            </div>
+            <div className="p-6 space-y-4">
+               <div className="bg-slate-100 p-3 rounded mb-4">
+                  <p className="text-xs font-bold text-slate-500">CASE NO</p>
+                  <p className="text-xl font-bold text-slate-900">{formData.case_no}</p>
+                  <p className="text-sm text-slate-700">{formData.party_name}</p>
+               </div>
+               
+               <div>
+                  <label className="block text-xs font-bold text-red-700 mb-1">New Date</label>
+                  <input type="date" value={formData.next_date} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white font-bold"/>
+               </div>
+               
+               <div>
+                  <label className="block text-xs font-bold text-red-700 mb-1">New Step / Status</label>
+                  <input placeholder="e.g. Hearing / Order" value={formData.current_step} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white font-bold"/>
+               </div>
+
+               <button onClick={handleUpdateStatus} className="w-full bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">CONFIRM UPDATE</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {modalMode === 'addCase' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
