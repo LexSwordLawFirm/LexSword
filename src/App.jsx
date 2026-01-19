@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (UNCHANGED)
+// 1. LEXSWORD PUBLIC HOMEPAGE (FULL RESTORED)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
@@ -47,6 +47,8 @@ const PublicHome = ({ onLoginClick, loading }) => {
 
   return (
     <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white">
+      
+      {/* --- Navbar --- */}
       <nav className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 py-4 px-6 md:px-12 transition-all no-print">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -86,6 +88,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
         )}
       </nav>
 
+      {/* --- Hero Section --- */}
       <header id="home" className="relative min-h-screen flex items-center justify-center bg-slate-50 pt-32 pb-20 overflow-hidden no-print">
          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]"></div>
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
@@ -125,13 +128,149 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </header>
 
+      {/* --- Why Choose Us --- */}
+      <section id="about" className="py-24 bg-white no-print">
+         <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16 max-w-2xl mx-auto">
+               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">Our Values</h2>
+               <h3 className="text-4xl font-serif font-bold text-slate-900">Why Clients Trust LexSword</h3>
+               <div className="w-20 h-1 bg-slate-900 mx-auto mt-6"></div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-12 text-center">
+               {[
+                  {icon: Scale, title: "Integrity First", desc: "We uphold the highest standards of ethics and transparency in every case we handle."},
+                  {icon: Check, title: "Proven Track Record", desc: "Our history of favorable verdicts and settlements speaks for our dedication."},
+                  {icon: Gavel, title: "Strategic Defense", desc: "We don't just fight; we strategize to ensure the best possible outcome for you."}
+               ].map((item, i) => (
+                  <div key={i} className="group p-8 hover:bg-slate-50 transition duration-300 rounded-lg border border-transparent hover:border-slate-100">
+                     <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-[#c5a059] transition">
+                        <item.icon className="text-slate-900 group-hover:text-white" size={32}/>
+                     </div>
+                     <h4 className="text-xl font-bold mb-4 font-serif">{item.title}</h4>
+                     <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                  </div>
+               ))}
+            </div>
+         </div>
+      </section>
+
+      {/* --- Practice Areas --- */}
+      <section id="practice" className="py-24 bg-slate-50 no-print">
+         <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-12">
+               <div>
+                  <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">Expertise</h2>
+                  <h3 className="text-4xl font-serif font-bold text-slate-900">Our Practice Areas</h3>
+               </div>
+               <a href="#contact" className="hidden md:flex items-center gap-2 text-slate-900 font-bold hover:text-[#c5a059] transition">
+                  View All Services <ArrowRight size={18}/>
+               </a>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+               {[
+                  { title: "Civil Litigation", desc: "We handle complex property disputes, land matters, and contract enforcement. Our team ensures your civil rights are protected through skilled advocacy." },
+                  { title: "Criminal Defense", desc: "Expert defense in sessions and magistrate courts for bail and trial proceedings. We protect the accused against false allegations with aggressive representation." },
+                  { title: "Writ Petition", desc: "Challenging government actions and enforcing fundamental rights in the High Court. We file Writ Petitions to secure immediate remedies for illegal detentions." },
+                  { title: "Family Law", desc: "Compassionate legal support for divorce, child custody, and dower issues. We assist in inheritance distribution according to Muslim and Hindu family laws." },
+                  { title: "Commercial Law", desc: "Comprehensive solutions for banking, Artha Rin suits, and corporate disputes. We guide businesses through regulatory compliance and contract drafting." },
+                  { title: "Documentation", desc: "Professional drafting of deeds, contracts, wills, and legal notices. We provide expert vetting of land documents to prevent future litigation." }
+               ].map((item, i) => (
+                  <div key={i} className="bg-white p-8 border-l-4 border-[#c5a059] shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 group">
+                     <div className="flex justify-between items-start mb-4">
+                        <Gavel className="text-slate-300 group-hover:text-[#c5a059] transition"/>
+                        <span className="text-5xl font-serif font-bold text-slate-100 group-hover:text-slate-200 transition">0{i+1}</span>
+                     </div>
+                     <h4 className="text-2xl font-bold text-slate-900 font-serif mb-3">{item.title}</h4>
+                     <p className="text-gray-500 text-sm leading-relaxed text-justify">{item.desc}</p>
+                  </div>
+               ))}
+            </div>
+         </div>
+      </section>
+
+      {/* --- Team Section --- */}
+      <section id="team" className="py-24 bg-white no-print">
+         <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">The Lawyers</h2>
+               <h3 className="text-4xl font-serif font-bold text-slate-900">Meet Our Team</h3>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-10">
+               <div className="md:col-span-3 flex justify-center mb-8">
+                  <div className="text-center group">
+                     <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto shadow-2xl border-4 border-white">
+                        <img src="/head.jpg" alt="Md. Azadur Rahman" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
+                        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition"></div>
+                     </div>
+                     <h4 className="text-3xl font-serif font-bold text-slate-900">Adv. Azadur Rahman</h4>
+                     <p className="text-[#c5a059] font-bold uppercase text-sm tracking-wider mt-1">Head of Chamber</p>
+                     <p className="text-gray-500 text-sm mt-1">Supreme Court of Bangladesh</p>
+                  </div>
+               </div>
+
+               <div className="text-center group">
+                  <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
+                     <img src="/team1.jpg" alt="Associate 1" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
+                  </div>
+                  <h4 className="text-xl font-bold text-slate-900">Adv. Anisuru Rahman</h4>
+                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Senior Associate</p>
+               </div>
+
+               <div className="text-center group">
+                  <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
+                     <img src="/team2.jpg" alt="Associate 2" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
+                  </div>
+                  <h4 className="text-xl font-bold text-slate-900">Adv. Abdur Razzak</h4>
+                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
+               </div>
+
+               <div className="text-center group">
+                  <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
+                     <img src="/team3.jpg" alt="Associate 3" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
+                  </div>
+                  <h4 className="text-xl font-bold text-slate-900">Adv. Tariqul Islam</h4>
+                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      {/* --- Appointment Form --- */}
       <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative no-print">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
             <div className="space-y-8 order-2 md:order-1">
                <h2 className="text-3xl md:text-4xl font-serif font-bold">Free Case Evaluation</h2>
                <p className="text-slate-400 text-base md:text-lg">Please fill out the form to request an appointment. We will review your case and get back to you within 24 hours.</p>
+               
+               <div className="space-y-6 pt-4 md:pt-8">
+                  <div className="flex items-center gap-4">
+                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900 shrink-0"><Phone size={20}/></div>
+                     <div>
+                        <p className="text-xs md:text-sm text-slate-400 uppercase font-bold">Call Us 24/7</p>
+                        <p className="text-lg md:text-xl font-bold">+88 01911 008 518</p>
+                     </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900 shrink-0"><Mail size={20}/></div>
+                     <div className="overflow-hidden">
+                        <p className="text-xs md:text-sm text-slate-400 uppercase font-bold">Email Us</p>
+                        <p className="text-lg md:text-xl font-bold truncate">bdkanoon@gmail.com</p>
+                     </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900 shrink-0"><MapPin size={20}/></div>
+                     <div>
+                        <p className="text-xs md:text-sm text-slate-400 uppercase font-bold">Location</p>
+                        <p className="text-lg font-bold">Dhaka, Bangladesh</p>
+                     </div>
+                  </div>
+               </div>
             </div>
+
             <div className="bg-white p-5 md:p-8 rounded-sm shadow-2xl order-1 md:order-2">
                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div className="col-span-1 md:col-span-2">
@@ -147,6 +286,17 @@ const PublicHome = ({ onLoginClick, loading }) => {
                      <input name="email" type="email" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm"/>
                   </div>
                   <div className="col-span-1 md:col-span-2">
+                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Practice Area</label>
+                     <select name="service" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm">
+                        <option>Civil Litigation</option>
+                        <option>Criminal Defense</option>
+                        <option>Writ Petition</option>
+                        <option>Family Law</option>
+                        <option>Commercial Law</option>
+                        <option>Other Legal Matter</option>
+                     </select>
+                  </div>
+                  <div className="col-span-1 md:col-span-2">
                      <textarea name="message" rows="4" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="Case Details..."></textarea>
                   </div>
                   <div className="col-span-1 md:col-span-2">
@@ -159,6 +309,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
+      {/* --- Success Modal --- */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
           <div className="bg-white p-8 rounded-sm shadow-2xl w-full max-w-md border-t-8 border-[#c5a059] text-center animate-bounce-in">
@@ -172,10 +323,18 @@ const PublicHome = ({ onLoginClick, loading }) => {
         </div>
       )}
       
+      {/* --- Footer --- */}
       <footer className="bg-slate-950 text-slate-400 py-12 px-6 border-t border-slate-900 no-print">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <h2 className="text-2xl font-serif font-bold text-white tracking-wide">LEXSWORD</h2>
-            <p className="text-sm mt-2">&copy; {new Date().getFullYear()} LexSword Chambers.</p>
+            <div className="text-center md:text-left">
+               <h2 className="text-2xl font-serif font-bold text-white tracking-wide">LEXSWORD</h2>
+               <p className="text-sm mt-2">&copy; {new Date().getFullYear()} LexSword Chambers. All Rights Reserved.</p>
+            </div>
+            <div className="flex gap-6 text-sm font-bold">
+               <a href="#" className="hover:text-white transition">Privacy Policy</a>
+               <a href="#" className="hover:text-white transition">Terms of Service</a>
+               <a href="#" className="hover:text-white transition">Disclaimer</a>
+            </div>
          </div>
       </footer>
     </div>
@@ -372,6 +531,13 @@ const AdminDashboard = ({ session, onLogout }) => {
     }
   };
 
+  // WhatsApp
+  const handleWhatsApp = (c) => {
+      const msg = `আসসালামু আলাইকুম।\nআপনার মামলার তথ্য:\nমামলা নং: ${c.case_no}\nকোর্ট: ${c.court_name}\nআগামী তারিখ: ${c.next_date}\nপদক্ষেপ: ${c.current_step}\n\nধন্যবাদান্তে,\nঅ্যাডভোকেট আজাদুব রহমান\nহেড অফ চেম্বার, লেক্সসোর্ড ল ফার্ম।`;
+      const url = `https://wa.me/${c.client_mobile}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+  };
+
   const handleSaveDoc = async () => {
     if(!newDoc.drive_link) return alert("Please provide a link");
     const { error } = await supabase.from('documents').insert([{...newDoc, case_id: selectedCase.id}]);
@@ -397,13 +563,11 @@ const AdminDashboard = ({ session, onLogout }) => {
   // --- NEW: Account Filtering & Calculations ---
   const getFilteredAccounts = () => {
     return accounts.filter(a => {
-        // Search Term (Client, Desc, Category)
         const matchSearch = accountSearch === '' || 
             (a.client_name?.toLowerCase().includes(accountSearch.toLowerCase()) || 
              a.description?.toLowerCase().includes(accountSearch.toLowerCase()) ||
              a.category?.toLowerCase().includes(accountSearch.toLowerCase()));
         
-        // Date Range
         let matchDate = true;
         if(startDate && endDate) {
             matchDate = a.date >= startDate && a.date <= endDate;
@@ -417,7 +581,6 @@ const AdminDashboard = ({ session, onLogout }) => {
 
   const filteredTxns = getFilteredAccounts();
   
-  // Calculate Totals based on Filter
   const calcTotal = (type, status = 'Paid') => 
     filteredTxns.filter(a => a.txn_type === type && a.payment_status === status).reduce((sum, a) => sum + Number(a.amount), 0);
 
@@ -448,6 +611,25 @@ const AdminDashboard = ({ session, onLogout }) => {
   };
 
   // Task Stats
+  const handleSaveTask = async () => {
+    const { error } = await supabase.from('tasks').insert([formData]);
+    if(error) alert(error.message);
+    else { alert("Task Added!"); setModalMode(null); setRefresh(r => r+1); }
+  };
+
+  const handleToggleTask = async (task) => {
+    const newStatus = task.status === 'Done' ? 'Pending' : 'Done';
+    const { error } = await supabase.from('tasks').update({ status: newStatus }).eq('id', task.id);
+    if(!error) setRefresh(r => r+1);
+  };
+
+  const handleDeleteTask = async (id) => {
+    if(confirm("Delete task?")) {
+      await supabase.from('tasks').delete().eq('id', id);
+      setRefresh(r => r+1);
+    }
+  };
+
   const taskStats = {
     total: tasks.length,
     pending: tasks.filter(t => t.status !== 'Done').length,
@@ -505,7 +687,7 @@ const AdminDashboard = ({ session, onLogout }) => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Case Dashboard</h2>
                 <div className="flex gap-2 w-full md:w-auto">
-                    <button onClick={() => { setFormData({}); setModalMode('addCase'); }} className="flex-1 items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold flex justify-center">
+                    <button onClick={() => { setFormData({ court_type: 'Judge Court', case_nature: 'Civil Suit', status: 'Ongoing' }); setModalMode('addCase'); }} className="flex-1 items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold flex justify-center">
                     <Plus size={18}/> NEW CASE
                     </button>
                 </div>
@@ -522,12 +704,7 @@ const AdminDashboard = ({ session, onLogout }) => {
 
               <div className="mb-4 relative">
                   <Search className="absolute left-3 top-2.5 text-gray-400" size={20}/>
-                  <input 
-                    type="text" 
-                    placeholder="Search by Case No or Party Name..." 
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded focus:border-[#c5a059] outline-none text-slate-900"
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                  <input type="text" placeholder="Search by Case No or Party Name..." className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded focus:border-[#c5a059] outline-none text-slate-900" onChange={(e) => setSearchTerm(e.target.value)}/>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-6">
@@ -585,7 +762,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                       <button onClick={() => { setSelectedCase(c); setModalMode('viewCase'); }} className="p-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"><Eye size={18}/></button>
                       <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"><Edit3 size={18}/></button>
                       <button onClick={() => handleDeleteCase(c.id)} className="p-2 bg-red-100 text-red-800 rounded hover:bg-red-200"><Trash2 size={18}/></button>
-                      <button onClick={() => window.open(`https://wa.me/${c.client_mobile}`, '_blank')} className="p-2 bg-green-100 text-green-800 rounded hover:bg-green-200"><MessageCircle size={18}/></button>
+                      <button onClick={() => handleWhatsApp(c)} className="p-2 bg-green-100 text-green-800 rounded hover:bg-green-200"><MessageCircle size={18}/></button>
                     </div>
                   </div>
                 ))}
@@ -718,7 +895,6 @@ const AdminDashboard = ({ session, onLogout }) => {
             </div>
           )}
 
-          {/* --- NEW: UPDATED ACCOUNTS MODULE --- */}
           {activeTab === 'accounts' && (
             <div className="space-y-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
@@ -733,7 +909,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                 </div>
               </div>
 
-              {/* Advanced Filter Section */}
               <div className="bg-white p-4 rounded shadow border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
                   <div className="col-span-1">
                       <label className="text-xs font-bold text-slate-500 uppercase">Search</label>
@@ -758,7 +933,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                   </div>
               </div>
 
-              {/* Financial Dashboard Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded shadow border-l-4 border-green-500 flex flex-col justify-between">
                    <div>
@@ -790,7 +964,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                 </div>
               </div>
 
-              {/* Printable Report Header */}
               <div className="hidden print-only mb-6 text-center border-b pb-4">
                   <h1 className="text-3xl font-serif font-bold text-slate-900">LEXSWORD CHAMBERS</h1>
                   <p className="text-sm text-gray-600">Financial Report</p>
@@ -843,12 +1016,6 @@ const AdminDashboard = ({ session, onLogout }) => {
         </main>
       </div>
 
-      {/* ... (MODALS CODE remains exactly the same as previous version, included below for completeness) ... */}
-      
-      {/* ... [Copy the modals code from the previous response here: addCase, updateStatus, addTask, addTxn, viewCase, history] ... */}
-      {/* For brevity in this response, assume all modals are here. They don't need changes. 
-          I will include the addTxn modal just in case, as it's relevant to accounts. */}
-
       {modalMode === 'addTxn' && (
          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
             <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl">
@@ -879,7 +1046,7 @@ const AdminDashboard = ({ session, onLogout }) => {
          </div>
       )}
 
-      {/* Include other modals (addTask, addCase, updateStatus, viewCase, history) here exactly as they were */}
+      {/* --- Task Manager Modal --- */}
       {modalMode === 'addTask' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
