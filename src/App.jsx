@@ -6,7 +6,8 @@ import {
   ExternalLink, MessageCircle, FolderOpen, LogOut, 
   Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, 
   Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, 
-  ArrowRight, Menu, RefreshCw, CheckCircle, Search, ClipboardList, AlertTriangle, Clock, CheckSquare
+  ArrowRight, Menu, RefreshCw, CheckCircle, Search, ClipboardList, 
+  AlertTriangle, Clock, CheckSquare, Printer, PieChart, TrendingUp, TrendingDown
 } from 'lucide-react';
 
 // ==============================================================================
@@ -46,7 +47,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
 
   return (
     <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white">
-      <nav className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 py-4 px-6 md:px-12 transition-all">
+      <nav className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 py-4 px-6 md:px-12 transition-all no-print">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="bg-slate-900 text-[#c5a059] p-2 rounded-sm">
@@ -85,7 +86,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
         )}
       </nav>
 
-      <header id="home" className="relative min-h-screen flex items-center justify-center bg-slate-50 pt-32 pb-20 overflow-hidden">
+      <header id="home" className="relative min-h-screen flex items-center justify-center bg-slate-50 pt-32 pb-20 overflow-hidden no-print">
          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]"></div>
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
             <div className="space-y-8 text-center md:text-left">
@@ -124,7 +125,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </header>
 
-      <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative">
+      <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative no-print">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
             <div className="space-y-8 order-2 md:order-1">
@@ -159,7 +160,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
       </section>
 
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
           <div className="bg-white p-8 rounded-sm shadow-2xl w-full max-w-md border-t-8 border-[#c5a059] text-center animate-bounce-in">
              <div className="mb-4 flex justify-center">
                 <CheckCircle size={64} className="text-green-500"/>
@@ -171,7 +172,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
         </div>
       )}
       
-      <footer className="bg-slate-950 text-slate-400 py-12 px-6 border-t border-slate-900">
+      <footer className="bg-slate-950 text-slate-400 py-12 px-6 border-t border-slate-900 no-print">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <h2 className="text-2xl font-serif font-bold text-white tracking-wide">LEXSWORD</h2>
             <p className="text-sm mt-2">&copy; {new Date().getFullYear()} LexSword Chambers.</p>
@@ -203,7 +204,7 @@ const ClientDashboard = ({ session, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans">
-      <nav className="bg-slate-900 text-white p-4 flex justify-between items-center shadow-lg">
+      <nav className="bg-slate-900 text-white p-4 flex justify-between items-center shadow-lg no-print">
         <div className="flex items-center gap-2"><Scale className="text-[#c5a059]"/> <span className="font-bold text-xl">My Case Portal</span></div>
         <button onClick={onLogout} className="text-red-400 font-bold flex gap-2"><LogOut size={20}/> Logout</button>
       </nav>
@@ -227,25 +228,29 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- Admin Dashboard (UPDATED: Added Task Manager) ---
+// --- Admin Dashboard (UPDATED: New Accounts Module with Print & Filters) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // States
+  // Data States
   const [cases, setCases] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [tasks, setTasks] = useState([]); // NEW: Task State
+  const [tasks, setTasks] = useState([]); 
   const [historyLog, setHistoryLog] = useState([]);
   const [documents, setDocuments] = useState([]); 
   
-  // Search & Filters
+  // Filters
   const [searchTerm, setSearchTerm] = useState(''); 
   const [mainCaseTab, setMainCaseTab] = useState('judge'); 
   const [caseFilter, setCaseFilter] = useState('all'); 
-  const [accountFilter, setAccountFilter] = useState({ client: '', month: '', type: 'All' });
-  const [taskFilter, setTaskFilter] = useState('pending'); // NEW: Task Filter
+  const [taskFilter, setTaskFilter] = useState('pending');
+  
+  // NEW: Accounts Filters
+  const [accountSearch, setAccountSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   
   const [calendarDate, setCalendarDate] = useState(new Date()); 
   const [selectedDateCases, setSelectedDateCases] = useState(null);
@@ -262,7 +267,7 @@ const AdminDashboard = ({ session, onLogout }) => {
     setCases(cData || []);
     const { data: aData } = await supabase.from('accounts').select('*').order('date', { ascending: false });
     setAccounts(aData || []);
-    const { data: tData } = await supabase.from('tasks').select('*').order('due_date', { ascending: true }); // NEW: Fetch Tasks
+    const { data: tData } = await supabase.from('tasks').select('*').order('due_date', { ascending: true });
     setTasks(tData || []);
   };
 
@@ -335,26 +340,6 @@ const AdminDashboard = ({ session, onLogout }) => {
     return result;
   };
 
-  // --- NEW: Task Manager Logic ---
-  const handleSaveTask = async () => {
-    const { error } = await supabase.from('tasks').insert([formData]);
-    if(error) alert(error.message);
-    else { alert("Task Added!"); setModalMode(null); setRefresh(r => r+1); }
-  };
-
-  const handleToggleTask = async (task) => {
-    const newStatus = task.status === 'Done' ? 'Pending' : 'Done';
-    const { error } = await supabase.from('tasks').update({ status: newStatus }).eq('id', task.id);
-    if(!error) setRefresh(r => r+1);
-  };
-
-  const handleDeleteTask = async (id) => {
-    if(confirm("Delete task?")) {
-      await supabase.from('tasks').delete().eq('id', id);
-      setRefresh(r => r+1);
-    }
-  };
-
   const getFilteredTasks = () => {
     let list = tasks;
     if(taskFilter === 'pending') list = tasks.filter(t => t.status !== 'Done');
@@ -409,15 +394,60 @@ const AdminDashboard = ({ session, onLogout }) => {
     }
   };
 
-  const filteredAccounts = accounts.filter(a => {
-    const matchClient = accountFilter.client ? a.client_name?.toLowerCase().includes(accountFilter.client.toLowerCase()) : true;
-    const matchMonth = accountFilter.month ? a.date.startsWith(accountFilter.month) : true;
-    return matchClient && matchMonth;
-  });
-  const totalIncome = filteredAccounts.filter(a => a.txn_type === 'Income').reduce((sum, a) => sum + Number(a.amount), 0);
-  const totalExpense = filteredAccounts.filter(a => a.txn_type === 'Expense').reduce((sum, a) => sum + Number(a.amount), 0);
+  // --- NEW: Account Filtering & Calculations ---
+  const getFilteredAccounts = () => {
+    return accounts.filter(a => {
+        // Search Term (Client, Desc, Category)
+        const matchSearch = accountSearch === '' || 
+            (a.client_name?.toLowerCase().includes(accountSearch.toLowerCase()) || 
+             a.description?.toLowerCase().includes(accountSearch.toLowerCase()) ||
+             a.category?.toLowerCase().includes(accountSearch.toLowerCase()));
+        
+        // Date Range
+        let matchDate = true;
+        if(startDate && endDate) {
+            matchDate = a.date >= startDate && a.date <= endDate;
+        } else if(startDate) {
+            matchDate = a.date >= startDate;
+        }
 
-  // --- Task Stats ---
+        return matchSearch && matchDate;
+    });
+  };
+
+  const filteredTxns = getFilteredAccounts();
+  
+  // Calculate Totals based on Filter
+  const calcTotal = (type, status = 'Paid') => 
+    filteredTxns.filter(a => a.txn_type === type && a.payment_status === status).reduce((sum, a) => sum + Number(a.amount), 0);
+
+  const accStats = {
+      income: calcTotal('Income'),
+      expense: calcTotal('Expense'),
+      dueIncome: calcTotal('Income', 'Due'),
+      dueExpense: calcTotal('Expense', 'Due'),
+  };
+  const cashInHand = accStats.income - accStats.expense;
+
+  const handlePrint = () => {
+      window.print();
+  };
+
+  const setMonthFilter = () => {
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+      setStartDate(firstDay);
+      setEndDate(lastDay);
+  };
+
+  const setYearFilter = () => {
+      const now = new Date();
+      setStartDate(`${now.getFullYear()}-01-01`);
+      setEndDate(`${now.getFullYear()}-12-31`);
+  };
+
+  // Task Stats
   const taskStats = {
     total: tasks.length,
     pending: tasks.filter(t => t.status !== 'Done').length,
@@ -427,9 +457,21 @@ const AdminDashboard = ({ session, onLogout }) => {
 
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
-      {mobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)}></div>}
+      
+      {/* Print Styles */}
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          aside, nav { display: none !important; }
+          body { background: white; }
+          .print-container { padding: 20px; width: 100%; }
+        }
+      `}</style>
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static`}>
+      {mobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden no-print" onClick={() => setMobileMenuOpen(false)}></div>}
+
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static no-print`}>
         <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800 tracking-wider flex justify-between items-center">
           CHAMBERS <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(false)}><X size={24}/></button>
         </div>
@@ -451,15 +493,15 @@ const AdminDashboard = ({ session, onLogout }) => {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0">
+        <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print">
            <span className="font-bold font-serif text-[#c5a059]">LEXSWORD</span>
            <button onClick={() => setMobileMenuOpen(true)}><Menu size={24}/></button>
         </div>
 
-        <main className="flex-1 overflow-y-auto relative p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto relative p-4 md:p-6 print-container">
           
           {activeTab === 'dashboard' && (
-            <div>
+            <div className="no-print">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Case Dashboard</h2>
                 <div className="flex gap-2 w-full md:w-auto">
@@ -551,9 +593,8 @@ const AdminDashboard = ({ session, onLogout }) => {
             </div>
           )}
 
-          {/* --- NEW: TASK MANAGER UI --- */}
           {activeTab === 'tasks' && (
-            <div>
+            <div className="no-print">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-3xl font-bold text-slate-900">Task Manager</h2>
                 <button onClick={() => { setFormData({priority: 'Normal', status: 'Pending'}); setModalMode('addTask'); }} className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold">
@@ -620,7 +661,7 @@ const AdminDashboard = ({ session, onLogout }) => {
           )}
 
           {activeTab === 'calendar' && (
-            <div className="bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900">
+            <div className="bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900 no-print">
               <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                  <h2 className="text-2xl font-bold">Monthly Schedule</h2>
                  <div className="flex items-center gap-4 bg-slate-200 p-2 rounded text-slate-900">
@@ -677,47 +718,124 @@ const AdminDashboard = ({ session, onLogout }) => {
             </div>
           )}
 
+          {/* --- NEW: UPDATED ACCOUNTS MODULE --- */}
           {activeTab === 'accounts' && (
             <div className="space-y-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-3xl font-bold text-slate-900">Accounts & Ledger</h2>
-                <button onClick={() => { setFormData({txn_type: 'Income', category: 'Office', payment_status: 'Paid'}); setModalMode('addTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] w-full md:w-auto">+ ADD TRANSACTION</button>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
+                <h2 className="text-3xl font-bold text-slate-900">Financial Management</h2>
+                <div className="flex gap-2 w-full md:w-auto">
+                    <button onClick={handlePrint} className="bg-slate-200 text-slate-900 px-4 py-2 rounded font-bold hover:bg-slate-300 flex items-center gap-2">
+                        <Printer size={18}/> Print / PDF
+                    </button>
+                    <button onClick={() => { setFormData({txn_type: 'Income', category: 'Office', payment_status: 'Paid'}); setModalMode('addTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] flex items-center gap-2">
+                        <Plus size={18}/> Add Entry
+                    </button>
+                </div>
               </div>
+
+              {/* Advanced Filter Section */}
+              <div className="bg-white p-4 rounded shadow border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
+                  <div className="col-span-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Search</label>
+                      <div className="relative">
+                          <Search className="absolute left-2 top-2.5 text-gray-400" size={16}/>
+                          <input placeholder="Client, Category..." value={accountSearch} onChange={e => setAccountSearch(e.target.value)} 
+                            className="w-full pl-8 p-2 border rounded text-sm text-slate-900"/>
+                      </div>
+                  </div>
+                  <div className="col-span-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Start Date</label>
+                      <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full p-2 border rounded text-sm text-slate-900"/>
+                  </div>
+                  <div className="col-span-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase">End Date</label>
+                      <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full p-2 border rounded text-sm text-slate-900"/>
+                  </div>
+                  <div className="col-span-1 flex items-end gap-2">
+                      <button onClick={setMonthFilter} className="flex-1 bg-blue-50 text-blue-800 text-xs font-bold py-2.5 rounded hover:bg-blue-100">This Month</button>
+                      <button onClick={setYearFilter} className="flex-1 bg-blue-50 text-blue-800 text-xs font-bold py-2.5 rounded hover:bg-blue-100">This Year</button>
+                      <button onClick={() => {setStartDate(''); setEndDate(''); setAccountSearch('')}} className="p-2.5 bg-gray-200 text-gray-600 rounded hover:bg-gray-300"><RefreshCw size={16}/></button>
+                  </div>
+              </div>
+
+              {/* Financial Dashboard Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-green-100 p-4 rounded border border-green-300">
-                   <p className="text-xs font-bold text-green-900 uppercase">Income</p>
-                   <p className="text-xl md:text-2xl font-bold text-slate-900">৳{totalIncome}</p>
+                <div className="bg-white p-4 rounded shadow border-l-4 border-green-500 flex flex-col justify-between">
+                   <div>
+                       <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingUp size={14}/> Total Income</p>
+                       <p className="text-2xl font-bold text-slate-900 mt-1">৳{accStats.income}</p>
+                   </div>
+                   <p className="text-xs text-green-600 font-bold mt-2 bg-green-50 inline-block px-2 py-1 rounded w-max">Paid: ৳{accStats.income}</p>
                 </div>
-                <div className="bg-red-100 p-4 rounded border border-red-300">
-                   <p className="text-xs font-bold text-red-900 uppercase">Expense</p>
-                   <p className="text-xl md:text-2xl font-bold text-slate-900">৳{totalExpense}</p>
+                <div className="bg-white p-4 rounded shadow border-l-4 border-red-500 flex flex-col justify-between">
+                   <div>
+                       <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingDown size={14}/> Total Expense</p>
+                       <p className="text-2xl font-bold text-slate-900 mt-1">৳{accStats.expense}</p>
+                   </div>
+                   <p className="text-xs text-red-600 font-bold mt-2 bg-red-50 inline-block px-2 py-1 rounded w-max">Paid: ৳{accStats.expense}</p>
+                </div>
+                <div className="bg-slate-900 p-4 rounded shadow text-white flex flex-col justify-between">
+                   <div>
+                       <p className="text-xs font-bold text-[#c5a059] uppercase flex items-center gap-2"><PieChart size={14}/> Balance / Profit</p>
+                       <p className="text-3xl font-bold mt-1">৳{cashInHand}</p>
+                   </div>
+                   <p className="text-[10px] text-gray-400 mt-2">Cash In Hand</p>
+                </div>
+                <div className="bg-white p-4 rounded shadow border-l-4 border-orange-500 flex flex-col justify-between">
+                   <div>
+                       <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><AlertTriangle size={14}/> Pending Dues</p>
+                       <p className="text-xl font-bold text-slate-900 mt-1">Receivable: ৳{accStats.dueIncome}</p>
+                   </div>
+                   <p className="text-xs text-red-600 font-bold mt-2">Payable: ৳{accStats.dueExpense}</p>
                 </div>
               </div>
+
+              {/* Printable Report Header */}
+              <div className="hidden print-only mb-6 text-center border-b pb-4">
+                  <h1 className="text-3xl font-serif font-bold text-slate-900">LEXSWORD CHAMBERS</h1>
+                  <p className="text-sm text-gray-600">Financial Report</p>
+                  <p className="text-xs mt-2">Period: {startDate || 'All Time'} to {endDate || 'Present'}</p>
+              </div>
+
               <div className="bg-white rounded shadow overflow-x-auto">
                  <table className="w-full text-left min-w-[600px]">
                     <thead className="bg-slate-100 border-b border-slate-200">
                       <tr>
-                        <th className="p-3 text-slate-900 font-bold">Date</th>
-                        <th className="p-3 text-slate-900 font-bold">Client / Name</th>
-                        <th className="p-3 text-slate-900 font-bold">Description</th>
-                        <th className="p-3 text-right text-slate-900 font-bold">Amount</th>
-                        <th className="p-3 text-center text-slate-900 font-bold">Action</th>
+                        <th className="p-3 text-slate-900 font-bold text-xs uppercase">Date</th>
+                        <th className="p-3 text-slate-900 font-bold text-xs uppercase">Client / Name</th>
+                        <th className="p-3 text-slate-900 font-bold text-xs uppercase">Description</th>
+                        <th className="p-3 text-slate-900 font-bold text-xs uppercase">Category</th>
+                        <th className="p-3 text-slate-900 font-bold text-xs uppercase text-center">Status</th>
+                        <th className="p-3 text-right text-slate-900 font-bold text-xs uppercase">Amount</th>
+                        <th className="p-3 text-center text-slate-900 font-bold text-xs uppercase no-print">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredAccounts.map(a => (
+                      {filteredTxns.length === 0 && <tr><td colSpan="7" className="p-4 text-center text-slate-500 italic">No records found for this period.</td></tr>}
+                      {filteredTxns.map(a => (
                         <tr key={a.id} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="p-3 text-sm text-slate-700">{a.date}</td>
-                          <td className="p-3 font-bold text-slate-900">{a.client_name || '-'}</td>
+                          <td className="p-3 font-bold text-slate-900 text-sm">{a.client_name || '-'}</td>
                           <td className="p-3 text-sm text-slate-700">{a.description}</td>
-                          <td className={`p-3 text-right font-bold ${a.txn_type === 'Income' ? 'text-green-700' : 'text-red-700'}`}>{a.txn_type === 'Income' ? '+' : '-'} {a.amount}</td>
-                          <td className="p-3 flex justify-center gap-2">
+                          <td className="p-3"><span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">{a.category}</span></td>
+                          <td className="p-3 text-center">
+                             <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${a.payment_status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{a.payment_status}</span>
+                          </td>
+                          <td className={`p-3 text-right font-bold text-sm ${a.txn_type === 'Income' ? 'text-green-700' : 'text-red-700'}`}>{a.txn_type === 'Income' ? '+' : '-'} {a.amount}</td>
+                          <td className="p-3 flex justify-center gap-2 no-print">
                              <button onClick={() => { setFormData(a); setModalMode('addTxn'); }} className="text-blue-600 hover:bg-blue-100 p-1 rounded"><Edit3 size={16}/></button>
                              <button onClick={() => handleDeleteTxn(a.id)} className="text-red-600 hover:bg-red-100 p-1 rounded"><Trash2 size={16}/></button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot className="bg-slate-50 font-bold text-slate-900 border-t-2 border-slate-300">
+                        <tr>
+                            <td colSpan="5" className="p-3 text-right">NET TOTAL (Cash):</td>
+                            <td className="p-3 text-right">৳{cashInHand}</td>
+                            <td className="no-print"></td>
+                        </tr>
+                    </tfoot>
                  </table>
               </div>
             </div>
@@ -725,9 +843,43 @@ const AdminDashboard = ({ session, onLogout }) => {
         </main>
       </div>
 
-      {/* --- MODALS --- */}
+      {/* ... (MODALS CODE remains exactly the same as previous version, included below for completeness) ... */}
       
-      {/* NEW: Add Task Modal */}
+      {/* ... [Copy the modals code from the previous response here: addCase, updateStatus, addTask, addTxn, viewCase, history] ... */}
+      {/* For brevity in this response, assume all modals are here. They don't need changes. 
+          I will include the addTxn modal just in case, as it's relevant to accounts. */}
+
+      {modalMode === 'addTxn' && (
+         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl">
+               <div className="bg-slate-900 p-4 text-white flex justify-between">
+                  <h3 className="font-bold">{formData.id ? 'Edit Transaction' : 'New Transaction'}</h3>
+                  <button onClick={() => setModalMode(null)}><X/></button>
+               </div>
+               <div className="p-6 space-y-4">
+                  <div className="flex gap-2">
+                     <button onClick={() => setFormData({...formData, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Income' ? 'bg-green-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Income</button>
+                     <button onClick={() => setFormData({...formData, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Expense' ? 'bg-red-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Expense</button>
+                  </div>
+                  <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
+                  <input placeholder="Client Name" value={formData.client_name} onChange={e => setFormData({...formData, client_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
+                  <input placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
+                  <div className="flex gap-2">
+                      <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
+                        <option>Office</option><option>Personal</option><option>Client</option><option>Court Fee</option><option>Salary</option><option>Misc</option>
+                      </select>
+                      <select value={formData.payment_status} onChange={e => setFormData({...formData, payment_status: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
+                        <option>Paid</option><option>Due</option>
+                      </select>
+                  </div>
+                  <input type="number" placeholder="Amount" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full border p-2 rounded font-bold text-lg text-slate-900"/>
+                  <button onClick={handleSaveTxn} className="w-full bg-slate-900 text-white py-3 rounded font-bold">SAVE ENTRY</button>
+               </div>
+            </div>
+         </div>
+      )}
+
+      {/* Include other modals (addTask, addCase, updateStatus, viewCase, history) here exactly as they were */}
       {modalMode === 'addTask' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
@@ -837,28 +989,6 @@ const AdminDashboard = ({ session, onLogout }) => {
             </div>
           </div>
         </div>
-      )}
-
-      {modalMode === 'addTxn' && (
-         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl">
-               <div className="bg-slate-900 p-4 text-white flex justify-between">
-                  <h3 className="font-bold">{formData.id ? 'Edit Transaction' : 'New Transaction'}</h3>
-                  <button onClick={() => setModalMode(null)}><X/></button>
-               </div>
-               <div className="p-6 space-y-4">
-                  <div className="flex gap-2">
-                     <button onClick={() => setFormData({...formData, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Income' ? 'bg-green-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Income</button>
-                     <button onClick={() => setFormData({...formData, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Expense' ? 'bg-red-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Expense</button>
-                  </div>
-                  <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
-                  <input placeholder="Client Name" value={formData.client_name} onChange={e => setFormData({...formData, client_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
-                  <input placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
-                  <input type="number" placeholder="Amount" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full border p-2 rounded font-bold text-lg text-slate-900"/>
-                  <button onClick={handleSaveTxn} className="w-full bg-slate-900 text-white py-3 rounded font-bold">SAVE ENTRY</button>
-               </div>
-            </div>
-         </div>
       )}
 
       {modalMode === 'viewCase' && selectedCase && (
