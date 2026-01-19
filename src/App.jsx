@@ -5,7 +5,8 @@ import {
   Calendar as CalIcon, Save, Trash2, 
   ExternalLink, MessageCircle, FolderOpen, LogOut, 
   Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, 
-  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, ArrowRight, Menu, RefreshCw, CheckCircle, Search
+  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, 
+  ArrowRight, Menu, RefreshCw, CheckCircle, Search, ClipboardList, AlertTriangle, Clock, CheckSquare
 } from 'lucide-react';
 
 // ==============================================================================
@@ -184,7 +185,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
 // 2. DASHBOARD & MODULES
 // ==============================================================================
 
-// --- Client Dashboard ---
 const ClientDashboard = ({ session, onLogout }) => {
   const [myCases, setMyCases] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -227,7 +227,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- Admin Dashboard (UPDATED: Filters with Counts & Blinking Alert) ---
+// --- Admin Dashboard (UPDATED: Added Task Manager) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
@@ -236,14 +236,16 @@ const AdminDashboard = ({ session, onLogout }) => {
   // States
   const [cases, setCases] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [tasks, setTasks] = useState([]); // NEW: Task State
   const [historyLog, setHistoryLog] = useState([]);
   const [documents, setDocuments] = useState([]); 
   
   // Search & Filters
   const [searchTerm, setSearchTerm] = useState(''); 
-  const [mainCaseTab, setMainCaseTab] = useState('judge'); // 'judge' or 'high'
-  const [caseFilter, setCaseFilter] = useState('all'); // Sub-filter
+  const [mainCaseTab, setMainCaseTab] = useState('judge'); 
+  const [caseFilter, setCaseFilter] = useState('all'); 
   const [accountFilter, setAccountFilter] = useState({ client: '', month: '', type: 'All' });
+  const [taskFilter, setTaskFilter] = useState('pending'); // NEW: Task Filter
   
   const [calendarDate, setCalendarDate] = useState(new Date()); 
   const [selectedDateCases, setSelectedDateCases] = useState(null);
@@ -260,6 +262,8 @@ const AdminDashboard = ({ session, onLogout }) => {
     setCases(cData || []);
     const { data: aData } = await supabase.from('accounts').select('*').order('date', { ascending: false });
     setAccounts(aData || []);
+    const { data: tData } = await supabase.from('tasks').select('*').order('due_date', { ascending: true }); // NEW: Fetch Tasks
+    setTasks(tData || []);
   };
 
   const fetchHistory = async (caseId) => {
@@ -277,7 +281,6 @@ const AdminDashboard = ({ session, onLogout }) => {
     setCalendarDate(new Date(newDate));
   };
 
-  // Timezone Fix
   const getLocalStr = (d) => {
     const offset = d.getTimezoneOffset() * 60000;
     return new Date(d.getTime() - offset).toISOString().split('T')[0];
@@ -292,7 +295,6 @@ const AdminDashboard = ({ session, onLogout }) => {
   const sunday = getLocalStr(new Date(curr.setDate(first)));
   const thursday = getLocalStr(new Date(curr.setDate(last)));
 
-  // --- Dynamic Count Calculation Helper ---
   const getCounts = (tab) => {
     const activeList = cases.filter(c => tab === 'judge' ? c.court_type === 'Judge Court' : c.court_type === 'High Court');
     return {
@@ -303,7 +305,6 @@ const AdminDashboard = ({ session, onLogout }) => {
         update: activeList.filter(c => c.next_date < today && c.status === 'Ongoing').length,
         disposed: activeList.filter(c => c.status === 'Disposed').length,
         pending: activeList.filter(c => c.status === 'Ongoing').length,
-        // Specific types count
         writ: activeList.filter(c => c.case_nature === 'Writ Petition').length,
         civilRev: activeList.filter(c => c.case_nature === 'Civil Revision').length,
         crimRev: activeList.filter(c => c.case_nature === 'Criminal Revision').length,
@@ -315,17 +316,13 @@ const AdminDashboard = ({ session, onLogout }) => {
 
   const currentCounts = getCounts(mainCaseTab);
 
-  // --- Filter Logic ---
   const getFilteredCases = () => {
     let result = cases.filter(c => 
       (c.case_no && c.case_no.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (c.party_name && c.party_name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-
-    // Filter by Main Tab (Judge vs High)
     result = result.filter(c => c.court_type === (mainCaseTab === 'judge' ? 'Judge Court' : 'High Court'));
 
-    // Sub-filters
     if (caseFilter === 'today') result = result.filter(c => c.next_date === today);
     else if (caseFilter === 'tomorrow') result = result.filter(c => c.next_date === tomorrow);
     else if (caseFilter === 'week') result = result.filter(c => c.next_date >= sunday && c.next_date <= thursday);
@@ -333,11 +330,36 @@ const AdminDashboard = ({ session, onLogout }) => {
     else if (caseFilter === 'disposed') result = result.filter(c => c.status === 'Disposed');
     else if (caseFilter === 'pending') result = result.filter(c => c.status === 'Ongoing');
     else if (caseFilter !== 'all') {
-        // Nature specific filters (Writ, etc.)
         result = result.filter(c => c.case_nature === caseFilter);
     }
-
     return result;
+  };
+
+  // --- NEW: Task Manager Logic ---
+  const handleSaveTask = async () => {
+    const { error } = await supabase.from('tasks').insert([formData]);
+    if(error) alert(error.message);
+    else { alert("Task Added!"); setModalMode(null); setRefresh(r => r+1); }
+  };
+
+  const handleToggleTask = async (task) => {
+    const newStatus = task.status === 'Done' ? 'Pending' : 'Done';
+    const { error } = await supabase.from('tasks').update({ status: newStatus }).eq('id', task.id);
+    if(!error) setRefresh(r => r+1);
+  };
+
+  const handleDeleteTask = async (id) => {
+    if(confirm("Delete task?")) {
+      await supabase.from('tasks').delete().eq('id', id);
+      setRefresh(r => r+1);
+    }
+  };
+
+  const getFilteredTasks = () => {
+    let list = tasks;
+    if(taskFilter === 'pending') list = tasks.filter(t => t.status !== 'Done');
+    if(taskFilter === 'completed') list = tasks.filter(t => t.status === 'Done');
+    return list;
   };
 
   const handleSaveCase = async () => {
@@ -395,6 +417,14 @@ const AdminDashboard = ({ session, onLogout }) => {
   const totalIncome = filteredAccounts.filter(a => a.txn_type === 'Income').reduce((sum, a) => sum + Number(a.amount), 0);
   const totalExpense = filteredAccounts.filter(a => a.txn_type === 'Expense').reduce((sum, a) => sum + Number(a.amount), 0);
 
+  // --- Task Stats ---
+  const taskStats = {
+    total: tasks.length,
+    pending: tasks.filter(t => t.status !== 'Done').length,
+    urgent: tasks.filter(t => t.priority === 'Urgent' && t.status !== 'Done').length,
+    completed: tasks.filter(t => t.status === 'Done').length
+  };
+
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
       {mobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)}></div>}
@@ -406,6 +436,9 @@ const AdminDashboard = ({ session, onLogout }) => {
         <nav className="flex-1 p-4 space-y-2 mt-4">
           <button onClick={() => {setActiveTab('dashboard'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'dashboard' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
             <Gavel size={20}/> Case Dashboard
+          </button>
+          <button onClick={() => {setActiveTab('tasks'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'tasks' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+            <ClipboardList size={20}/> Task Manager
           </button>
           <button onClick={() => {setActiveTab('calendar'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'calendar' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
             <CalIcon size={20}/> Calendar
@@ -436,7 +469,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                 </div>
               </div>
 
-              {/* MAIN TABS */}
               <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
                   <button onClick={() => { setMainCaseTab('judge'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'judge' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
                       Judge Court ({getCounts('judge').all})
@@ -456,7 +488,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                   />
               </div>
 
-              {/* DYNAMIC FILTERS WITH COUNTS */}
               <div className="flex flex-wrap gap-2 mb-6">
                 {mainCaseTab === 'judge' ? (
                     <>
@@ -466,27 +497,14 @@ const AdminDashboard = ({ session, onLogout }) => {
                         <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today ({currentCounts.today})</button>
                         <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow ({currentCounts.tomorrow})</button>
                         <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week ({currentCounts.week})</button>
-                        
-                        {/* Blinking Alert Button */}
-                        <button onClick={() => setCaseFilter('update')} 
-                            className={`px-3 py-1 rounded-full text-sm font-bold border transition
-                            ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>
-                            Needs Update ({currentCounts.update})
-                        </button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>Needs Update ({currentCounts.update})</button>
                     </>
                 ) : (
                     <>
                         <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
                         <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending ({currentCounts.pending})</button>
                         <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed ({currentCounts.disposed})</button>
-                        
-                        {/* Blinking Alert Button */}
-                        <button onClick={() => setCaseFilter('update')} 
-                            className={`px-3 py-1 rounded-full text-sm font-bold border transition
-                            ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>
-                            Needs Update ({currentCounts.update})
-                        </button>
-
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>Needs Update ({currentCounts.update})</button>
                         <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ ({currentCounts.writ})</button>
                         <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev ({currentCounts.civilRev})</button>
                         <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev ({currentCounts.crimRev})</button>
@@ -533,6 +551,74 @@ const AdminDashboard = ({ session, onLogout }) => {
             </div>
           )}
 
+          {/* --- NEW: TASK MANAGER UI --- */}
+          {activeTab === 'tasks' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold text-slate-900">Task Manager</h2>
+                <button onClick={() => { setFormData({priority: 'Normal', status: 'Pending'}); setModalMode('addTask'); }} className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold">
+                  <Plus size={18}/> ADD TASK
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white p-4 rounded shadow border-l-4 border-blue-500">
+                  <p className="text-xs font-bold text-gray-500 uppercase">Total Tasks</p>
+                  <p className="text-2xl font-bold text-slate-900">{taskStats.total}</p>
+                </div>
+                <div className="bg-white p-4 rounded shadow border-l-4 border-yellow-500">
+                  <p className="text-xs font-bold text-gray-500 uppercase">Pending</p>
+                  <p className="text-2xl font-bold text-yellow-600">{taskStats.pending}</p>
+                </div>
+                <div className="bg-white p-4 rounded shadow border-l-4 border-red-500">
+                  <p className="text-xs font-bold text-gray-500 uppercase">Urgent</p>
+                  <p className="text-2xl font-bold text-red-600">{taskStats.urgent}</p>
+                </div>
+                <div className="bg-white p-4 rounded shadow border-l-4 border-green-500">
+                  <p className="text-xs font-bold text-gray-500 uppercase">Completed</p>
+                  <p className="text-2xl font-bold text-green-600">{taskStats.completed}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 mb-4 border-b border-slate-200 pb-2">
+                <button onClick={() => setTaskFilter('pending')} className={`font-bold pb-2 px-2 ${taskFilter === 'pending' ? 'text-[#c5a059] border-b-2 border-[#c5a059]' : 'text-gray-500'}`}>To-Do List</button>
+                <button onClick={() => setTaskFilter('completed')} className={`font-bold pb-2 px-2 ${taskFilter === 'completed' ? 'text-[#c5a059] border-b-2 border-[#c5a059]' : 'text-gray-500'}`}>Completed</button>
+                <button onClick={() => setTaskFilter('all')} className={`font-bold pb-2 px-2 ${taskFilter === 'all' ? 'text-[#c5a059] border-b-2 border-[#c5a059]' : 'text-gray-500'}`}>All Tasks</button>
+              </div>
+
+              <div className="space-y-3">
+                {getFilteredTasks().length === 0 && <p className="text-slate-500 italic">No tasks found.</p>}
+                {getFilteredTasks().map(t => (
+                  <div key={t.id} className={`bg-white p-4 rounded shadow flex items-center justify-between group transition ${t.status === 'Done' ? 'opacity-60 bg-gray-50' : 'hover:shadow-md'}`}>
+                    <div className="flex items-center gap-4">
+                      <button onClick={() => handleToggleTask(t)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition ${t.status === 'Done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-[#c5a059]'}`}>
+                        {t.status === 'Done' && <Check size={14}/>}
+                      </button>
+                      <div>
+                        <h4 className={`font-bold text-lg text-slate-900 ${t.status === 'Done' ? 'line-through text-gray-500' : ''}`}>{t.title}</h4>
+                        {t.details && <p className="text-sm text-slate-600">{t.details}</p>}
+                        <div className="flex gap-3 mt-1 text-xs font-bold items-center">
+                          {t.due_date && (
+                            <span className={`flex items-center gap-1 ${new Date(t.due_date) < new Date() && t.status !== 'Done' ? 'text-red-600' : 'text-slate-500'}`}>
+                              <Clock size={12}/> {t.due_date}
+                            </span>
+                          )}
+                          <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wide
+                            ${t.priority === 'Urgent' ? 'bg-red-100 text-red-700' : 
+                              t.priority === 'High' ? 'bg-orange-100 text-orange-700' : 
+                              t.priority === 'Normal' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {t.priority}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={() => handleDeleteTask(t.id)} className="text-slate-400 hover:text-red-500 p-2"><Trash2 size={18}/></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {activeTab === 'calendar' && (
             <div className="bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900">
               <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
@@ -555,13 +641,17 @@ const AdminDashboard = ({ session, onLogout }) => {
                    const dateStr = getLocalStr(d); 
                    const isCurrentMonth = d.getMonth() === month;
                    const hasCase = cases.filter(c => c.next_date === dateStr);
+                   const hasTask = tasks.filter(t => t.due_date === dateStr && t.status !== 'Done');
                    
                    return (
                      <div key={i} onClick={() => isCurrentMonth && setSelectedDateCases(hasCase)} 
                        className={`border p-1 md:p-2 h-16 md:h-24 rounded cursor-pointer transition ${!isCurrentMonth ? 'bg-slate-100 opacity-50' : hasCase.length > 0 ? 'bg-red-50 border-red-300 hover:bg-red-100' : 'bg-white hover:bg-blue-50 border-slate-300'}`}>
                        <div className="flex justify-between items-start">
                          <span className={`text-[10px] md:text-xs font-bold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>{d.getDate()}</span>
-                         {isCurrentMonth && hasCase.length > 0 && <span className="text-[10px] md:text-xs bg-red-600 text-white px-1 rounded-full">{hasCase.length}</span>}
+                         <div className="flex gap-1">
+                           {isCurrentMonth && hasTask.length > 0 && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                           {isCurrentMonth && hasCase.length > 0 && <span className="text-[10px] md:text-xs bg-red-600 text-white px-1 rounded-full">{hasCase.length}</span>}
+                         </div>
                        </div>
                        <div className="mt-1 overflow-hidden h-8 md:h-14">
                          {isCurrentMonth && hasCase.map(c => <div key={c.id} className="text-[8px] md:text-[10px] truncate text-slate-900 font-bold">• {c.case_no}</div>)}
@@ -636,6 +726,42 @@ const AdminDashboard = ({ session, onLogout }) => {
       </div>
 
       {/* --- MODALS --- */}
+      
+      {/* NEW: Add Task Modal */}
+      {modalMode === 'addTask' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
+            <div className="bg-slate-900 p-4 text-white flex justify-between">
+              <h3 className="font-bold flex items-center gap-2"><CheckSquare/> New Task</h3>
+              <button onClick={() => setModalMode(null)}><X/></button>
+            </div>
+            <div className="p-6 space-y-4">
+               <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Task Title</label>
+                  <input placeholder="e.g. Call Client Mr. Rahim" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
+               </div>
+               <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Details (Optional)</label>
+                  <textarea rows="2" placeholder="Details..." value={formData.details} onChange={e => setFormData({...formData, details: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Due Date</label>
+                    <input type="date" value={formData.due_date} onChange={e => setFormData({...formData, due_date: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Priority</label>
+                    <select value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
+                      <option>Normal</option><option>High</option><option>Urgent</option><option>Low</option>
+                    </select>
+                 </div>
+               </div>
+               <button onClick={handleSaveTask} className="w-full bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">CREATE TASK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {modalMode === 'updateStatus' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
