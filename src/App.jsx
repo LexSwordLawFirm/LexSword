@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE
+// 1. LEXSWORD PUBLIC HOMEPAGE (UNCHANGED)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
@@ -123,18 +123,15 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </header>
 
-      {/* About & Practice sections skipped for brevity, they remain unchanged */}
       <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
             <div className="space-y-8 order-2 md:order-1">
                <h2 className="text-3xl md:text-4xl font-serif font-bold">Free Case Evaluation</h2>
                <p className="text-slate-400 text-base md:text-lg">Please fill out the form to request an appointment. We will review your case and get back to you within 24 hours.</p>
-               {/* Contact details... */}
             </div>
             <div className="bg-white p-5 md:p-8 rounded-sm shadow-2xl order-1 md:order-2">
                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                  {/* Form inputs... */}
                   <div className="col-span-1 md:col-span-2">
                      <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Full Name</label>
                      <input name="name" type="text" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" required/>
@@ -230,7 +227,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- Admin Dashboard (FIXED: Timezone, Search, Separate Tabs) ---
+// --- Admin Dashboard (UPDATED: Filters with Counts & Blinking Alert) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
@@ -242,16 +239,15 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [historyLog, setHistoryLog] = useState([]);
   const [documents, setDocuments] = useState([]); 
   
-  // NEW: Search & Main Tab State
+  // Search & Filters
   const [searchTerm, setSearchTerm] = useState(''); 
   const [mainCaseTab, setMainCaseTab] = useState('judge'); // 'judge' or 'high'
-  const [caseFilter, setCaseFilter] = useState('all'); // Sub-filter within tabs
+  const [caseFilter, setCaseFilter] = useState('all'); // Sub-filter
   const [accountFilter, setAccountFilter] = useState({ client: '', month: '', type: 'All' });
   
   const [calendarDate, setCalendarDate] = useState(new Date()); 
   const [selectedDateCases, setSelectedDateCases] = useState(null);
 
-  // Modal States
   const [modalMode, setModalMode] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
   const [formData, setFormData] = useState({});
@@ -281,7 +277,7 @@ const AdminDashboard = ({ session, onLogout }) => {
     setCalendarDate(new Date(newDate));
   };
 
-  // --- 1. TIMEZONE FIX (Local Date Helper) ---
+  // Timezone Fix
   const getLocalStr = (d) => {
     const offset = d.getTimezoneOffset() * 60000;
     return new Date(d.getTime() - offset).toISOString().split('T')[0];
@@ -290,39 +286,55 @@ const AdminDashboard = ({ session, onLogout }) => {
   const today = getLocalStr(new Date());
   const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
   const tomorrow = getLocalStr(tomorrowDate);
-  
   const curr = new Date();
   const first = curr.getDate() - curr.getDay(); 
   const last = first + 4; 
   const sunday = getLocalStr(new Date(curr.setDate(first)));
   const thursday = getLocalStr(new Date(curr.setDate(last)));
 
-  // --- FILTER LOGIC (UPDATED: Search + Tab + Filter) ---
+  // --- Dynamic Count Calculation Helper ---
+  const getCounts = (tab) => {
+    const activeList = cases.filter(c => tab === 'judge' ? c.court_type === 'Judge Court' : c.court_type === 'High Court');
+    return {
+        all: activeList.length,
+        today: activeList.filter(c => c.next_date === today).length,
+        tomorrow: activeList.filter(c => c.next_date === tomorrow).length,
+        week: activeList.filter(c => c.next_date >= sunday && c.next_date <= thursday).length,
+        update: activeList.filter(c => c.next_date < today && c.status === 'Ongoing').length,
+        disposed: activeList.filter(c => c.status === 'Disposed').length,
+        pending: activeList.filter(c => c.status === 'Ongoing').length,
+        // Specific types count
+        writ: activeList.filter(c => c.case_nature === 'Writ Petition').length,
+        civilRev: activeList.filter(c => c.case_nature === 'Civil Revision').length,
+        crimRev: activeList.filter(c => c.case_nature === 'Criminal Revision').length,
+        civilApp: activeList.filter(c => c.case_nature === 'Civil Appeal').length,
+        crimApp: activeList.filter(c => c.case_nature === 'Criminal Appeal').length,
+        misc: activeList.filter(c => c.case_nature === 'Misc Case').length,
+    };
+  };
+
+  const currentCounts = getCounts(mainCaseTab);
+
+  // --- Filter Logic ---
   const getFilteredCases = () => {
-    // 2. SEARCH Logic
     let result = cases.filter(c => 
       (c.case_no && c.case_no.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (c.party_name && c.party_name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    // 3. SEPARATE TABS (Judge vs High Court)
-    if (mainCaseTab === 'judge') {
-        result = result.filter(c => c.court_type === 'Judge Court');
-        
-        // Sub-filters for Judge Court
-        if (caseFilter === 'today') result = result.filter(c => c.next_date === today);
-        else if (caseFilter === 'tomorrow') result = result.filter(c => c.next_date === tomorrow);
-        else if (caseFilter === 'week') result = result.filter(c => c.next_date >= sunday && c.next_date <= thursday);
-        else if (caseFilter === 'update') result = result.filter(c => c.next_date < today && c.status === 'Ongoing');
-        else if (caseFilter === 'disposed') result = result.filter(c => c.status === 'Disposed');
-    } 
-    else if (mainCaseTab === 'high') {
-        result = result.filter(c => c.court_type === 'High Court');
+    // Filter by Main Tab (Judge vs High)
+    result = result.filter(c => c.court_type === (mainCaseTab === 'judge' ? 'Judge Court' : 'High Court'));
 
-        // Sub-filters for High Court (Based on Case Nature)
-        if (caseFilter !== 'all') {
-            result = result.filter(c => c.case_nature === caseFilter);
-        }
+    // Sub-filters
+    if (caseFilter === 'today') result = result.filter(c => c.next_date === today);
+    else if (caseFilter === 'tomorrow') result = result.filter(c => c.next_date === tomorrow);
+    else if (caseFilter === 'week') result = result.filter(c => c.next_date >= sunday && c.next_date <= thursday);
+    else if (caseFilter === 'update') result = result.filter(c => c.next_date < today && c.status === 'Ongoing');
+    else if (caseFilter === 'disposed') result = result.filter(c => c.status === 'Disposed');
+    else if (caseFilter === 'pending') result = result.filter(c => c.status === 'Ongoing');
+    else if (caseFilter !== 'all') {
+        // Nature specific filters (Writ, etc.)
+        result = result.filter(c => c.case_nature === caseFilter);
     }
 
     return result;
@@ -375,7 +387,6 @@ const AdminDashboard = ({ session, onLogout }) => {
     }
   };
 
-  // Account Filters & Totals
   const filteredAccounts = accounts.filter(a => {
     const matchClient = accountFilter.client ? a.client_name?.toLowerCase().includes(accountFilter.client.toLowerCase()) : true;
     const matchMonth = accountFilter.month ? a.date.startsWith(accountFilter.month) : true;
@@ -425,17 +436,16 @@ const AdminDashboard = ({ session, onLogout }) => {
                 </div>
               </div>
 
-              {/* MAIN TABS: Judge vs High Court */}
+              {/* MAIN TABS */}
               <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
                   <button onClick={() => { setMainCaseTab('judge'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'judge' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      Judge Court
+                      Judge Court ({getCounts('judge').all})
                   </button>
                   <button onClick={() => { setMainCaseTab('high'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'high' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      High Court
+                      High Court ({getCounts('high').all})
                   </button>
               </div>
 
-              {/* SEARCH BAR (New Feature) */}
               <div className="mb-4 relative">
                   <Search className="absolute left-3 top-2.5 text-gray-400" size={20}/>
                   <input 
@@ -446,25 +456,43 @@ const AdminDashboard = ({ session, onLogout }) => {
                   />
               </div>
 
-              {/* SUB FILTERS based on Main Tab */}
+              {/* DYNAMIC FILTERS WITH COUNTS */}
               <div className="flex flex-wrap gap-2 mb-6">
                 {mainCaseTab === 'judge' ? (
                     <>
-                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All Cases</button>
-                        <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today</button>
-                        <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow</button>
-                        <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week</button>
-                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'update' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Needs Update</button>
+                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
+                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending ({currentCounts.pending})</button>
+                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed ({currentCounts.disposed})</button>
+                        <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today ({currentCounts.today})</button>
+                        <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow ({currentCounts.tomorrow})</button>
+                        <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week ({currentCounts.week})</button>
+                        
+                        {/* Blinking Alert Button */}
+                        <button onClick={() => setCaseFilter('update')} 
+                            className={`px-3 py-1 rounded-full text-sm font-bold border transition
+                            ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>
+                            Needs Update ({currentCounts.update})
+                        </button>
                     </>
                 ) : (
                     <>
-                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All High Court</button>
-                        <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ</button>
-                        <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev</button>
-                        <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev</button>
-                        <button onClick={() => setCaseFilter('Civil Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Appeal</button>
-                        <button onClick={() => setCaseFilter('Criminal Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Appeal</button>
-                        <button onClick={() => setCaseFilter('Misc Case')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Misc Case' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Misc Case</button>
+                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
+                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending ({currentCounts.pending})</button>
+                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed ({currentCounts.disposed})</button>
+                        
+                        {/* Blinking Alert Button */}
+                        <button onClick={() => setCaseFilter('update')} 
+                            className={`px-3 py-1 rounded-full text-sm font-bold border transition
+                            ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>
+                            Needs Update ({currentCounts.update})
+                        </button>
+
+                        <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ ({currentCounts.writ})</button>
+                        <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev ({currentCounts.civilRev})</button>
+                        <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev ({currentCounts.crimRev})</button>
+                        <button onClick={() => setCaseFilter('Civil Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Appeal ({currentCounts.civilApp})</button>
+                        <button onClick={() => setCaseFilter('Criminal Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Appeal ({currentCounts.crimApp})</button>
+                        <button onClick={() => setCaseFilter('Misc Case')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Misc Case' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Misc ({currentCounts.misc})</button>
                     </>
                 )}
               </div>
@@ -524,7 +552,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                    const month = calendarDate.getMonth();
                    const firstDay = new Date(year, month, 1).getDay();
                    const d = new Date(year, month, 1 + i - firstDay);
-                   const dateStr = getLocalStr(d); // Timezone Fix Applied here too
+                   const dateStr = getLocalStr(d); 
                    const isCurrentMonth = d.getMonth() === month;
                    const hasCase = cases.filter(c => c.next_date === dateStr);
                    
@@ -647,7 +675,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                  <option>Judge Court</option><option>High Court</option>
                </select></div>
                
-               {/* NEW: Case Nature Field for High Court Filtering */}
                <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Case Nature / Type</label>
                <select value={formData.case_nature} onChange={e => setFormData({...formData, case_nature: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white">
                  <option value="">-- Select Type --</option>
@@ -737,7 +764,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                       </button>
                    </div>
                 </div>
-                {/* Documents section omitted for brevity, logic remains same */}
                 <div>
                    <div className="flex justify-between items-center mb-4 border-b pb-2">
                      <h4 className="font-bold text-lg flex items-center gap-2 text-slate-900"><FolderOpen className="text-[#c5a059]"/> Digital Archive</h4>
