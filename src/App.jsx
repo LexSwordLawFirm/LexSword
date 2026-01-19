@@ -228,7 +228,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- Admin Dashboard (UPDATED: New Accounts Module with Print & Filters) ---
+// --- Admin Dashboard (FIXED: Judge Court Save & WhatsApp) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
@@ -246,8 +246,6 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [mainCaseTab, setMainCaseTab] = useState('judge'); 
   const [caseFilter, setCaseFilter] = useState('all'); 
   const [taskFilter, setTaskFilter] = useState('pending');
-  
-  // NEW: Accounts Filters
   const [accountSearch, setAccountSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -347,6 +345,13 @@ const AdminDashboard = ({ session, onLogout }) => {
     return list;
   };
 
+  // --- NEW: WhatsApp Function ---
+  const handleWhatsApp = (c) => {
+      const msg = `আসসালামু আলাইকুম।\nআপনার মামলার তথ্য:\nমামলা নং: ${c.case_no}\nকোর্ট: ${c.court_name}\nআগামী তারিখ: ${c.next_date}\nপদক্ষেপ: ${c.current_step}\n\nধন্যবাদান্তে,\nঅ্যাডভোকেট আজাদুব রহমান\nহেড অফ চেম্বার, লেক্সসোর্ড ল ফার্ম।`;
+      const url = `https://wa.me/${c.client_mobile}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+  };
+
   const handleSaveCase = async () => {
     const { error } = formData.id 
       ? await supabase.from('cases').update(formData).eq('id', formData.id)
@@ -394,60 +399,61 @@ const AdminDashboard = ({ session, onLogout }) => {
     }
   };
 
-  // --- NEW: Account Filtering & Calculations ---
+  // --- Task Manager ---
+  const handleSaveTask = async () => {
+    const { error } = await supabase.from('tasks').insert([formData]);
+    if(error) alert(error.message);
+    else { alert("Task Added!"); setModalMode(null); setRefresh(r => r+1); }
+  };
+
+  const handleToggleTask = async (task) => {
+    const newStatus = task.status === 'Done' ? 'Pending' : 'Done';
+    const { error } = await supabase.from('tasks').update({ status: newStatus }).eq('id', task.id);
+    if(!error) setRefresh(r => r+1);
+  };
+
+  const handleDeleteTask = async (id) => {
+    if(confirm("Delete task?")) {
+      await supabase.from('tasks').delete().eq('id', id);
+      setRefresh(r => r+1);
+    }
+  };
+
+  // Accounts Filters
   const getFilteredAccounts = () => {
     return accounts.filter(a => {
-        // Search Term (Client, Desc, Category)
         const matchSearch = accountSearch === '' || 
             (a.client_name?.toLowerCase().includes(accountSearch.toLowerCase()) || 
              a.description?.toLowerCase().includes(accountSearch.toLowerCase()) ||
              a.category?.toLowerCase().includes(accountSearch.toLowerCase()));
         
-        // Date Range
         let matchDate = true;
         if(startDate && endDate) {
             matchDate = a.date >= startDate && a.date <= endDate;
         } else if(startDate) {
             matchDate = a.date >= startDate;
         }
-
         return matchSearch && matchDate;
     });
   };
 
   const filteredTxns = getFilteredAccounts();
-  
-  // Calculate Totals based on Filter
-  const calcTotal = (type, status = 'Paid') => 
-    filteredTxns.filter(a => a.txn_type === type && a.payment_status === status).reduce((sum, a) => sum + Number(a.amount), 0);
-
-  const accStats = {
-      income: calcTotal('Income'),
-      expense: calcTotal('Expense'),
-      dueIncome: calcTotal('Income', 'Due'),
-      dueExpense: calcTotal('Expense', 'Due'),
-  };
+  const calcTotal = (type, status = 'Paid') => filteredTxns.filter(a => a.txn_type === type && a.payment_status === status).reduce((sum, a) => sum + Number(a.amount), 0);
+  const accStats = { income: calcTotal('Income'), expense: calcTotal('Expense'), dueIncome: calcTotal('Income', 'Due'), dueExpense: calcTotal('Expense', 'Due') };
   const cashInHand = accStats.income - accStats.expense;
 
-  const handlePrint = () => {
-      window.print();
-  };
-
+  const handlePrint = () => window.print();
   const setMonthFilter = () => {
       const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-      setStartDate(firstDay);
-      setEndDate(lastDay);
+      setStartDate(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]);
+      setEndDate(new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]);
   };
-
   const setYearFilter = () => {
       const now = new Date();
       setStartDate(`${now.getFullYear()}-01-01`);
       setEndDate(`${now.getFullYear()}-12-31`);
   };
 
-  // Task Stats
   const taskStats = {
     total: tasks.length,
     pending: tasks.filter(t => t.status !== 'Done').length,
@@ -458,16 +464,7 @@ const AdminDashboard = ({ session, onLogout }) => {
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
       
-      {/* Print Styles */}
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          .print-only { display: block !important; }
-          aside, nav { display: none !important; }
-          body { background: white; }
-          .print-container { padding: 20px; width: 100%; }
-        }
-      `}</style>
+      <style>{`@media print { .no-print { display: none !important; } .print-only { display: block !important; } aside, nav { display: none !important; } body { background: white; } .print-container { padding: 20px; width: 100%; } }`}</style>
 
       {mobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden no-print" onClick={() => setMobileMenuOpen(false)}></div>}
 
@@ -505,7 +502,7 @@ const AdminDashboard = ({ session, onLogout }) => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Case Dashboard</h2>
                 <div className="flex gap-2 w-full md:w-auto">
-                    <button onClick={() => { setFormData({}); setModalMode('addCase'); }} className="flex-1 items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold flex justify-center">
+                    <button onClick={() => { setFormData({ court_type: 'Judge Court', case_nature: 'Civil Suit', status: 'Ongoing' }); setModalMode('addCase'); }} className="flex-1 items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold flex justify-center">
                     <Plus size={18}/> NEW CASE
                     </button>
                 </div>
@@ -522,12 +519,7 @@ const AdminDashboard = ({ session, onLogout }) => {
 
               <div className="mb-4 relative">
                   <Search className="absolute left-3 top-2.5 text-gray-400" size={20}/>
-                  <input 
-                    type="text" 
-                    placeholder="Search by Case No or Party Name..." 
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded focus:border-[#c5a059] outline-none text-slate-900"
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                  <input type="text" placeholder="Search by Case No or Party Name..." className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded focus:border-[#c5a059] outline-none text-slate-900" onChange={(e) => setSearchTerm(e.target.value)}/>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-6">
@@ -585,7 +577,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                       <button onClick={() => { setSelectedCase(c); setModalMode('viewCase'); }} className="p-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"><Eye size={18}/></button>
                       <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"><Edit3 size={18}/></button>
                       <button onClick={() => handleDeleteCase(c.id)} className="p-2 bg-red-100 text-red-800 rounded hover:bg-red-200"><Trash2 size={18}/></button>
-                      <button onClick={() => window.open(`https://wa.me/${c.client_mobile}`, '_blank')} className="p-2 bg-green-100 text-green-800 rounded hover:bg-green-200"><MessageCircle size={18}/></button>
+                      <button onClick={() => handleWhatsApp(c)} className="p-2 bg-green-100 text-green-800 rounded hover:bg-green-200"><MessageCircle size={18}/></button>
                     </div>
                   </div>
                 ))}
@@ -718,7 +710,6 @@ const AdminDashboard = ({ session, onLogout }) => {
             </div>
           )}
 
-          {/* --- NEW: UPDATED ACCOUNTS MODULE --- */}
           {activeTab === 'accounts' && (
             <div className="space-y-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
@@ -733,7 +724,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                 </div>
               </div>
 
-              {/* Advanced Filter Section */}
               <div className="bg-white p-4 rounded shadow border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
                   <div className="col-span-1">
                       <label className="text-xs font-bold text-slate-500 uppercase">Search</label>
@@ -758,7 +748,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                   </div>
               </div>
 
-              {/* Financial Dashboard Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded shadow border-l-4 border-green-500 flex flex-col justify-between">
                    <div>
@@ -790,7 +779,6 @@ const AdminDashboard = ({ session, onLogout }) => {
                 </div>
               </div>
 
-              {/* Printable Report Header */}
               <div className="hidden print-only mb-6 text-center border-b pb-4">
                   <h1 className="text-3xl font-serif font-bold text-slate-900">LEXSWORD CHAMBERS</h1>
                   <p className="text-sm text-gray-600">Financial Report</p>
@@ -843,12 +831,6 @@ const AdminDashboard = ({ session, onLogout }) => {
         </main>
       </div>
 
-      {/* ... (MODALS CODE remains exactly the same as previous version, included below for completeness) ... */}
-      
-      {/* ... [Copy the modals code from the previous response here: addCase, updateStatus, addTask, addTxn, viewCase, history] ... */}
-      {/* For brevity in this response, assume all modals are here. They don't need changes. 
-          I will include the addTxn modal just in case, as it's relevant to accounts. */}
-
       {modalMode === 'addTxn' && (
          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
             <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl">
@@ -879,7 +861,8 @@ const AdminDashboard = ({ session, onLogout }) => {
          </div>
       )}
 
-      {/* Include other modals (addTask, addCase, updateStatus, viewCase, history) here exactly as they were */}
+      {/* Other Modals (Tasks, Cases, History) remain here exactly as before */}
+      
       {modalMode === 'addTask' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
