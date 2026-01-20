@@ -200,7 +200,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
             {/* Left Side Text */}
             <div className="space-y-6 reveal-modern order-2 md:order-1 relative z-20 text-center md:text-left">
                <p className="text-[#c5a059] font-bold text-lg md:text-xl tracking-wide flex items-center justify-center md:justify-start gap-2">
-                  <span className="w-8 h-[2px] bg-[#c5a059]"></span> 
+                  <span className="w-8 h-[2px] bg-[#c5a059]"></span> Established {establishedYear}
                </p>
                
                <h1 className="text-5xl md:text-7xl font-serif font-bold text-white leading-[1.1]">
