@@ -192,7 +192,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
       </nav>
 
       {/* --- 1. HERO SECTION (SOFT BLUE GRADIENT + 3D LAW VECTOR) --- */}
-      <header id="home" className="relative min-h-screen flex items-center bg-soft-blue-gradient overflow-hidden pt-28 pb-16 md:py-0">
+      <header id="home" className="relative min-h-screen flex items-center bg-soft-blue-gradient overflow-hidden pt-32 md:pt-48 pb-16">
          {/* Subtle Pattern Overlay */}
          <div className="absolute inset-0 z-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
 
