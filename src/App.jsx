@@ -412,7 +412,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                  <div className="bg-white text-slate-900 p-6 text-center relative z-10 border-b-4 border-[#c5a059] group-hover:bg-soft-blue-solid group-hover:text-white transition">
                     <h3 className="text-lg font-serif font-bold truncate">Adv. Anisur Rahman</h3>
                     <p className="text-[#c5a059] text-xs uppercase tracking-wider mt-1 font-bold">Senior Associate</p>
-                    <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">High Court Division</p>
+                    <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">Judge Court</p>
                  </div>
              </div>
 
@@ -424,7 +424,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                  <div className="bg-white text-slate-900 p-6 text-center relative z-10 border-b-4 border-[#c5a059] group-hover:bg-soft-blue-solid group-hover:text-white transition">
                     <h3 className="text-lg font-serif font-bold truncate">Adv. Abdur Razzak</h3>
                     <p className="text-[#c5a059] text-xs uppercase tracking-wider mt-1 font-bold">Associate Lawyer</p>
-                    <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">Judge Court</p>
+                    <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">High Court Division</p>
                  </div>
              </div>
 
