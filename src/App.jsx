@@ -7,17 +7,26 @@ import {
   Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, 
   Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, 
   ArrowRight, Menu, RefreshCw, CheckCircle, Search, ClipboardList, 
-  AlertTriangle, Clock, CheckSquare, Printer, PieChart, TrendingUp, TrendingDown
+  AlertTriangle, Clock, CheckSquare, Printer, PieChart, TrendingUp, TrendingDown,
+  Quote, Shield, Users, Award, BookOpen
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (FULL RESTORED)
+// 1. LEXSWORD PUBLIC HOMEPAGE (REDESIGNED - JUSTICA THEME)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Handle Scroll Effect for Navbar
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault(); 
@@ -46,144 +55,244 @@ const PublicHome = ({ onLoginClick, loading }) => {
   };
 
   return (
-    <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white">
+    <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white overflow-x-hidden">
       
+      {/* Custom Animations & Fonts */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;700&display=swap');
+        
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Outfit', sans-serif; }
+        
+        .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        
+        @keyframes fadeInUp {
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .gold-gradient { background: linear-gradient(135deg, #c5a059 0%, #e6c888 50%, #c5a059 100%); }
+        .text-gold-gradient { background: linear-gradient(135deg, #c5a059 0%, #e6c888 50%, #c5a059 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+      `}</style>
+
+      {/* --- Top Bar (Justica Style) --- */}
+      <div className="bg-[#111827] text-gray-400 py-3 px-6 text-xs border-b border-gray-800 hidden md:flex justify-between items-center z-50 relative">
+         <div className="flex gap-6">
+            <span className="flex items-center gap-2 hover:text-[#c5a059] transition"><Mail size={14} className="text-[#c5a059]"/> bdkanoon@gmail.com</span>
+            <span className="flex items-center gap-2 hover:text-[#c5a059] transition"><MapPin size={14} className="text-[#c5a059]"/> Supreme Court Bar Association, Dhaka</span>
+         </div>
+         <div className="flex gap-4">
+            <span>Open: Sun - Thu (9:00 AM - 6:00 PM)</span>
+         </div>
+      </div>
+
       {/* --- Navbar --- */}
-      <nav className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 py-4 px-6 md:px-12 transition-all no-print">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-6'}`}>
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="bg-slate-900 text-[#c5a059] p-2 rounded-sm">
+            <div className={`p-2 rounded-sm ${scrolled ? 'bg-[#111827] text-[#c5a059]' : 'bg-[#c5a059] text-slate-900'}`}>
               <Scale size={24} strokeWidth={2.5} />
             </div>
             <div>
-              <h1 className="text-2xl font-serif font-bold text-slate-900 tracking-tight leading-none">LexSword</h1>
-              <p className="text-[10px] text-[#c5a059] font-bold tracking-[0.3em] uppercase">A Top Law Firm</p>
+              <h1 className={`text-2xl font-serif font-bold tracking-tight leading-none ${scrolled ? 'text-[#111827]' : 'text-white'}`}>JUSTICA</h1>
+              <p className={`text-[9px] font-bold tracking-[0.4em] uppercase ${scrolled ? 'text-[#c5a059]' : 'text-gray-300'}`}>LexSword Chambers</p>
             </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-600 tracking-wide">
+          <div className={`hidden md:flex items-center gap-8 text-sm font-bold tracking-wider ${scrolled ? 'text-slate-600' : 'text-gray-200'}`}>
             <a href="#home" className="hover:text-[#c5a059] transition">HOME</a>
-            <a href="#about" className="hover:text-[#c5a059] transition">WHY US</a>
+            <a href="#about" className="hover:text-[#c5a059] transition">ABOUT</a>
             <a href="#practice" className="hover:text-[#c5a059] transition">PRACTICE AREAS</a>
-            <a href="#team" className="hover:text-[#c5a059] transition">LAWYERS</a>
+            <a href="#team" className="hover:text-[#c5a059] transition">ATTORNEYS</a>
             <a href="#contact" className="hover:text-[#c5a059] transition">CONTACT</a>
           </div>
 
-          <button onClick={onLoginClick} className="hidden md:flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-sm font-bold text-sm tracking-wide hover:bg-[#c5a059] hover:text-white transition shadow-lg">
-            {loading ? <span className="loading loading-spinner loading-xs"></span> : <User size={16}/>} MEMBER LOGIN
-          </button>
-
-          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-slate-900">
-             {menuOpen ? <X/> : <Menu/>}
-          </button>
+          <div className="flex items-center gap-4">
+             <a href="tel:+8801911008518" className={`hidden md:flex items-center gap-2 font-bold ${scrolled ? 'text-[#111827]' : 'text-white'}`}>
+                <div className="w-8 h-8 rounded-full border border-[#c5a059] flex items-center justify-center text-[#c5a059] animate-pulse">
+                   <Phone size={14}/>
+                </div>
+                <div>
+                   <p className="text-[10px] opacity-70 uppercase">Call Us Now</p>
+                   <p className="leading-none text-sm">+880 1911 008 518</p>
+                </div>
+             </a>
+             <button onClick={onLoginClick} className="hidden md:flex bg-[#c5a059] text-white px-5 py-2.5 rounded-sm font-bold text-xs tracking-wide hover:bg-white hover:text-[#c5a059] transition shadow-lg">
+                {loading ? <span className="loading loading-spinner loading-xs"></span> : "LOGIN"}
+             </button>
+             <button onClick={() => setMenuOpen(!menuOpen)} className={`md:hidden ${scrolled ? 'text-slate-900' : 'text-white'}`}>
+               {menuOpen ? <X/> : <Menu/>}
+             </button>
+          </div>
         </div>
 
         {menuOpen && (
-          <div className="md:hidden absolute top-20 left-0 w-full bg-white shadow-xl border-t p-6 flex flex-col gap-4 font-bold text-center">
+          <div className="md:hidden absolute top-full left-0 w-full bg-[#111827] border-t border-gray-800 p-6 flex flex-col gap-4 font-bold text-center text-gray-300">
              <a href="#home" onClick={()=>setMenuOpen(false)}>Home</a>
              <a href="#practice" onClick={()=>setMenuOpen(false)}>Practice Areas</a>
              <a href="#contact" onClick={()=>setMenuOpen(false)}>Contact</a>
-             <button onClick={onLoginClick} className="text-[#c5a059]">{loading ? <span className="loading loading-spinner loading-xs"></span> : 'Login Portal'}</button>
+             <button onClick={onLoginClick} className="text-[#c5a059]">{loading ? 'Loading...' : 'Member Login'}</button>
           </div>
         )}
       </nav>
 
-      {/* --- Hero Section --- */}
-      <header id="home" className="relative min-h-screen flex items-center justify-center bg-slate-50 pt-32 pb-20 overflow-hidden no-print">
-         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#444cf7_1px,transparent_1px)] [background-size:16px_16px]"></div>
-         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
-            <div className="space-y-8 text-center md:text-left">
-               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-900 text-xs font-bold tracking-widest border border-blue-100 uppercase">
-                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Expert Legal Defense
+      {/* --- Hero Section (Dark & Gold) --- */}
+      <header id="home" className="relative min-h-screen flex items-center bg-[#111827] overflow-hidden">
+         {/* Background Image with Overlay */}
+         <div className="absolute inset-0 z-0">
+             <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Law Background" className="w-full h-full object-cover opacity-30"/>
+             <div className="absolute inset-0 bg-gradient-to-r from-[#111827] via-[#111827]/90 to-transparent"></div>
+         </div>
+
+         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full pt-20">
+            <div className="max-w-3xl space-y-6 fade-in-up">
+               <div className="flex items-center gap-3">
+                  <div className="h-[2px] w-12 bg-[#c5a059]"></div>
+                  <span className="text-[#c5a059] font-bold tracking-[0.2em] uppercase text-sm">Trusted Legal Partner</span>
                </div>
-               <h1 className="text-5xl md:text-7xl font-serif font-bold text-slate-900 leading-[1.1]">
-                  Protecting Rights <br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5a059] to-yellow-600">Securing Futures</span>
+               
+               <h1 className="text-5xl md:text-7xl font-serif font-bold text-white leading-[1.1]">
+                  We Fight For Your <br/>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5a059] to-[#e6c888]">Justice & Right</span>
                </h1>
-               <p className="text-lg text-slate-600 leading-relaxed max-w-lg mx-auto md:mx-0">
-                  An experienced lawyer stands between you and injustice, navigating complex laws to secure the outcome you deserve. At LexSword, we fight for your legacy.
+               
+               <p className="text-lg text-gray-400 leading-relaxed max-w-xl border-l-2 border-[#c5a059] pl-6 py-2">
+                  Advocate Supreme Court of Bangladesh. We provide expert legal solutions in Civil, Criminal, Writ, and Corporate matters with uncompromised integrity.
                </p>
-               <div className="flex flex-col md:flex-row gap-4 justify-center md:justify-start">
-                  <a href="#contact" className="bg-slate-900 text-white px-8 py-4 rounded-sm font-bold tracking-widest hover:bg-[#c5a059] transition shadow-xl text-center">
-                     CASE EVALUATION
+               
+               <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <a href="#contact" className="bg-[#c5a059] text-white px-8 py-4 rounded-sm font-bold tracking-widest hover:bg-white hover:text-[#111827] transition shadow-xl text-center flex items-center justify-center gap-2">
+                     FREE CONSULTATION <ArrowRight size={18}/>
                   </a>
-                  <a href="tel:+8801911008518" className="border border-slate-300 text-slate-900 px-8 py-4 rounded-sm font-bold tracking-widest hover:border-slate-900 transition flex items-center justify-center gap-2">
-                     <Phone size={18}/> +88 01911 008 518
+                  <a href="#practice" className="border border-gray-600 text-white px-8 py-4 rounded-sm font-bold tracking-widest hover:border-[#c5a059] hover:bg-[#c5a059] transition text-center">
+                     OUR SERVICES
                   </a>
-               </div>
-            </div>
-            
-            <div className="relative">
-               <div className="absolute -inset-4 bg-[#c5a059]/20 rounded-full blur-3xl hidden md:block"></div>
-               <img 
-                  src="/head.jpg" 
-                  alt="Md. Azadur Rahman" 
-                  className="relative rounded-lg shadow-2xl border-4 border-white object-cover object-top h-[500px] md:h-[650px] w-full"
-               />
-               <div className="absolute -bottom-6 -left-6 bg-white p-6 shadow-xl rounded-sm border-l-4 border-[#c5a059] hidden md:block">
-                  <p className="text-xl font-serif font-bold text-slate-900">Adv. Azadur Rahman</p>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">Head of Chamber</p>
                </div>
             </div>
          </div>
       </header>
 
-      {/* --- Why Choose Us --- */}
-      <section id="about" className="py-24 bg-white no-print">
-         <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16 max-w-2xl mx-auto">
-               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">Our Values</h2>
-               <h3 className="text-4xl font-serif font-bold text-slate-900">Why Clients Trust LexSword</h3>
-               <div className="w-20 h-1 bg-slate-900 mx-auto mt-6"></div>
-            </div>
+      {/* --- Overlapping Feature Cards --- */}
+      <section className="relative -mt-24 z-20 px-6">
+          <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-0 shadow-2xl">
+             <div className="bg-[#c5a059] p-10 text-white group hover:bg-[#1f2937] transition duration-500">
+                <Shield size={48} className="mb-6 opacity-90"/>
+                <h3 className="text-2xl font-serif font-bold mb-4">Supreme Court Practice</h3>
+                <p className="text-white/80 mb-6 leading-relaxed">Expert handling of Writ Petitions, Civil Revisions, and Criminal Appeals in the High Court Division.</p>
+                <a href="#contact" className="inline-flex items-center gap-2 font-bold uppercase text-xs tracking-wider border-b border-white/50 pb-1 group-hover:text-[#c5a059] transition">Read More <ArrowRight size={14}/></a>
+             </div>
+             <div className="bg-[#1f2937] p-10 text-white group hover:bg-[#c5a059] transition duration-500">
+                <Gavel size={48} className="mb-6 text-[#c5a059] group-hover:text-white transition"/>
+                <h3 className="text-2xl font-serif font-bold mb-4">Civil Litigation</h3>
+                <p className="text-gray-400 group-hover:text-white/90 mb-6 leading-relaxed transition">Dedicated representation in Title Suits, Family matters, and Land disputes across all Judge Courts.</p>
+                <a href="#contact" className="inline-flex items-center gap-2 font-bold uppercase text-xs tracking-wider border-b border-white/50 pb-1 transition">Read More <ArrowRight size={14}/></a>
+             </div>
+             <div className="bg-[#111827] p-10 text-white group hover:bg-[#1f2937] transition duration-500">
+                <Users size={48} className="mb-6 text-[#c5a059]"/>
+                <h3 className="text-2xl font-serif font-bold mb-4">Corporate Law</h3>
+                <p className="text-gray-400 mb-6 leading-relaxed">Legal support for Company formation, Artha Rin Suits, Vetting, and Contractual agreements.</p>
+                <a href="#contact" className="inline-flex items-center gap-2 font-bold uppercase text-xs tracking-wider border-b border-white/50 pb-1 hover:text-[#c5a059] transition">Read More <ArrowRight size={14}/></a>
+             </div>
+          </div>
+      </section>
 
-            <div className="grid md:grid-cols-3 gap-12 text-center">
-               {[
-                  {icon: Scale, title: "Integrity First", desc: "We uphold the highest standards of ethics and transparency in every case we handle."},
-                  {icon: Check, title: "Proven Track Record", desc: "Our history of favorable verdicts and settlements speaks for our dedication."},
-                  {icon: Gavel, title: "Strategic Defense", desc: "We don't just fight; we strategize to ensure the best possible outcome for you."}
-               ].map((item, i) => (
-                  <div key={i} className="group p-8 hover:bg-slate-50 transition duration-300 rounded-lg border border-transparent hover:border-slate-100">
-                     <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-[#c5a059] transition">
-                        <item.icon className="text-slate-900 group-hover:text-white" size={32}/>
-                     </div>
-                     <h4 className="text-xl font-bold mb-4 font-serif">{item.title}</h4>
-                     <p className="text-gray-600 leading-relaxed">{item.desc}</p>
-                  </div>
-               ))}
-            </div>
+      {/* --- About Section --- */}
+      <section id="about" className="py-24 bg-white relative">
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+             <div className="relative">
+                 <div className="absolute top-0 right-0 w-2/3 h-full bg-gray-100 -z-10 rounded-r-3xl"></div>
+                 <img src="/head.jpg" alt="Advocate Azadur Rahman" className="w-full max-w-md mx-auto rounded-lg shadow-2xl relative z-10"/>
+                 <div className="absolute -bottom-6 -right-6 bg-[#c5a059] p-8 rounded-sm shadow-xl hidden md:block text-white text-center min-w-[200px]">
+                     <span className="block text-5xl font-serif font-bold">25+</span>
+                     <span className="block text-sm uppercase tracking-wider font-bold mt-1">Years Experience</span>
+                 </div>
+             </div>
+             <div className="space-y-6">
+                 <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm">About LexSword</h4>
+                 <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#111827] leading-tight">
+                    Respect. Response. <br/> Results.
+                 </h2>
+                 <p className="text-gray-600 text-lg leading-relaxed">
+                    Led by <strong>Advocate Azadur Rahman</strong>, LexSword Chambers is a premier law firm in Bangladesh. We combine deep knowledge of the Bangladeshi legal system with a modern approach to client service. 
+                 </p>
+                 <p className="text-gray-600 leading-relaxed">
+                    Whether you are facing a complex criminal trial or a sensitive family dispute, our team ensures that your voice is heard and your rights are protected under the Constitution of Bangladesh.
+                 </p>
+                 
+                 <div className="grid grid-cols-2 gap-6 pt-4">
+                    <div className="flex items-start gap-4">
+                       <div className="bg-gray-100 p-3 rounded-full text-[#c5a059]"><Award/></div>
+                       <div>
+                          <h5 className="font-bold text-[#111827] text-lg">Best Strategy</h5>
+                          <p className="text-sm text-gray-500">Tailored legal solutions.</p>
+                       </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                       <div className="bg-gray-100 p-3 rounded-full text-[#c5a059]"><BookOpen/></div>
+                       <div>
+                          <h5 className="font-bold text-[#111827] text-lg">Legal Insight</h5>
+                          <p className="text-sm text-gray-500">In-depth case analysis.</p>
+                       </div>
+                    </div>
+                 </div>
+                 
+                 <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_sample.svg" alt="Signature" className="h-12 opacity-50 mt-6"/>
+             </div>
          </div>
       </section>
 
-      {/* --- Practice Areas --- */}
-      <section id="practice" className="py-24 bg-slate-50 no-print">
+      {/* --- Fun Facts (Dark Section) --- */}
+      <section className="py-20 bg-[#111827] text-white relative overflow-hidden">
+         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+         <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center relative z-10">
+             <div className="space-y-2 border-r border-gray-800 last:border-0">
+                <span className="text-4xl md:text-5xl font-serif font-bold text-[#c5a059]">1500+</span>
+                <p className="text-sm uppercase tracking-widest text-gray-400 font-bold">Cases Solved</p>
+             </div>
+             <div className="space-y-2 border-r border-gray-800 last:border-0">
+                <span className="text-4xl md:text-5xl font-serif font-bold text-[#c5a059]">98%</span>
+                <p className="text-sm uppercase tracking-widest text-gray-400 font-bold">Success Rate</p>
+             </div>
+             <div className="space-y-2 border-r border-gray-800 last:border-0">
+                <span className="text-4xl md:text-5xl font-serif font-bold text-[#c5a059]">200+</span>
+                <p className="text-sm uppercase tracking-widest text-gray-400 font-bold">Happy Clients</p>
+             </div>
+             <div className="space-y-2">
+                <span className="text-4xl md:text-5xl font-serif font-bold text-[#c5a059]">25</span>
+                <p className="text-sm uppercase tracking-widest text-gray-400 font-bold">Years Experience</p>
+             </div>
+         </div>
+      </section>
+
+      {/* --- Practice Areas (Grid) --- */}
+      <section id="practice" className="py-24 bg-gray-50">
          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-12">
-               <div>
-                  <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">Expertise</h2>
-                  <h3 className="text-4xl font-serif font-bold text-slate-900">Our Practice Areas</h3>
-               </div>
-               <a href="#contact" className="hidden md:flex items-center gap-2 text-slate-900 font-bold hover:text-[#c5a059] transition">
-                  View All Services <ArrowRight size={18}/>
-               </a>
+            <div className="text-center mb-16">
+               <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-3">Our Expertise</h4>
+               <h2 className="text-4xl font-serif font-bold text-[#111827]">Areas of Practice</h2>
+               <div className="w-20 h-1 bg-[#c5a059] mx-auto mt-6"></div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-8">
                {[
-                  { title: "Civil Litigation", desc: "We handle complex property disputes, land matters, and contract enforcement. Our team ensures your civil rights are protected through skilled advocacy." },
-                  { title: "Criminal Defense", desc: "Expert defense in sessions and magistrate courts for bail and trial proceedings. We protect the accused against false allegations with aggressive representation." },
-                  { title: "Writ Petition", desc: "Challenging government actions and enforcing fundamental rights in the High Court. We file Writ Petitions to secure immediate remedies for illegal detentions." },
-                  { title: "Family Law", desc: "Compassionate legal support for divorce, child custody, and dower issues. We assist in inheritance distribution according to Muslim and Hindu family laws." },
-                  { title: "Commercial Law", desc: "Comprehensive solutions for banking, Artha Rin suits, and corporate disputes. We guide businesses through regulatory compliance and contract drafting." },
-                  { title: "Documentation", desc: "Professional drafting of deeds, contracts, wills, and legal notices. We provide expert vetting of land documents to prevent future litigation." }
+                 { icon: Scale, title: "Criminal Defense", desc: "Expert bail, trial defense, and appeals in Magistrate & Sessions Courts." },
+                 { icon: Users, title: "Family & Divorce", desc: "Compassionate handling of divorce, dower, custody & inheritance matters." },
+                 { icon: DollarSign, title: "Banking & Finance", desc: "Specialized in Artha Rin Adalat suits and NI Act (Cheque Dishonour) cases." },
+                 { icon: Folder, title: "Writ Jurisdiction", desc: "Challenging illegal government actions in the High Court Division." },
+                 { icon: Gavel, title: "Civil Litigation", desc: "Resolving property disputes, land issues, and contract enforcement." },
+                 { icon: ClipboardList, title: "Documentation", desc: "Drafting deeds, wills, contracts and legal notices with precision." }
                ].map((item, i) => (
-                  <div key={i} className="bg-white p-8 border-l-4 border-[#c5a059] shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 group">
-                     <div className="flex justify-between items-start mb-4">
-                        <Gavel className="text-slate-300 group-hover:text-[#c5a059] transition"/>
-                        <span className="text-5xl font-serif font-bold text-slate-100 group-hover:text-slate-200 transition">0{i+1}</span>
+                  <div key={i} className="bg-white p-8 shadow-sm hover:shadow-2xl transition duration-300 group border-b-4 border-transparent hover:border-[#c5a059]">
+                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-6 text-[#111827] group-hover:bg-[#c5a059] group-hover:text-white transition">
+                        <item.icon size={30}/>
                      </div>
-                     <h4 className="text-2xl font-bold text-slate-900 font-serif mb-3">{item.title}</h4>
-                     <p className="text-gray-500 text-sm leading-relaxed text-justify">{item.desc}</p>
+                     <h3 className="text-2xl font-serif font-bold text-[#111827] mb-4 group-hover:text-[#c5a059] transition">{item.title}</h3>
+                     <p className="text-gray-500 leading-relaxed mb-4">{item.desc}</p>
+                     <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#111827] group-hover:translate-x-2 transition">
+                        Details <ArrowRight size={12}/>
+                     </span>
                   </div>
                ))}
             </div>
@@ -191,158 +300,187 @@ const PublicHome = ({ onLoginClick, loading }) => {
       </section>
 
       {/* --- Team Section --- */}
-      <section id="team" className="py-24 bg-white no-print">
+      <section id="team" className="py-24 bg-white">
          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-               <h2 className="text-sm font-bold text-[#c5a059] tracking-[0.2em] uppercase mb-2">The Lawyers</h2>
-               <h3 className="text-4xl font-serif font-bold text-slate-900">Meet Our Team</h3>
+            <div className="flex flex-col md:flex-row justify-between items-end mb-12">
+               <div className="max-w-2xl">
+                  <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-3">The Team</h4>
+                  <h2 className="text-4xl font-serif font-bold text-[#111827]">Meet Our Attorneys</h2>
+               </div>
+               <a href="#contact" className="hidden md:flex items-center gap-2 font-bold text-[#111827] hover:text-[#c5a059] transition border-b border-[#111827] pb-1 hover:border-[#c5a059]">
+                  Join Our Team <ArrowRight size={16}/>
+               </a>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-10">
-               <div className="md:col-span-3 flex justify-center mb-8">
-                  <div className="text-center group">
-                     <div className="relative overflow-hidden rounded-lg mb-6 w-80 h-96 mx-auto shadow-2xl border-4 border-white">
-                        <img src="/head.jpg" alt="Md. Azadur Rahman" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
-                        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition"></div>
+            <div className="grid md:grid-cols-4 gap-8">
+               {/* Head of Chamber */}
+               <div className="group relative overflow-hidden rounded-lg md:col-span-1">
+                  <img src="/head.jpg" alt="Adv. Azadur Rahman" className="w-full h-[400px] object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"/>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
+                     <h3 className="text-white text-xl font-serif font-bold">Adv. Azadur Rahman</h3>
+                     <p className="text-[#c5a059] text-xs uppercase font-bold tracking-wider">Head of Chamber</p>
+                  </div>
+               </div>
+               {/* Other Team Members (Mock) */}
+               {[1, 2, 3].map((n) => (
+                  <div key={n} className="group relative overflow-hidden rounded-lg">
+                     <img src={`/team${n}.jpg`} alt="Associate" className="w-full h-[400px] object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0 bg-gray-200"/>
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6 translate-y-4 group-hover:translate-y-0 transition">
+                        <h3 className="text-white text-xl font-serif font-bold">Associate Lawyer</h3>
+                        <p className="text-[#c5a059] text-xs uppercase font-bold tracking-wider">Supreme Court</p>
                      </div>
-                     <h4 className="text-3xl font-serif font-bold text-slate-900">Adv. Azadur Rahman</h4>
-                     <p className="text-[#c5a059] font-bold uppercase text-sm tracking-wider mt-1">Head of Chamber</p>
-                     <p className="text-gray-500 text-sm mt-1">Supreme Court of Bangladesh</p>
                   </div>
-               </div>
+               ))}
+            </div>
+         </div>
+      </section>
 
-               <div className="text-center group">
-                  <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
-                     <img src="/team1.jpg" alt="Associate 1" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900">Adv. Anisuru Rahman</h4>
-                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Senior Associate</p>
-               </div>
-
-               <div className="text-center group">
-                  <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
-                     <img src="/team2.jpg" alt="Associate 2" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900">Adv. Abdur Razzak</h4>
-                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
-               </div>
-
-               <div className="text-center group">
-                  <div className="relative overflow-hidden rounded-lg mb-4 h-80 w-full max-w-xs mx-auto shadow-lg bg-slate-100">
-                     <img src="/team3.jpg" alt="Associate 3" className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500"/>
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900">Adv. Tariqul Islam</h4>
-                  <p className="text-[#c5a059] text-xs font-bold uppercase tracking-wider">Associate Lawyer</p>
+      {/* --- Testimonials --- */}
+      <section className="py-24 bg-[#111827] text-white relative">
+         <div className="absolute top-0 right-0 p-12 opacity-10"><Quote size={120}/></div>
+         <div className="max-w-4xl mx-auto px-6 text-center">
+            <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-8">Client Testimonials</h4>
+            <div className="space-y-8">
+               <p className="text-2xl md:text-3xl font-serif leading-relaxed italic text-gray-300">
+                  "I was facing a critical land dispute that seemed impossible to win. Advocate Azadur Rahman's strategic approach and deep knowledge of civil law turned the tide in my favor. I am forever grateful."
+               </p>
+               <div>
+                  <h5 className="text-xl font-bold text-white">Md. Rafiqul Islam</h5>
+                  <p className="text-[#c5a059] text-sm">Businessman, Dhaka</p>
                </div>
             </div>
          </div>
       </section>
 
-      {/* --- Appointment Form --- */}
-      <section id="contact" className="py-16 md:py-24 bg-slate-900 text-white relative no-print">
-         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-         <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
-            <div className="space-y-8 order-2 md:order-1">
-               <h2 className="text-3xl md:text-4xl font-serif font-bold">Free Case Evaluation</h2>
-               <p className="text-slate-400 text-base md:text-lg">Please fill out the form to request an appointment. We will review your case and get back to you within 24 hours.</p>
+      {/* --- Contact / Consultation Form --- */}
+      <section id="contact" className="py-24 bg-gray-50 relative">
+         <div className="max-w-7xl mx-auto px-6">
+            <div className="bg-white shadow-2xl rounded-xl overflow-hidden flex flex-col md:flex-row">
+               {/* Info Side */}
+               <div className="bg-[#111827] p-12 md:w-2/5 text-white flex flex-col justify-between relative overflow-hidden">
+                  <div className="absolute -right-10 -bottom-10 opacity-10 text-[#c5a059]"><Scale size={200}/></div>
+                  <div className="relative z-10">
+                     <h3 className="text-3xl font-serif font-bold mb-2">Get In Touch</h3>
+                     <p className="text-gray-400 mb-8">Contact us for a free initial case evaluation.</p>
+                     
+                     <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 rounded bg-[#c5a059] flex items-center justify-center text-[#111827]"><Phone size={20}/></div>
+                           <div>
+                              <p className="text-xs text-gray-400 uppercase font-bold">Phone</p>
+                              <p className="text-lg font-bold">+88 01911 008 518</p>
+                           </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 rounded bg-[#c5a059] flex items-center justify-center text-[#111827]"><Mail size={20}/></div>
+                           <div>
+                              <p className="text-xs text-gray-400 uppercase font-bold">Email</p>
+                              <p className="text-lg font-bold truncate w-48">bdkanoon@gmail.com</p>
+                           </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 rounded bg-[#c5a059] flex items-center justify-center text-[#111827]"><MapPin size={20}/></div>
+                           <div>
+                              <p className="text-xs text-gray-400 uppercase font-bold">Location</p>
+                              <p className="text-lg font-bold leading-tight">Supreme Court Bar<br/>Association, Dhaka</p>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
                
-               <div className="space-y-6 pt-4 md:pt-8">
-                  <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900 shrink-0"><Phone size={20}/></div>
-                     <div>
-                        <p className="text-xs md:text-sm text-slate-400 uppercase font-bold">Call Us 24/7</p>
-                        <p className="text-lg md:text-xl font-bold">+88 01911 008 518</p>
+               {/* Form Side */}
+               <div className="p-12 md:w-3/5 bg-white">
+                  <h3 className="text-2xl font-serif font-bold text-[#111827] mb-6">Request A Quote</h3>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                     <div className="grid md:grid-cols-2 gap-6">
+                        <input name="name" type="text" placeholder="Your Name" className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm" required/>
+                        <input name="phone" type="tel" placeholder="Phone Number" className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm" required/>
                      </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900 shrink-0"><Mail size={20}/></div>
-                     <div className="overflow-hidden">
-                        <p className="text-xs md:text-sm text-slate-400 uppercase font-bold">Email Us</p>
-                        <p className="text-lg md:text-xl font-bold truncate">bdkanoon@gmail.com</p>
+                     <div className="grid md:grid-cols-2 gap-6">
+                        <input name="email" type="email" placeholder="Email Address" className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm"/>
+                        <select name="service" className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm text-gray-500">
+                           <option>Select Practice Area</option>
+                           <option>Civil Litigation</option>
+                           <option>Criminal Defense</option>
+                           <option>Writ Petition</option>
+                           <option>Family Law</option>
+                        </select>
                      </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 md:w-12 md:h-12 bg-[#c5a059] rounded-sm flex items-center justify-center text-slate-900 shrink-0"><MapPin size={20}/></div>
-                     <div>
-                        <p className="text-xs md:text-sm text-slate-400 uppercase font-bold">Location</p>
-                        <p className="text-lg font-bold">Dhaka, Bangladesh</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-
-            <div className="bg-white p-5 md:p-8 rounded-sm shadow-2xl order-1 md:order-2">
-               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                  <div className="col-span-1 md:col-span-2">
-                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Full Name</label>
-                     <input name="name" type="text" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" required/>
-                  </div>
-                  <div className="col-span-1">
-                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Phone</label>
-                     <input name="phone" type="tel" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" required/>
-                  </div>
-                  <div className="col-span-1">
-                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Email</label>
-                     <input name="email" type="email" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm"/>
-                  </div>
-                  <div className="col-span-1 md:col-span-2">
-                     <label className="block text-slate-700 font-bold text-xs uppercase mb-2">Practice Area</label>
-                     <select name="service" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm">
-                        <option>Civil Litigation</option>
-                        <option>Criminal Defense</option>
-                        <option>Writ Petition</option>
-                        <option>Family Law</option>
-                        <option>Commercial Law</option>
-                        <option>Other Legal Matter</option>
-                     </select>
-                  </div>
-                  <div className="col-span-1 md:col-span-2">
-                     <textarea name="message" rows="4" className="w-full bg-slate-50 border border-gray-200 p-3 md:p-4 outline-none focus:border-[#c5a059] text-slate-900 text-sm md:text-base rounded-sm" placeholder="Case Details..."></textarea>
-                  </div>
-                  <div className="col-span-1 md:col-span-2">
-                     <button type="submit" disabled={isSubmitting} className="w-full bg-[#c5a059] text-slate-900 py-3 md:py-4 font-bold tracking-widest hover:bg-slate-900 hover:text-white transition uppercase text-sm md:text-base rounded-sm flex justify-center items-center gap-2">
-                        {isSubmitting ? <span className="loading loading-spinner loading-sm"></span> : "Submit Request"}
+                     <textarea name="message" rows="4" placeholder="Describe your case briefly..." className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm"></textarea>
+                     <button type="submit" disabled={isSubmitting} className="bg-[#111827] text-white px-10 py-4 rounded-sm font-bold tracking-widest hover:bg-[#c5a059] transition uppercase w-full md:w-auto">
+                        {isSubmitting ? "Sending..." : "Submit Request"}
                      </button>
-                  </div>
-               </form>
+                  </form>
+               </div>
             </div>
          </div>
       </section>
+
+      {/* --- Footer --- */}
+      <footer className="bg-[#0b0f19] text-gray-500 py-16 border-t border-gray-900">
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
+            <div className="space-y-4">
+               <div className="flex items-center gap-2 text-white mb-4">
+                  <Scale size={24} className="text-[#c5a059]"/>
+                  <span className="text-2xl font-serif font-bold">JUSTICA</span>
+               </div>
+               <p className="text-sm leading-relaxed">Providing top-tier legal services in Bangladesh with a commitment to justice and professional excellence.</p>
+            </div>
+            
+            <div>
+               <h4 className="text-white font-serif font-bold text-lg mb-6">Practice Areas</h4>
+               <ul className="space-y-3 text-sm">
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Civil Law</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Family Law</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Criminal Law</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Cyber Crime</a></li>
+               </ul>
+            </div>
+            
+            <div>
+               <h4 className="text-white font-serif font-bold text-lg mb-6">Quick Links</h4>
+               <ul className="space-y-3 text-sm">
+                  <li><a href="#" className="hover:text-[#c5a059] transition">About Us</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Attorneys</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Blog / News</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Contact</a></li>
+               </ul>
+            </div>
+            
+            <div>
+               <h4 className="text-white font-serif font-bold text-lg mb-6">Newsletter</h4>
+               <p className="text-sm mb-4">Subscribe for legal updates.</p>
+               <div className="flex">
+                  <input type="email" placeholder="Email" className="bg-gray-800 border-none outline-none px-4 py-2 text-sm w-full"/>
+                  <button className="bg-[#c5a059] text-[#111827] px-4"><ArrowRight size={18}/></button>
+               </div>
+            </div>
+         </div>
+         <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-900 text-center text-xs">
+            &copy; {new Date().getFullYear()} LexSword Chambers. All Rights Reserved.
+         </div>
+      </footer>
 
       {/* --- Success Modal --- */}
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
-          <div className="bg-white p-8 rounded-sm shadow-2xl w-full max-w-md border-t-8 border-[#c5a059] text-center animate-bounce-in">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-sm shadow-2xl w-full max-w-md border-t-4 border-[#c5a059] text-center animate-bounce-in">
              <div className="mb-4 flex justify-center">
                 <CheckCircle size={64} className="text-green-500"/>
              </div>
-             <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Submission Received</h3>
-             <p className="text-slate-600 mb-6">Thank you for contacting LexSword.</p>
-             <button onClick={() => setShowSuccessModal(false)} className="bg-slate-900 text-white px-8 py-3 rounded-sm font-bold hover:bg-[#c5a059] transition uppercase tracking-wider w-full">Close</button>
+             <h3 className="text-2xl font-serif font-bold text-[#111827] mb-2">Submission Received</h3>
+             <p className="text-gray-600 mb-6">We will contact you shortly.</p>
+             <button onClick={() => setShowSuccessModal(false)} className="bg-[#111827] text-white px-8 py-3 rounded-sm font-bold hover:bg-[#c5a059] transition uppercase tracking-wider w-full">Close</button>
           </div>
         </div>
       )}
-      
-      {/* --- Footer --- */}
-      <footer className="bg-slate-950 text-slate-400 py-12 px-6 border-t border-slate-900 no-print">
-         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="text-center md:text-left">
-               <h2 className="text-2xl font-serif font-bold text-white tracking-wide">LEXSWORD</h2>
-               <p className="text-sm mt-2">&copy; {new Date().getFullYear()} LexSword Chambers. All Rights Reserved.</p>
-            </div>
-            <div className="flex gap-6 text-sm font-bold">
-               <a href="#" className="hover:text-white transition">Privacy Policy</a>
-               <a href="#" className="hover:text-white transition">Terms of Service</a>
-               <a href="#" className="hover:text-white transition">Disclaimer</a>
-            </div>
-         </div>
-      </footer>
     </div>
   );
 };
 
 // ==============================================================================
-// 2. DASHBOARD & MODULES
+// 2. DASHBOARD & MODULES (UNCHANGED)
 // ==============================================================================
 
 const ClientDashboard = ({ session, onLogout }) => {
@@ -399,18 +537,18 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [tasks, setTasks] = useState([]); 
   const [historyLog, setHistoryLog] = useState([]);
   const [documents, setDocuments] = useState([]); 
-  
+   
   // Filters
   const [searchTerm, setSearchTerm] = useState(''); 
   const [mainCaseTab, setMainCaseTab] = useState('judge'); 
   const [caseFilter, setCaseFilter] = useState('all'); 
   const [taskFilter, setTaskFilter] = useState('pending');
-  
+   
   // NEW: Accounts Filters
   const [accountSearch, setAccountSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  
+   
   const [calendarDate, setCalendarDate] = useState(new Date()); 
   const [selectedDateCases, setSelectedDateCases] = useState(null);
 
@@ -533,7 +671,7 @@ const AdminDashboard = ({ session, onLogout }) => {
 
   // WhatsApp
   const handleWhatsApp = (c) => {
-      const msg = `আসসালামু আলাইকুম।\nআপনার মামলার তথ্য:\nমামলা নং: ${c.case_no}\nকোর্ট: ${c.court_name}\nআগামী তারিখ: ${c.next_date}\nপদক্ষেপ: ${c.current_step}\n\nধন্যবাদান্তে,\nঅ্যাডভোকেট আজাদুব রহমান\nহেড অফ চেম্বার, লেক্সসোর্ড ল ফার্ম।`;
+      const msg = `আসসালামু আলাইকুম।\nআপনার মামলার তথ্য:\nমামলা নং: ${c.case_no}\nকোর্ট: ${c.court_name}\nআগামী তারিখ: ${c.next_date}\nপদক্ষেপ: ${c.current_step}\n\nধন্যবাদান্তে,\nঅ্যাডভোকেট আজাদুর রহমান\nহেড অফ চেম্বার, লেক্সসোর্ড ল ফার্ম।`;
       const url = `https://wa.me/${c.client_mobile}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
   };
@@ -580,7 +718,7 @@ const AdminDashboard = ({ session, onLogout }) => {
   };
 
   const filteredTxns = getFilteredAccounts();
-  
+   
   const calcTotal = (type, status = 'Paid') => 
     filteredTxns.filter(a => a.txn_type === type && a.payment_status === status).reduce((sum, a) => sum + Number(a.amount), 0);
 
@@ -1064,16 +1202,16 @@ const AdminDashboard = ({ session, onLogout }) => {
                   <textarea rows="2" placeholder="Details..." value={formData.details} onChange={e => setFormData({...formData, details: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
                </div>
                <div className="grid grid-cols-2 gap-4">
-                 <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Due Date</label>
-                    <input type="date" value={formData.due_date} onChange={e => setFormData({...formData, due_date: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
-                 </div>
-                 <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Priority</label>
-                    <select value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
-                      <option>Normal</option><option>High</option><option>Urgent</option><option>Low</option>
-                    </select>
-                 </div>
+                  <div>
+                     <label className="block text-xs font-bold text-slate-700 mb-1">Due Date</label>
+                     <input type="date" value={formData.due_date} onChange={e => setFormData({...formData, due_date: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
+                  </div>
+                  <div>
+                     <label className="block text-xs font-bold text-slate-700 mb-1">Priority</label>
+                     <select value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
+                       <option>Normal</option><option>High</option><option>Urgent</option><option>Low</option>
+                     </select>
+                  </div>
                </div>
                <button onClick={handleSaveTask} className="w-full bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">CREATE TASK</button>
             </div>
@@ -1204,12 +1342,12 @@ const AdminDashboard = ({ session, onLogout }) => {
                       <div className="flex-1 space-y-1">
                          <label className="text-xs font-bold text-slate-600">Doc Name</label>
                          <input placeholder="e.g. Certified Copy" className="w-full p-2 border rounded text-sm text-slate-900"
-                            value={newDoc.doc_name} onChange={e => setNewDoc({...newDoc, doc_name: e.target.value})}/>
+                           value={newDoc.doc_name} onChange={e => setNewDoc({...newDoc, doc_name: e.target.value})}/>
                       </div>
                       <div className="flex-[2] space-y-1">
                          <label className="text-xs font-bold text-slate-600">Drive Link</label>
                          <input placeholder="https://..." className="w-full p-2 border rounded text-sm text-slate-900"
-                            value={newDoc.drive_link} onChange={e => setNewDoc({...newDoc, drive_link: e.target.value})}/>
+                           value={newDoc.drive_link} onChange={e => setNewDoc({...newDoc, drive_link: e.target.value})}/>
                       </div>
                       <button onClick={handleSaveDoc} className="bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#c5a059]">ADD</button>
                    </div>
@@ -1301,7 +1439,7 @@ export default function App() {
   };
 
   if (view === 'home') return <PublicHome onLoginClick={() => setView('login')} loading={loading} />;
-  
+   
   if (view === 'login') return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded shadow-2xl w-full max-w-md border-t-8 border-[#c5a059]">
@@ -1323,7 +1461,6 @@ export default function App() {
   );
 
   if (userRole === 'client') return <ClientDashboard session={session} onLogout={() => supabase.auth.signOut()} />;
-  
+   
   return <AdminDashboard session={session} onLogout={() => supabase.auth.signOut()} />;
 }
-
