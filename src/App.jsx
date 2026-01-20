@@ -8,29 +8,32 @@ import {
   Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, 
   ArrowRight, Menu, RefreshCw, CheckCircle, Search, ClipboardList, 
   AlertTriangle, Clock, CheckSquare, Printer, PieChart, TrendingUp, TrendingDown,
-  Quote, Shield, Users, Award, BookOpen, Briefcase, Landmark, HardHat, HeartPulse, Gem, FileText, Scale as ScaleIcon
+  Quote, Shield, Users, Award, BookOpen, Briefcase, Landmark, HardHat, HeartPulse, Gem, FileText, Scale as ScaleIcon, ShieldCheck, MessageSquare
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. ANIMATION HOOK (FOR SCROLL REVEAL)
+// 1. ANIMATION HOOK (MODERN UX - BLUR REVEAL)
 // ==============================================================================
 const useScrollAnimation = () => {
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
+        // Trigger when 10% of element is visible
         if (entry.isIntersecting) {
           entry.target.classList.add('animate-active');
+          // Stop observing once animated for performance
+          observer.unobserve(entry.target); 
         }
       });
     }, { threshold: 0.1 });
 
-    document.querySelectorAll('.reveal-up').forEach((el) => observer.observe(el));
+    document.querySelectorAll('.reveal-modern').forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
 };
 
 // ==============================================================================
-// 2. LEXSWORD PUBLIC HOMEPAGE (UPDATED SOFT BLUE THEME)
+// 2. LEXSWORD PUBLIC HOMEPAGE (UPDATED SOFT BLUE THEME & MODERN UX)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
@@ -61,7 +64,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
         setShowSuccessModal(true);
         e.target.reset();
     }, 1500);
-    // Note: Re-enable actual formspree fetch here if needed
   };
 
   const practiceAreas = [
@@ -72,6 +74,8 @@ const PublicHome = ({ onLoginClick, loading }) => {
     { icon: FileText, title: "Writ Petition", desc: "Challenging illegal government actions in the High Court Division." },
     { icon: Landmark, title: "Property Law", desc: "Expert vetting of land documents and handling transfer disputes." },
     { icon: ClipboardList, title: "Documentation", desc: "Professional drafting of deeds, wills, contracts and legal notices." },
+    { icon: ShieldCheck, title: "Service Matter", desc: "Legal remedies for employment disputes, wrongful termination, and benefits." },
+    { icon: MessageSquare, title: "Consultations", desc: "Strategic legal advice and consultation for individuals and corporations." },
   ];
 
   return (
@@ -84,15 +88,17 @@ const PublicHome = ({ onLoginClick, loading }) => {
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-sans { font-family: 'Outfit', sans-serif; }
         
-        /* Reveal Animation Classes */
-        .reveal-up {
+        /* Modern Reveal Animation Classes */
+        .reveal-modern {
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
+            filter: blur(8px);
+            transform: translateY(40px) scale(0.98);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); /* Smooth easing */
         }
-        .reveal-up.animate-active {
+        .reveal-modern.animate-active {
             opacity: 1;
-            transform: translateY(0);
+            filter: blur(0px);
+            transform: translateY(0) scale(1);
         }
         
         .delay-100 { transition-delay: 0.1s; }
@@ -100,8 +106,8 @@ const PublicHome = ({ onLoginClick, loading }) => {
         .delay-300 { transition-delay: 0.3s; }
 
         /* Custom Gradients & Colors */
-        /* Soft Blue Gradient instead of dark navy */
-        .bg-soft-blue-gradient { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); } 
+        /* Soft Blue Gradient */
+        .bg-soft-blue-gradient { background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%); } 
         .bg-soft-blue-solid { background-color: #1e293b; }
 
         .text-gold { color: #c5a059; }
@@ -133,11 +139,11 @@ const PublicHome = ({ onLoginClick, loading }) => {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-full border-2 ${scrolled ? 'border-[#c5a059] text-[#c5a059]' : 'border-white text-[#c5a059]'}`}>
-              <Scale size={20} />
+              <Scale size={22} />
             </div>
             <div>
               <h1 className={`text-2xl font-serif font-bold tracking-widest ${scrolled ? 'text-slate-900' : 'text-white'}`}>LEXSWORD</h1>
-              <p className={`text-[10px] font-bold tracking-[0.3em] uppercase ${scrolled ? 'text-gray-500' : 'text-gray-300'}`}>Law Chamber</p>
+              <p className={`text-[10px] font-bold tracking-[0.3em] uppercase ${scrolled ? 'text-gray-500' : 'text-gray-300'} mt-1`}>Chambers of Law</p>
             </div>
           </div>
 
@@ -185,15 +191,15 @@ const PublicHome = ({ onLoginClick, loading }) => {
         )}
       </nav>
 
-      {/* --- 1. HERO SECTION (UPDATED: Soft Blue Gradient & Right Vector Art) --- */}
-      <header id="home" className="relative min-h-screen flex items-center bg-soft-blue-gradient overflow-hidden pt-20 md:pt-0">
+      {/* --- 1. HERO SECTION (SOFT BLUE GRADIENT + 3D LAW VECTOR) --- */}
+      <header id="home" className="relative min-h-screen flex items-center bg-soft-blue-gradient overflow-hidden pt-28 pb-16 md:py-0">
          {/* Subtle Pattern Overlay */}
          <div className="absolute inset-0 z-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
 
          <div className="max-w-7xl mx-auto px-6 relative z-10 w-full grid md:grid-cols-2 gap-12 items-center">
             {/* Left Side Text */}
-            <div className="space-y-6 reveal-up order-2 md:order-1 relative z-20">
-               <p className="text-[#c5a059] font-bold text-lg md:text-xl tracking-wide flex items-center gap-2">
+            <div className="space-y-6 reveal-modern order-2 md:order-1 relative z-20 text-center md:text-left">
+               <p className="text-[#c5a059] font-bold text-lg md:text-xl tracking-wide flex items-center justify-center md:justify-start gap-2">
                   <span className="w-8 h-[2px] bg-[#c5a059]"></span> Established {establishedYear}
                </p>
                
@@ -202,35 +208,36 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   <span className="text-[#c5a059]">Securing Your Future.</span>
                </h1>
                
-               <p className="text-gray-300 text-base md:text-lg leading-relaxed max-w-lg border-l-2 border-[#c5a059] pl-6">
+               <p className="text-gray-300 text-base md:text-lg leading-relaxed max-w-lg border-l-0 md:border-l-2 border-[#c5a059] pl-0 md:pl-6 mx-auto md:mx-0">
                   LexSword Chambers provides expert legal representation in the Supreme Court and all lower courts of Bangladesh with uncompromised integrity.
                </p>
                
-               <div className="pt-4 flex flex-wrap gap-4 relative z-30">
-                  <a href="#contact" className="bg-[#c5a059] text-white px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:bg-white hover:text-slate-900 transition duration-300 shadow-xl flex items-center gap-2">
+               <div className="pt-6 flex flex-col md:flex-row gap-4 relative z-30 justify-center md:justify-start">
+                  <a href="#contact" className="bg-[#c5a059] text-white px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:bg-white hover:text-slate-900 transition duration-300 shadow-xl flex items-center justify-center gap-2">
                      Free Consultation <ArrowRight size={18}/>
                   </a>
-                  <a href="#practice" className="border-2 border-gray-400 text-gray-300 px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:border-[#c5a059] hover:text-[#c5a059] transition duration-300">
+                  <a href="#practice" className="border-2 border-gray-400 text-gray-300 px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:border-[#c5a059] hover:text-[#c5a059] transition duration-300 flex items-center justify-center">
                      Our Services
                   </a>
                </div>
             </div>
 
             {/* Right Side Vector Art with Animation */}
-            <div className="order-1 md:order-2 reveal-up delay-200 flex justify-center md:justify-end">
-                {/* Using a placeholder for a high-quality vector illustration of Lady Justice/Law theme */}
-                <img 
-                    src="https://ouch-cdn2.icons8.com/A9lY9Xv4i5Gz8H4j4H3g5F6e7D8c9B0a1/rs:fit:784:784/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvMTU2/L2FlNTdmNTQ1LTQ4/OWQtNGJiZi04Yjll/LWEzODc2NTQ1YmUx/MS5zdmc.png" 
-                    alt="Law and Justice Vector Art" 
-                    className="w-full max-w-md md:max-w-lg animate-float drop-shadow-2xl"
-                />
+            <div className="order-1 md:order-2 reveal-modern delay-200 flex justify-center md:justify-end relative">
+               {/* 3D Law Illustration Placeholder */}
+               <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full"></div>
+               <img 
+                  src="https://cdni.iconscout.com/illustration/premium/thumb/law-and-justice-5648538-4708176.png" 
+                  alt="Law and Justice Vector Art" 
+                  className="w-full max-w-md md:max-w-lg animate-float drop-shadow-2xl relative z-10"
+               />
             </div>
          </div>
       </header>
 
-      {/* --- 2. THREE COLORED CARDS (NO READ MORE BUTTONS) --- */}
+      {/* --- 2. THREE COLORED CARDS (MODERN UX, NO READ MORE) --- */}
       <section className="relative z-20 -mt-16 md:-mt-24 px-4 md:px-0">
-          <div className="max-w-7xl mx-auto grid md:grid-cols-3 shadow-2xl reveal-up delay-200">
+          <div className="max-w-7xl mx-auto grid md:grid-cols-3 shadow-2xl reveal-modern delay-200">
              
              {/* Card 1: Light Beige (Request Quote) */}
              <div className="bg-[#fdfaf5] p-10 md:p-12 text-center group hover:-translate-y-2 transition duration-300 border-b-4 border-transparent hover:border-[#c5a059]">
@@ -256,19 +263,20 @@ const PublicHome = ({ onLoginClick, loading }) => {
           </div>
       </section>
 
-      {/* --- 3. ABOUT SECTION (Updated Text) --- */}
+      {/* --- 3. ABOUT SECTION (Full Image & Signature) --- */}
       <section id="about" className="py-20 md:py-28 bg-white overflow-hidden">
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-             <div className="relative reveal-up">
+             <div className="relative reveal-modern h-full min-h-[400px] md:min-h-[500px]">
                  <div className="absolute top-4 left-4 w-full h-full border-4 border-[#c5a059] rounded-sm -z-10"></div>
-                 <img src="/head.jpg" alt="Advocate Azadur Rahman" className="w-full shadow-lg rounded-sm grayscale hover:grayscale-0 transition duration-700 object-cover h-[500px] object-top"/>
-                 <div className="absolute bottom-10 left-[-20px] bg-soft-blue-solid text-white p-6 md:p-8 max-w-[220px] shadow-2xl border-t-4 border-[#c5a059]">
+                 {/* Using object-contain to show full image without cropping */}
+                 <img src="/head.jpg" alt="Advocate Azadur Rahman" className="w-full h-full object-contain shadow-lg rounded-sm grayscale hover:grayscale-0 transition duration-700 bg-gray-50"/>
+                 <div className="absolute bottom-10 left-[-10px] bg-soft-blue-solid text-white p-6 md:p-8 max-w-[220px] shadow-2xl border-t-4 border-[#c5a059]">
                     <span className="block text-5xl font-serif font-bold text-[#c5a059]">{yearsOfService}+</span>
                     <span className="block text-sm uppercase font-bold mt-2 leading-tight">Years of Professional Service</span>
                  </div>
              </div>
              
-             <div className="space-y-6 reveal-up delay-200">
+             <div className="space-y-6 reveal-modern delay-200">
                  <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm">About LexSword</h4>
                  <h2 className="text-4xl md:text-5xl font-serif font-bold text-slate-900 leading-tight">
                     Integrity, Strategy, <br/> & Results.
@@ -290,18 +298,21 @@ const PublicHome = ({ onLoginClick, loading }) => {
                     </ul>
                  </div>
                  
-                 <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_sample.svg" alt="Signature" className="h-12 opacity-40 mt-6"/>
+                 {/* Signature Placeholder */}
+                 <div className="pt-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Signature_sample.svg/1200px-Signature_sample.svg.png" alt="Signature" className="h-16 opacity-60 filter grayscale"/>
+                 </div>
              </div>
          </div>
       </section>
 
-      {/* --- 4. AREAS OF PRACTICE (Soft Blue Theme & Specific List) --- */}
+      {/* --- 4. AREAS OF PRACTICE (Updated List) --- */}
       <section id="practice" className="py-24 bg-soft-blue-solid relative overflow-hidden">
          {/* Background Element */}
          <div className="absolute -top-24 -right-24 p-4 opacity-5 pointer-events-none text-white"><Scale size={500}/></div>
          
          <div className="max-w-7xl mx-auto px-6 relative z-10">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-16 reveal-up">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-16 reveal-modern">
                <div>
                   <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-2">Our Expertise</h4>
                   <h2 className="text-4xl font-serif font-bold text-white">Areas of Practice</h2>
@@ -312,9 +323,9 @@ const PublicHome = ({ onLoginClick, loading }) => {
                </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal-up delay-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal-modern delay-100">
                {practiceAreas.map((item, i) => (
-                  <div key={i} className="bg-[#2a3447] p-8 group hover:bg-[#c5a059] transition duration-500 cursor-pointer border-b-4 border-transparent hover:border-white shadow-lg rounded-sm">
+                  <div key={i} className="bg-[#2a3447] p-8 group hover:bg-[#c5a059] transition duration-500 cursor-pointer border-b-4 border-transparent hover:border-white shadow-lg rounded-sm hover:-translate-y-1">
                      <div className="text-[#c5a059] group-hover:text-white transition mb-6">
                         <item.icon size={40}/>
                      </div>
@@ -330,7 +341,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
       <section className="py-24 bg-fixed bg-cover bg-center relative" style={{backgroundImage: "url('https://images.unsplash.com/photo-1589829085413-56de8ae18c73?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')"}}>
          <div className="absolute inset-0 bg-soft-blue-solid/90"></div>
          <div className="max-w-7xl mx-auto px-6 relative z-10">
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center text-white reveal-up">
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center text-white reveal-modern">
                  <div className="space-y-3">
                     <div className="text-[#c5a059] font-serif text-5xl font-bold flex justify-center"><Users size={48} className="mb-2"/></div>
                     <div className="text-4xl font-bold">850+</div>
@@ -357,15 +368,15 @@ const PublicHome = ({ onLoginClick, loading }) => {
 
       {/* --- 6. TEAM SECTION (Exactly 4 Members) --- */}
       <section id="team" className="py-24 bg-white">
-         <div className="max-w-7xl mx-auto px-6 text-center mb-16 reveal-up">
+         <div className="max-w-7xl mx-auto px-6 text-center mb-16 reveal-modern">
             <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-2">The Team</h4>
             <h2 className="text-4xl font-serif font-bold text-slate-900">Our Legal Experts</h2>
             <div className="w-16 h-1 bg-[#c5a059] mx-auto mt-4"></div>
          </div>
 
-         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-6 reveal-up delay-200">
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-6 reveal-modern delay-200">
              {/* Lawyer 1 (Head) */}
-             <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden">
+             <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden hover:-translate-y-2 transition duration-300">
                  <div className="overflow-hidden h-[350px]">
                     <img src="/head.jpg" alt="Adv. Azadur Rahman" className="w-full h-full object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"/>
                  </div>
@@ -377,7 +388,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
              </div>
              
              {/* Lawyer 2 */}
-             <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden">
+             <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden hover:-translate-y-2 transition duration-300">
                  <div className="overflow-hidden h-[350px]">
                     <img src="/team1.jpg" alt="Senior Associate" className="w-full h-full object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0 bg-gray-200"/>
                  </div>
@@ -389,7 +400,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
              </div>
 
              {/* Lawyer 3 */}
-             <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden">
+             <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden hover:-translate-y-2 transition duration-300">
                  <div className="overflow-hidden h-[350px]">
                     <img src="/team2.jpg" alt="Associate" className="w-full h-full object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0 bg-gray-200"/>
                  </div>
@@ -401,7 +412,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
              </div>
 
               {/* Lawyer 4 */}
-              <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden">
+              <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden hover:-translate-y-2 transition duration-300">
                  <div className="overflow-hidden h-[350px]">
                     <img src="/team3.jpg" alt="Associate" className="w-full h-full object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0 bg-gray-200"/>
                  </div>
@@ -417,7 +428,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
       {/* --- 7. EXPERIENCE BANNER (Soft Blue) --- */}
       <section className="bg-soft-blue-gradient py-20 px-6 relative overflow-hidden">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 reveal-up relative z-10">
+         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 reveal-modern relative z-10">
             <div className="relative shrink-0">
                 <div className="border-4 border-[#c5a059] p-8 text-center rounded-full w-48 h-48 flex flex-col justify-center items-center text-white bg-soft-blue-solid shadow-2xl">
                    <span className="text-5xl font-bold">{yearsOfService}</span>
@@ -437,13 +448,13 @@ const PublicHome = ({ onLoginClick, loading }) => {
 
       {/* --- 8. TESTIMONIALS --- */}
       <section className="py-24 bg-gray-50">
-         <div className="max-w-7xl mx-auto px-6 text-center mb-12 reveal-up">
+         <div className="max-w-7xl mx-auto px-6 text-center mb-12 reveal-modern">
              <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-2">Testimonials</h4>
              <h2 className="text-4xl font-serif font-bold text-slate-900">What Clients Say</h2>
              <div className="w-16 h-1 bg-[#c5a059] mx-auto mt-4"></div>
          </div>
 
-         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8 reveal-up delay-100">
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8 reveal-modern delay-100">
              {[
                { title: "Strategic & Effective", text: "Advocate Rahman's strategic approach in my complex land dispute in the High Court was impressive. Highly recommended for civil matters." },
                { title: "Professional Bail Support", text: "The team provided excellent support during a critical criminal matter. Their swift action secured bail when it seemed difficult." },
@@ -467,7 +478,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
 
        {/* --- Contact / Consultation Form --- */}
        <section id="contact" className="py-24 bg-white relative">
-         <div className="max-w-7xl mx-auto px-6 reveal-up">
+         <div className="max-w-7xl mx-auto px-6 reveal-modern">
             <div className="bg-white shadow-2xl rounded-xl overflow-hidden flex flex-col md:flex-row">
                {/* Info Side - Soft Blue */}
                <div className="bg-soft-blue-solid p-12 md:w-2/5 text-white flex flex-col justify-between relative overflow-hidden">
@@ -605,7 +616,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
 };
 
 // ==============================================================================
-// 2. DASHBOARD & MODULES (UNCHANGED AS REQUESTED)
+// 2. DASHBOARD & MODULES (UNCHANGED)
 // ==============================================================================
 
 const ClientDashboard = ({ session, onLogout }) => {
