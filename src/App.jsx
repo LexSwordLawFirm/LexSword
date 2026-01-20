@@ -227,8 +227,8 @@ const PublicHome = ({ onLoginClick, loading }) => {
                {/* 3D Law Illustration Placeholder */}
                <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full"></div>
                <img 
-                  src="https://cdni.iconscout.com/illustration/premium/thumb/law-and-justice-5648538-4708176.png" 
-                  alt="Law and Justice Vector Art" 
+                  src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhrv5fWOLISqAtdKDYvsYoOXFgr22v8F-jFBpRf5dAU-KhjLHalm8MFM6BtG-BBENBq_iOnCag47N5I2fx08NXBZwOdSf8eTbMbsajHIQryrqBb4m88oi5hIBc9ioLUzjG1qNUC6oEulThS-YtRmp83mszAyWjHJiX4nhcPtKXB_fdy7nB4iC7niJG9P3cr/s1600/2332.png" 
+                  alt="LexSword" 
                   className="w-full max-w-md md:max-w-lg animate-float drop-shadow-2xl relative z-10"
                />
             </div>
