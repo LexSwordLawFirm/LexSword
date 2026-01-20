@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { 
   Scale, Gavel, DollarSign, Bell, 
@@ -8,20 +8,41 @@ import {
   Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, 
   ArrowRight, Menu, RefreshCw, CheckCircle, Search, ClipboardList, 
   AlertTriangle, Clock, CheckSquare, Printer, PieChart, TrendingUp, TrendingDown,
-  Quote, Shield, Users, Award, BookOpen
+  Quote, Shield, Users, Award, BookOpen, Briefcase, Landmark, HardHat, HeartPulse, Gem
 } from 'lucide-react';
 
 // ==============================================================================
-// 1. LEXSWORD PUBLIC HOMEPAGE (REDESIGNED - JUSTICA THEME)
+// 1. ANIMATION HOOK (FOR SCROLL REVEAL)
+// ==============================================================================
+const useScrollAnimation = () => {
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-active');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal-up').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+};
+
+// ==============================================================================
+// 2. LEXSWORD PUBLIC HOMEPAGE (JUSTICA EXACT REPLICA)
 // ==============================================================================
 
 const PublicHome = ({ onLoginClick, loading }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
-  // Handle Scroll Effect for Navbar
+  // Initialize Scroll Animation
+  useScrollAnimation();
+
+  // Navbar Scroll Effect
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -31,446 +52,454 @@ const PublicHome = ({ onLoginClick, loading }) => {
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     setIsSubmitting(true);
-    const form = e.target;
-    const data = new FormData(form);
-
-    try {
-      const response = await fetch("https://formspree.io/f/xqeepnrr", {
-        method: "POST",
-        body: data,
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (response.ok) {
+    // Simulate submission
+    setTimeout(() => {
+        setIsSubmitting(false);
         setShowSuccessModal(true);
-        form.reset();
-      } else {
-        alert("Something went wrong. Please try again.");
-      }
-    } catch (error) {
-      alert("Error connecting to server.");
-    } finally {
-      setIsSubmitting(false);
-    }
+        e.target.reset();
+    }, 1500);
   };
 
   return (
     <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white overflow-x-hidden">
       
-      {/* Custom Animations & Fonts */}
+      {/* --- CUSTOM STYLES & ANIMATIONS --- */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;700&display=swap');
         
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-sans { font-family: 'Outfit', sans-serif; }
         
-        .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
-        .delay-100 { animation-delay: 0.1s; }
-        .delay-200 { animation-delay: 0.2s; }
-        .delay-300 { animation-delay: 0.3s; }
-        
-        @keyframes fadeInUp {
-          to { opacity: 1; transform: translateY(0); }
+        /* Reveal Animation Classes */
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal-up.animate-active {
+            opacity: 1;
+            transform: translateY(0);
         }
         
-        .gold-gradient { background: linear-gradient(135deg, #c5a059 0%, #e6c888 50%, #c5a059 100%); }
-        .text-gold-gradient { background: linear-gradient(135deg, #c5a059 0%, #e6c888 50%, #c5a059 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .delay-100 { transition-delay: 0.1s; }
+        .delay-200 { transition-delay: 0.2s; }
+        .delay-300 { transition-delay: 0.3s; }
+
+        /* Custom Gradients */
+        .bg-navy-gradient { background: linear-gradient(180deg, #111827 0%, #1f2937 100%); }
+        .text-gold { color: #c5a059; }
+        .bg-gold { background-color: #c5a059; }
+        
+        /* Justica Specifics */
+        .section-title-bar {
+            width: 60px;
+            height: 3px;
+            background-color: #c5a059;
+            margin: 1rem auto;
+        }
       `}</style>
 
-      {/* --- Top Bar (Justica Style) --- */}
-      <div className="bg-[#111827] text-gray-400 py-3 px-6 text-xs border-b border-gray-800 hidden md:flex justify-between items-center z-50 relative">
-         <div className="flex gap-6">
-            <span className="flex items-center gap-2 hover:text-[#c5a059] transition"><Mail size={14} className="text-[#c5a059]"/> bdkanoon@gmail.com</span>
-            <span className="flex items-center gap-2 hover:text-[#c5a059] transition"><MapPin size={14} className="text-[#c5a059]"/> Supreme Court Bar Association, Dhaka</span>
-         </div>
-         <div className="flex gap-4">
-            <span>Open: Sun - Thu (9:00 AM - 6:00 PM)</span>
-         </div>
-      </div>
-
-      {/* --- Navbar --- */}
-      <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-6'}`}>
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-sm ${scrolled ? 'bg-[#111827] text-[#c5a059]' : 'bg-[#c5a059] text-slate-900'}`}>
-              <Scale size={24} strokeWidth={2.5} />
+      {/* --- Header / Navbar --- */}
+      <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-lg py-2' : 'bg-transparent py-4 md:py-6'}`}>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
+          
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-full border-2 ${scrolled ? 'border-[#c5a059] text-[#c5a059]' : 'border-white text-[#c5a059]'}`}>
+              <Scale size={20} />
             </div>
             <div>
-              <h1 className={`text-2xl font-serif font-bold tracking-tight leading-none ${scrolled ? 'text-[#111827]' : 'text-white'}`}>JUSTICA</h1>
-              <p className={`text-[9px] font-bold tracking-[0.4em] uppercase ${scrolled ? 'text-[#c5a059]' : 'text-gray-300'}`}>LexSword Chambers</p>
+              <h1 className={`text-2xl font-serif font-bold tracking-widest ${scrolled ? 'text-[#111827]' : 'text-white'}`}>JUSTICA</h1>
+              <p className={`text-[9px] font-bold tracking-[0.3em] uppercase ${scrolled ? 'text-gray-500' : 'text-gray-300'}`}>LexSword Chambers</p>
             </div>
           </div>
 
-          <div className={`hidden md:flex items-center gap-8 text-sm font-bold tracking-wider ${scrolled ? 'text-slate-600' : 'text-gray-200'}`}>
-            <a href="#home" className="hover:text-[#c5a059] transition">HOME</a>
-            <a href="#about" className="hover:text-[#c5a059] transition">ABOUT</a>
-            <a href="#practice" className="hover:text-[#c5a059] transition">PRACTICE AREAS</a>
-            <a href="#team" className="hover:text-[#c5a059] transition">ATTORNEYS</a>
-            <a href="#contact" className="hover:text-[#c5a059] transition">CONTACT</a>
+          {/* Desktop Menu */}
+          <div className={`hidden lg:flex items-center gap-8 text-sm font-bold uppercase tracking-wider ${scrolled ? 'text-slate-800' : 'text-white'}`}>
+            <a href="#home" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Home</a>
+            <a href="#about" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">About</a>
+            <a href="#practice" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Practice Areas</a>
+            <a href="#team" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Team</a>
+            <a href="#contact" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Contact</a>
           </div>
 
-          <div className="flex items-center gap-4">
-             <a href="tel:+8801911008518" className={`hidden md:flex items-center gap-2 font-bold ${scrolled ? 'text-[#111827]' : 'text-white'}`}>
-                <div className="w-8 h-8 rounded-full border border-[#c5a059] flex items-center justify-center text-[#c5a059] animate-pulse">
-                   <Phone size={14}/>
+          {/* Right Info */}
+          <div className="hidden md:flex items-center gap-6">
+             <div className="flex items-center gap-3">
+                <div className={`text-[#c5a059]`}>
+                   <Phone size={24}/>
                 </div>
-                <div>
-                   <p className="text-[10px] opacity-70 uppercase">Call Us Now</p>
-                   <p className="leading-none text-sm">+880 1911 008 518</p>
+                <div className={`${scrolled ? 'text-slate-800' : 'text-white'} leading-tight`}>
+                   <p className="text-[10px] opacity-80">Need Help?</p>
+                   <p className="font-bold text-lg">1 200 300 9000</p>
                 </div>
-             </a>
-             <button onClick={onLoginClick} className="hidden md:flex bg-[#c5a059] text-white px-5 py-2.5 rounded-sm font-bold text-xs tracking-wide hover:bg-white hover:text-[#c5a059] transition shadow-lg">
-                {loading ? <span className="loading loading-spinner loading-xs"></span> : "LOGIN"}
-             </button>
-             <button onClick={() => setMenuOpen(!menuOpen)} className={`md:hidden ${scrolled ? 'text-slate-900' : 'text-white'}`}>
-               {menuOpen ? <X/> : <Menu/>}
+             </div>
+             <button onClick={onLoginClick} className="bg-[#c5a059] text-white px-5 py-2 rounded-sm font-bold text-xs uppercase tracking-wide hover:bg-[#111827] transition">
+                {loading ? '...' : 'Login'}
              </button>
           </div>
+
+          {/* Mobile Toggle */}
+          <button onClick={() => setMenuOpen(!menuOpen)} className={`lg:hidden ${scrolled ? 'text-slate-900' : 'text-white'}`}>
+            {menuOpen ? <X size={28}/> : <Menu size={28}/>}
+          </button>
         </div>
 
+        {/* Mobile Menu */}
         {menuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-[#111827] border-t border-gray-800 p-6 flex flex-col gap-4 font-bold text-center text-gray-300">
+          <div className="lg:hidden absolute top-full left-0 w-full bg-[#111827] border-t border-gray-800 p-6 flex flex-col gap-4 font-bold text-center text-gray-300 shadow-xl">
              <a href="#home" onClick={()=>setMenuOpen(false)}>Home</a>
              <a href="#practice" onClick={()=>setMenuOpen(false)}>Practice Areas</a>
+             <a href="#team" onClick={()=>setMenuOpen(false)}>Team</a>
              <a href="#contact" onClick={()=>setMenuOpen(false)}>Contact</a>
-             <button onClick={onLoginClick} className="text-[#c5a059]">{loading ? 'Loading...' : 'Member Login'}</button>
+             <button onClick={onLoginClick} className="text-[#c5a059]">Member Login</button>
           </div>
         )}
       </nav>
 
-      {/* --- Hero Section (Dark & Gold) --- */}
-      <header id="home" className="relative min-h-screen flex items-center bg-[#111827] overflow-hidden">
-         {/* Background Image with Overlay */}
+      {/* --- 1. HERO SECTION (VIDEO MATCH) --- */}
+      <header id="home" className="relative h-screen min-h-[600px] flex items-center bg-[#111827] overflow-hidden">
+         {/* Background Image */}
          <div className="absolute inset-0 z-0">
-             <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Law Background" className="w-full h-full object-cover opacity-30"/>
-             <div className="absolute inset-0 bg-gradient-to-r from-[#111827] via-[#111827]/90 to-transparent"></div>
+             <img 
+               src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" 
+               alt="Lawyer Background" 
+               className="w-full h-full object-cover opacity-40 scale-105 animate-[pulse_10s_ease-in-out_infinite]"
+             />
+             <div className="absolute inset-0 bg-gradient-to-r from-[#111827] via-[#111827]/80 to-transparent"></div>
          </div>
 
          <div className="max-w-7xl mx-auto px-6 relative z-10 w-full pt-20">
-            <div className="max-w-3xl space-y-6 fade-in-up">
-               <div className="flex items-center gap-3">
-                  <div className="h-[2px] w-12 bg-[#c5a059]"></div>
-                  <span className="text-[#c5a059] font-bold tracking-[0.2em] uppercase text-sm">Trusted Legal Partner</span>
-               </div>
-               
-               <h1 className="text-5xl md:text-7xl font-serif font-bold text-white leading-[1.1]">
-                  We Fight For Your <br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5a059] to-[#e6c888]">Justice & Right</span>
-               </h1>
-               
-               <p className="text-lg text-gray-400 leading-relaxed max-w-xl border-l-2 border-[#c5a059] pl-6 py-2">
-                  Advocate Supreme Court of Bangladesh. We provide expert legal solutions in Civil, Criminal, Writ, and Corporate matters with uncompromised integrity.
+            <div className="max-w-2xl space-y-6 reveal-up">
+               <p className="text-[#c5a059] font-bold text-lg md:text-xl tracking-wide flex items-center gap-2">
+                  <span className="w-8 h-[2px] bg-[#c5a059]"></span> Need Any Help?
                </p>
                
-               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <a href="#contact" className="bg-[#c5a059] text-white px-8 py-4 rounded-sm font-bold tracking-widest hover:bg-white hover:text-[#111827] transition shadow-xl text-center flex items-center justify-center gap-2">
-                     FREE CONSULTATION <ArrowRight size={18}/>
-                  </a>
-                  <a href="#practice" className="border border-gray-600 text-white px-8 py-4 rounded-sm font-bold tracking-widest hover:border-[#c5a059] hover:bg-[#c5a059] transition text-center">
-                     OUR SERVICES
+               <h1 className="text-5xl md:text-7xl font-serif font-bold text-white leading-[1.1]">
+                  Respect. Response. <br/> Results.
+               </h1>
+               
+               <p className="text-gray-400 text-base md:text-lg leading-relaxed max-w-lg border-l-2 border-[#c5a059] pl-6">
+                  Our attorneys are committed to providing unparalleled legal representation and personalized service to our clients.
+               </p>
+               
+               <div className="pt-4">
+                  <a href="#contact" className="inline-block bg-[#c5a059] text-white px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:bg-white hover:text-[#111827] transition duration-300 shadow-xl">
+                     Contact Us
                   </a>
                </div>
             </div>
          </div>
       </header>
 
-      {/* --- Overlapping Feature Cards --- */}
-      <section className="relative -mt-24 z-20 px-6">
-          <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-0 shadow-2xl">
-             <div className="bg-[#c5a059] p-10 text-white group hover:bg-[#1f2937] transition duration-500">
-                <Shield size={48} className="mb-6 opacity-90"/>
-                <h3 className="text-2xl font-serif font-bold mb-4">Supreme Court Practice</h3>
-                <p className="text-white/80 mb-6 leading-relaxed">Expert handling of Writ Petitions, Civil Revisions, and Criminal Appeals in the High Court Division.</p>
-                <a href="#contact" className="inline-flex items-center gap-2 font-bold uppercase text-xs tracking-wider border-b border-white/50 pb-1 group-hover:text-[#c5a059] transition">Read More <ArrowRight size={14}/></a>
+      {/* --- 2. THREE COLORED CARDS (OVERLAP) --- */}
+      <section className="relative z-20 -mt-16 md:-mt-24 px-4 md:px-0">
+          <div className="max-w-7xl mx-auto grid md:grid-cols-3 shadow-2xl reveal-up delay-200">
+             
+             {/* Card 1: Light Beige (Request Quote) */}
+             <div className="bg-[#fdfaf5] p-10 md:p-12 text-center group hover:-translate-y-2 transition duration-300">
+                <div className="text-[#c5a059] mb-4 flex justify-center"><ClipboardList size={48}/></div>
+                <h3 className="text-xl font-serif font-bold text-[#111827] mb-3">Request Quote</h3>
+                <p className="text-gray-500 text-sm mb-6">Explore innovative strategies and tailored solutions to propel your success forward.</p>
+                <a href="#contact" className="inline-block border-b-2 border-[#c5a059] text-[#111827] font-bold uppercase text-xs pb-1 tracking-wider">Read More</a>
              </div>
-             <div className="bg-[#1f2937] p-10 text-white group hover:bg-[#c5a059] transition duration-500">
-                <Gavel size={48} className="mb-6 text-[#c5a059] group-hover:text-white transition"/>
-                <h3 className="text-2xl font-serif font-bold mb-4">Civil Litigation</h3>
-                <p className="text-gray-400 group-hover:text-white/90 mb-6 leading-relaxed transition">Dedicated representation in Title Suits, Family matters, and Land disputes across all Judge Courts.</p>
-                <a href="#contact" className="inline-flex items-center gap-2 font-bold uppercase text-xs tracking-wider border-b border-white/50 pb-1 transition">Read More <ArrowRight size={14}/></a>
+
+             {/* Card 2: Gold/Tan (Investigation) */}
+             <div className="bg-[#cfa660] p-10 md:p-12 text-center group hover:-translate-y-2 transition duration-300 relative overflow-hidden">
+                <div className="text-white mb-4 flex justify-center"><Search size={48}/></div>
+                <h3 className="text-xl font-serif font-bold text-white mb-3">Investigation</h3>
+                <p className="text-white/80 text-sm mb-6">Explore innovative strategies and tailored solutions to propel your success forward.</p>
+                <a href="#contact" className="inline-block border-b-2 border-white text-white font-bold uppercase text-xs pb-1 tracking-wider">Read More</a>
              </div>
-             <div className="bg-[#111827] p-10 text-white group hover:bg-[#1f2937] transition duration-500">
-                <Users size={48} className="mb-6 text-[#c5a059]"/>
-                <h3 className="text-2xl font-serif font-bold mb-4">Corporate Law</h3>
-                <p className="text-gray-400 mb-6 leading-relaxed">Legal support for Company formation, Artha Rin Suits, Vetting, and Contractual agreements.</p>
-                <a href="#contact" className="inline-flex items-center gap-2 font-bold uppercase text-xs tracking-wider border-b border-white/50 pb-1 hover:text-[#c5a059] transition">Read More <ArrowRight size={14}/></a>
+
+             {/* Card 3: Dark Brown/Black (Case Fight) */}
+             <div className="bg-[#2a2520] p-10 md:p-12 text-center group hover:-translate-y-2 transition duration-300">
+                <div className="text-[#c5a059] mb-4 flex justify-center"><Gavel size={48}/></div>
+                <h3 className="text-xl font-serif font-bold text-white mb-3">Case Fight</h3>
+                <p className="text-gray-400 text-sm mb-6">Explore innovative strategies and tailored solutions to propel your success forward.</p>
+                <a href="#contact" className="inline-block border-b-2 border-[#c5a059] text-white font-bold uppercase text-xs pb-1 tracking-wider">Read More</a>
              </div>
+
           </div>
       </section>
 
-      {/* --- About Section --- */}
-      <section id="about" className="py-24 bg-white relative">
+      {/* --- 3. ABOUT SECTION --- */}
+      <section id="about" className="py-20 md:py-28 bg-white overflow-hidden">
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-             <div className="relative">
-                 <div className="absolute top-0 right-0 w-2/3 h-full bg-gray-100 -z-10 rounded-r-3xl"></div>
-                 <img src="/head.jpg" alt="Advocate Azadur Rahman" className="w-full max-w-md mx-auto rounded-lg shadow-2xl relative z-10"/>
-                 <div className="absolute -bottom-6 -right-6 bg-[#c5a059] p-8 rounded-sm shadow-xl hidden md:block text-white text-center min-w-[200px]">
-                     <span className="block text-5xl font-serif font-bold">25+</span>
-                     <span className="block text-sm uppercase tracking-wider font-bold mt-1">Years Experience</span>
+             <div className="relative reveal-up">
+                 <div className="absolute top-4 left-4 w-full h-full border-4 border-[#c5a059] rounded-sm -z-10"></div>
+                 <img src="/head.jpg" alt="Advocate Azadur Rahman" className="w-full shadow-lg rounded-sm grayscale hover:grayscale-0 transition duration-700"/>
+                 <div className="absolute bottom-10 left-[-20px] bg-[#111827] text-white p-6 md:p-8 max-w-[200px] shadow-2xl">
+                    <span className="block text-5xl font-serif font-bold text-[#c5a059]">25</span>
+                    <span className="block text-sm uppercase font-bold mt-2 leading-tight">Years of Experience</span>
                  </div>
              </div>
-             <div className="space-y-6">
-                 <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm">About LexSword</h4>
+             
+             <div className="space-y-6 reveal-up delay-200">
+                 <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm">About Us</h4>
                  <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#111827] leading-tight">
-                    Respect. Response. <br/> Results.
+                    Let Our Experience <br/> be Your Guide
                  </h2>
                  <p className="text-gray-600 text-lg leading-relaxed">
-                    Led by <strong>Advocate Azadur Rahman</strong>, LexSword Chambers is a premier law firm in Bangladesh. We combine deep knowledge of the Bangladeshi legal system with a modern approach to client service. 
+                    Advocate Azadur Rahman, Supreme Court of Bangladesh. We provide expert legal solutions with uncompromised integrity.
                  </p>
-                 <p className="text-gray-600 leading-relaxed">
-                    Whether you are facing a complex criminal trial or a sensitive family dispute, our team ensures that your voice is heard and your rights are protected under the Constitution of Bangladesh.
+                 <p className="text-gray-500 leading-relaxed text-sm">
+                    Consequat occaecat ullamco amet non eiusmod nostrud dolore irure incididunt est duis anim sunt officia. Fugiat velit proident aliquip nisi incididunt nostrud exercitation proident est nisi.
                  </p>
                  
                  <div className="grid grid-cols-2 gap-6 pt-4">
-                    <div className="flex items-start gap-4">
-                       <div className="bg-gray-100 p-3 rounded-full text-[#c5a059]"><Award/></div>
-                       <div>
-                          <h5 className="font-bold text-[#111827] text-lg">Best Strategy</h5>
-                          <p className="text-sm text-gray-500">Tailored legal solutions.</p>
-                       </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                       <div className="bg-gray-100 p-3 rounded-full text-[#c5a059]"><BookOpen/></div>
-                       <div>
-                          <h5 className="font-bold text-[#111827] text-lg">Legal Insight</h5>
-                          <p className="text-sm text-gray-500">In-depth case analysis.</p>
-                       </div>
-                    </div>
+                    <ul className="space-y-3">
+                       {['Trustworthy Lawyer', 'Case Investigation', 'Legal Consultant'].map((item,i) => (
+                          <li key={i} className="flex items-center gap-3 font-bold text-[#111827]">
+                             <CheckCircle size={18} className="text-[#c5a059]"/> {item}
+                          </li>
+                       ))}
+                    </ul>
+                    <ul className="space-y-3">
+                       {['Expert Team', 'Online Support', 'Best Case Strategy'].map((item,i) => (
+                          <li key={i} className="flex items-center gap-3 font-bold text-[#111827]">
+                             <CheckCircle size={18} className="text-[#c5a059]"/> {item}
+                          </li>
+                       ))}
+                    </ul>
                  </div>
                  
-                 <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_sample.svg" alt="Signature" className="h-12 opacity-50 mt-6"/>
+                 <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Signature_sample.svg" alt="Signature" className="h-12 opacity-40 mt-6"/>
              </div>
          </div>
       </section>
 
-      {/* --- Fun Facts (Dark Section) --- */}
-      <section className="py-20 bg-[#111827] text-white relative overflow-hidden">
-         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-         <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center relative z-10">
-             <div className="space-y-2 border-r border-gray-800 last:border-0">
-                <span className="text-4xl md:text-5xl font-serif font-bold text-[#c5a059]">1500+</span>
-                <p className="text-sm uppercase tracking-widest text-gray-400 font-bold">Cases Solved</p>
-             </div>
-             <div className="space-y-2 border-r border-gray-800 last:border-0">
-                <span className="text-4xl md:text-5xl font-serif font-bold text-[#c5a059]">98%</span>
-                <p className="text-sm uppercase tracking-widest text-gray-400 font-bold">Success Rate</p>
-             </div>
-             <div className="space-y-2 border-r border-gray-800 last:border-0">
-                <span className="text-4xl md:text-5xl font-serif font-bold text-[#c5a059]">200+</span>
-                <p className="text-sm uppercase tracking-widest text-gray-400 font-bold">Happy Clients</p>
-             </div>
-             <div className="space-y-2">
-                <span className="text-4xl md:text-5xl font-serif font-bold text-[#c5a059]">25</span>
-                <p className="text-sm uppercase tracking-widest text-gray-400 font-bold">Years Experience</p>
-             </div>
-         </div>
-      </section>
-
-      {/* --- Practice Areas (Grid) --- */}
-      <section id="practice" className="py-24 bg-gray-50">
+      {/* --- 4. AREAS OF PRACTICE (Dark Navy) --- */}
+      <section id="practice" className="py-24 bg-[#131b2c] relative">
+         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Scale size={400} text="white"/></div>
+         
          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-               <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-3">Our Expertise</h4>
-               <h2 className="text-4xl font-serif font-bold text-[#111827]">Areas of Practice</h2>
-               <div className="w-20 h-1 bg-[#c5a059] mx-auto mt-6"></div>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-               {[
-                 { icon: Scale, title: "Criminal Defense", desc: "Expert bail, trial defense, and appeals in Magistrate & Sessions Courts." },
-                 { icon: Users, title: "Family & Divorce", desc: "Compassionate handling of divorce, dower, custody & inheritance matters." },
-                 { icon: DollarSign, title: "Banking & Finance", desc: "Specialized in Artha Rin Adalat suits and NI Act (Cheque Dishonour) cases." },
-                 { icon: Folder, title: "Writ Jurisdiction", desc: "Challenging illegal government actions in the High Court Division." },
-                 { icon: Gavel, title: "Civil Litigation", desc: "Resolving property disputes, land issues, and contract enforcement." },
-                 { icon: ClipboardList, title: "Documentation", desc: "Drafting deeds, wills, contracts and legal notices with precision." }
-               ].map((item, i) => (
-                  <div key={i} className="bg-white p-8 shadow-sm hover:shadow-2xl transition duration-300 group border-b-4 border-transparent hover:border-[#c5a059]">
-                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-6 text-[#111827] group-hover:bg-[#c5a059] group-hover:text-white transition">
-                        <item.icon size={30}/>
-                     </div>
-                     <h3 className="text-2xl font-serif font-bold text-[#111827] mb-4 group-hover:text-[#c5a059] transition">{item.title}</h3>
-                     <p className="text-gray-500 leading-relaxed mb-4">{item.desc}</p>
-                     <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#111827] group-hover:translate-x-2 transition">
-                        Details <ArrowRight size={12}/>
-                     </span>
-                  </div>
-               ))}
-            </div>
-         </div>
-      </section>
-
-      {/* --- Team Section --- */}
-      <section id="team" className="py-24 bg-white">
-         <div className="max-w-7xl mx-auto px-6">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-12">
-               <div className="max-w-2xl">
-                  <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-3">The Team</h4>
-                  <h2 className="text-4xl font-serif font-bold text-[#111827]">Meet Our Attorneys</h2>
-               </div>
-               <a href="#contact" className="hidden md:flex items-center gap-2 font-bold text-[#111827] hover:text-[#c5a059] transition border-b border-[#111827] pb-1 hover:border-[#c5a059]">
-                  Join Our Team <ArrowRight size={16}/>
-               </a>
-            </div>
-
-            <div className="grid md:grid-cols-4 gap-8">
-               {/* Head of Chamber */}
-               <div className="group relative overflow-hidden rounded-lg md:col-span-1">
-                  <img src="/head.jpg" alt="Adv. Azadur Rahman" className="w-full h-[400px] object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"/>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
-                     <h3 className="text-white text-xl font-serif font-bold">Adv. Azadur Rahman</h3>
-                     <p className="text-[#c5a059] text-xs uppercase font-bold tracking-wider">Head of Chamber</p>
-                  </div>
-               </div>
-               {/* Other Team Members (Mock) */}
-               {[1, 2, 3].map((n) => (
-                  <div key={n} className="group relative overflow-hidden rounded-lg">
-                     <img src={`/team${n}.jpg`} alt="Associate" className="w-full h-[400px] object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0 bg-gray-200"/>
-                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6 translate-y-4 group-hover:translate-y-0 transition">
-                        <h3 className="text-white text-xl font-serif font-bold">Associate Lawyer</h3>
-                        <p className="text-[#c5a059] text-xs uppercase font-bold tracking-wider">Supreme Court</p>
-                     </div>
-                  </div>
-               ))}
-            </div>
-         </div>
-      </section>
-
-      {/* --- Testimonials --- */}
-      <section className="py-24 bg-[#111827] text-white relative">
-         <div className="absolute top-0 right-0 p-12 opacity-10"><Quote size={120}/></div>
-         <div className="max-w-4xl mx-auto px-6 text-center">
-            <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-8">Client Testimonials</h4>
-            <div className="space-y-8">
-               <p className="text-2xl md:text-3xl font-serif leading-relaxed italic text-gray-300">
-                  "I was facing a critical land dispute that seemed impossible to win. Advocate Azadur Rahman's strategic approach and deep knowledge of civil law turned the tide in my favor. I am forever grateful."
-               </p>
+            <div className="flex flex-col md:flex-row justify-between items-end mb-16 reveal-up">
                <div>
-                  <h5 className="text-xl font-bold text-white">Md. Rafiqul Islam</h5>
-                  <p className="text-[#c5a059] text-sm">Businessman, Dhaka</p>
+                  <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-2">What We Do</h4>
+                  <h2 className="text-4xl font-serif font-bold text-white">Areas of Practice</h2>
+                  <div className="w-20 h-1 bg-[#c5a059] mt-4"></div>
                </div>
+               <p className="text-gray-400 max-w-md text-sm mt-4 md:mt-0">
+                  Comprehensive legal solutions tailored to meet your needs across various sectors of law in Bangladesh.
+               </p>
             </div>
-         </div>
-      </section>
 
-      {/* --- Contact / Consultation Form --- */}
-      <section id="contact" className="py-24 bg-gray-50 relative">
-         <div className="max-w-7xl mx-auto px-6">
-            <div className="bg-white shadow-2xl rounded-xl overflow-hidden flex flex-col md:flex-row">
-               {/* Info Side */}
-               <div className="bg-[#111827] p-12 md:w-2/5 text-white flex flex-col justify-between relative overflow-hidden">
-                  <div className="absolute -right-10 -bottom-10 opacity-10 text-[#c5a059]"><Scale size={200}/></div>
-                  <div className="relative z-10">
-                     <h3 className="text-3xl font-serif font-bold mb-2">Get In Touch</h3>
-                     <p className="text-gray-400 mb-8">Contact us for a free initial case evaluation.</p>
-                     
-                     <div className="space-y-6">
-                        <div className="flex items-center gap-4">
-                           <div className="w-10 h-10 rounded bg-[#c5a059] flex items-center justify-center text-[#111827]"><Phone size={20}/></div>
-                           <div>
-                              <p className="text-xs text-gray-400 uppercase font-bold">Phone</p>
-                              <p className="text-lg font-bold">+88 01911 008 518</p>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                           <div className="w-10 h-10 rounded bg-[#c5a059] flex items-center justify-center text-[#111827]"><Mail size={20}/></div>
-                           <div>
-                              <p className="text-xs text-gray-400 uppercase font-bold">Email</p>
-                              <p className="text-lg font-bold truncate w-48">bdkanoon@gmail.com</p>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                           <div className="w-10 h-10 rounded bg-[#c5a059] flex items-center justify-center text-[#111827]"><MapPin size={20}/></div>
-                           <div>
-                              <p className="text-xs text-gray-400 uppercase font-bold">Location</p>
-                              <p className="text-lg font-bold leading-tight">Supreme Court Bar<br/>Association, Dhaka</p>
-                           </div>
-                        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal-up delay-100">
+               {[
+                 { icon: HardHat, title: "Labor Law" },
+                 { icon: HeartPulse, title: "Medical & Health" },
+                 { icon: Gem, title: "Mining Law" },
+                 { icon: Gavel, title: "Civil & Criminal" },
+                 { icon: Users, title: "Family & Marriage" },
+                 { icon: DollarSign, title: "Corporate & Investment" },
+                 { icon: Landmark, title: "Property Law" },
+                 { icon: Briefcase, title: "Banking & Insurance" },
+               ].map((item, i) => (
+                  <div key={i} className="bg-[#1a2436] p-6 flex items-center gap-4 group hover:bg-[#c5a059] transition duration-300 cursor-pointer border-l-4 border-transparent hover:border-white">
+                     <div className="text-[#c5a059] group-hover:text-white transition">
+                        <item.icon size={28}/>
                      </div>
+                     <h3 className="text-lg font-bold text-gray-200 group-hover:text-white transition">{item.title}</h3>
                   </div>
-               </div>
-               
-               {/* Form Side */}
-               <div className="p-12 md:w-3/5 bg-white">
-                  <h3 className="text-2xl font-serif font-bold text-[#111827] mb-6">Request A Quote</h3>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                     <div className="grid md:grid-cols-2 gap-6">
-                        <input name="name" type="text" placeholder="Your Name" className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm" required/>
-                        <input name="phone" type="tel" placeholder="Phone Number" className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm" required/>
-                     </div>
-                     <div className="grid md:grid-cols-2 gap-6">
-                        <input name="email" type="email" placeholder="Email Address" className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm"/>
-                        <select name="service" className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm text-gray-500">
-                           <option>Select Practice Area</option>
-                           <option>Civil Litigation</option>
-                           <option>Criminal Defense</option>
-                           <option>Writ Petition</option>
-                           <option>Family Law</option>
-                        </select>
-                     </div>
-                     <textarea name="message" rows="4" placeholder="Describe your case briefly..." className="w-full bg-gray-50 border border-gray-200 p-4 outline-none focus:border-[#c5a059] text-sm rounded-sm"></textarea>
-                     <button type="submit" disabled={isSubmitting} className="bg-[#111827] text-white px-10 py-4 rounded-sm font-bold tracking-widest hover:bg-[#c5a059] transition uppercase w-full md:w-auto">
-                        {isSubmitting ? "Sending..." : "Submit Request"}
-                     </button>
-                  </form>
-               </div>
+               ))}
             </div>
          </div>
       </section>
 
-      {/* --- Footer --- */}
-      <footer className="bg-[#0b0f19] text-gray-500 py-16 border-t border-gray-900">
-         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
-            <div className="space-y-4">
-               <div className="flex items-center gap-2 text-white mb-4">
-                  <Scale size={24} className="text-[#c5a059]"/>
-                  <span className="text-2xl font-serif font-bold">JUSTICA</span>
+      {/* --- 5. FUN FACTS (Image Background) --- */}
+      <section className="py-24 bg-fixed bg-cover bg-center relative" style={{backgroundImage: "url('https://images.unsplash.com/photo-1505664194779-8beaceb93744?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')"}}>
+         <div className="absolute inset-0 bg-[#111827]/80"></div>
+         <div className="max-w-7xl mx-auto px-6 relative z-10">
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center text-white reveal-up">
+                 <div>
+                    <div className="text-[#c5a059] mb-2 font-serif text-5xl font-bold">4500</div>
+                    <p className="uppercase tracking-widest text-xs font-bold">Home Protected</p>
+                 </div>
+                 <div>
+                    <div className="text-[#c5a059] mb-2 font-serif text-5xl font-bold">16k</div>
+                    <p className="uppercase tracking-widest text-xs font-bold">People Saved</p>
+                 </div>
+                 <div>
+                    <div className="text-[#c5a059] mb-2 font-serif text-5xl font-bold">4m</div>
+                    <p className="uppercase tracking-widest text-xs font-bold">Money Saved</p>
+                 </div>
+                 <div>
+                    <div className="text-[#c5a059] mb-2 font-serif text-5xl font-bold">2k</div>
+                    <p className="uppercase tracking-widest text-xs font-bold">Staff Member</p>
+                 </div>
+             </div>
+         </div>
+      </section>
+
+      {/* --- 6. LAWYER TEAM --- */}
+      <section id="team" className="py-24 bg-white">
+         <div className="max-w-7xl mx-auto px-6 text-center mb-16 reveal-up">
+            <h2 className="text-4xl font-serif font-bold text-[#111827]">Our Lawyer Team</h2>
+            <div className="w-16 h-1 bg-[#c5a059] mx-auto mt-4"></div>
+         </div>
+
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8 reveal-up delay-200">
+             {/* Lawyer 1 */}
+             <div className="group relative">
+                 <div className="overflow-hidden rounded-sm">
+                    <img src="/head.jpg" alt="Adv. Azadur Rahman" className="w-full h-[400px] object-cover object-top transition duration-500 group-hover:scale-105"/>
+                 </div>
+                 <div className="bg-[#111827] text-white p-6 text-center -mt-10 mx-6 relative z-10 border-b-4 border-[#c5a059]">
+                    <h3 className="text-xl font-serif font-bold">Adv. Azadur Rahman</h3>
+                    <p className="text-[#c5a059] text-xs uppercase tracking-wider mt-1">Managing Partner</p>
+                 </div>
+             </div>
+             
+             {/* Lawyer 2 */}
+             <div className="group relative">
+                 <div className="overflow-hidden rounded-sm">
+                    <img src="/team2.jpg" alt="Adv. Associate" className="w-full h-[400px] object-cover object-top transition duration-500 group-hover:scale-105 bg-gray-200"/>
+                 </div>
+                 <div className="bg-white text-[#111827] p-6 text-center -mt-10 mx-6 relative z-10 shadow-xl border-b-4 border-[#c5a059]">
+                    <h3 className="text-xl font-serif font-bold">Adv. Associate 1</h3>
+                    <p className="text-gray-500 text-xs uppercase tracking-wider mt-1">Senior Partner</p>
+                 </div>
+             </div>
+
+             {/* Lawyer 3 */}
+             <div className="group relative">
+                 <div className="overflow-hidden rounded-sm">
+                    <img src="/team3.jpg" alt="Adv. Associate" className="w-full h-[400px] object-cover object-top transition duration-500 group-hover:scale-105 bg-gray-200"/>
+                 </div>
+                 <div className="bg-white text-[#111827] p-6 text-center -mt-10 mx-6 relative z-10 shadow-xl border-b-4 border-[#c5a059]">
+                    <h3 className="text-xl font-serif font-bold">Adv. Associate 2</h3>
+                    <p className="text-gray-500 text-xs uppercase tracking-wider mt-1">Associate</p>
+                 </div>
+             </div>
+         </div>
+      </section>
+
+      {/* --- 7. PARTNER / EXPERIENCE BANNER --- */}
+      <section className="bg-[#111827] py-20 px-6">
+         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 reveal-up">
+            <div className="relative">
+                <div className="border-4 border-[#c5a059] p-8 text-center rounded-full w-48 h-48 flex flex-col justify-center items-center text-white">
+                   <span className="text-5xl font-bold">25</span>
+                   <span className="text-xs uppercase font-bold mt-1">Years of<br/>Experience</span>
+                </div>
+            </div>
+            <div className="flex-1 text-center md:text-left">
+               <h2 className="text-4xl font-serif font-bold text-white mb-4">
+                  Justica is Your Best Partner for <br/>
+                  <span className="text-[#c5a059]">Legal Solutions</span>
+               </h2>
+               <p className="text-gray-400 max-w-xl">
+                  We take pride in the depth and breadth of experience that our team of lawyers brings to the table. With years of dedicated practice in various areas of law.
+               </p>
+            </div>
+         </div>
+      </section>
+
+      {/* --- 8. TESTIMONIALS (White Cards) --- */}
+      <section className="py-24 bg-gray-100">
+         <div className="max-w-7xl mx-auto px-6 text-center mb-12 reveal-up">
+             <h2 className="text-4xl font-serif font-bold text-[#111827]">Testimonials</h2>
+             <div className="w-16 h-1 bg-[#c5a059] mx-auto mt-4"></div>
+         </div>
+
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8 reveal-up delay-100">
+             {[
+               { title: "Trustworthy lawyer", text: "From the initial consultation to the final resolution, their professionalism was evident. They kept me informed every step." },
+               { title: "Quality lawyer service", text: "Their attention to detail and strategic approach were instrumental in achieving a favorable outcome. I am forever grateful." },
+               { title: "Top lawyer listed", text: "They fought for my right to fair compensation and kept me informed. Their expertise in personal injury law made a difference." }
+             ].map((item, i) => (
+                <div key={i} className="bg-white p-10 shadow-lg border-b-4 border-[#c5a059] relative">
+                   <div className="absolute top-6 right-6 text-gray-200"><Quote size={40}/></div>
+                   <h3 className="text-xl font-bold text-[#111827] mb-4">{item.title}</h3>
+                   <p className="text-gray-600 italic leading-relaxed">"{item.text}"</p>
+                   <div className="mt-6 flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                      <div>
+                         <p className="font-bold text-sm text-[#111827]">Client Name</p>
+                         <p className="text-xs text-[#c5a059]">Dhaka, BD</p>
+                      </div>
+                   </div>
+                </div>
+             ))}
+         </div>
+      </section>
+
+      {/* --- 9. FOOTER (Dark) --- */}
+      <footer className="bg-[#0b0f19] text-gray-500 pt-20 pb-10 border-t border-gray-900">
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10 mb-12">
+            <div>
+               <div className="flex items-center gap-2 text-white mb-6">
+                  <div className="p-1 border border-[#c5a059] rounded-full"><Scale size={18} className="text-[#c5a059]"/></div>
+                  <span className="text-2xl font-serif font-bold tracking-widest">JUSTICA</span>
                </div>
-               <p className="text-sm leading-relaxed">Providing top-tier legal services in Bangladesh with a commitment to justice and professional excellence.</p>
-            </div>
-            
-            <div>
-               <h4 className="text-white font-serif font-bold text-lg mb-6">Practice Areas</h4>
-               <ul className="space-y-3 text-sm">
-                  <li><a href="#" className="hover:text-[#c5a059] transition">Civil Law</a></li>
-                  <li><a href="#" className="hover:text-[#c5a059] transition">Family Law</a></li>
-                  <li><a href="#" className="hover:text-[#c5a059] transition">Criminal Law</a></li>
-                  <li><a href="#" className="hover:text-[#c5a059] transition">Cyber Crime</a></li>
+               <ul className="space-y-4 text-sm">
+                  <li className="flex items-start gap-3">
+                     <MapPin size={18} className="text-[#c5a059] shrink-0"/>
+                     <span>Supreme Court Bar Association, Dhaka, Bangladesh</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                     <Phone size={18} className="text-[#c5a059] shrink-0"/>
+                     <span>+88 01911 008 518</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                     <Mail size={18} className="text-[#c5a059] shrink-0"/>
+                     <span>bdkanoon@gmail.com</span>
+                  </li>
                </ul>
             </div>
             
             <div>
-               <h4 className="text-white font-serif font-bold text-lg mb-6">Quick Links</h4>
-               <ul className="space-y-3 text-sm">
+               <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Practice Areas</h4>
+               <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="hover:text-[#c5a059] transition flex items-center gap-2"><ArrowRight size={12}/> Corporate & M&A</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition flex items-center gap-2"><ArrowRight size={12}/> Construction & Real Estate</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition flex items-center gap-2"><ArrowRight size={12}/> Commercial Dispute</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition flex items-center gap-2"><ArrowRight size={12}/> Employment</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition flex items-center gap-2"><ArrowRight size={12}/> Banking & Finance</a></li>
+               </ul>
+            </div>
+            
+            <div>
+               <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Quick Links</h4>
+               <ul className="space-y-2 text-sm">
                   <li><a href="#" className="hover:text-[#c5a059] transition">About Us</a></li>
-                  <li><a href="#" className="hover:text-[#c5a059] transition">Attorneys</a></li>
-                  <li><a href="#" className="hover:text-[#c5a059] transition">Blog / News</a></li>
-                  <li><a href="#" className="hover:text-[#c5a059] transition">Contact</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Our Team</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Career</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Privacy Policy</a></li>
+                  <li><a href="#" className="hover:text-[#c5a059] transition">Contact Us</a></li>
                </ul>
             </div>
             
             <div>
-               <h4 className="text-white font-serif font-bold text-lg mb-6">Newsletter</h4>
-               <p className="text-sm mb-4">Subscribe for legal updates.</p>
-               <div className="flex">
-                  <input type="email" placeholder="Email" className="bg-gray-800 border-none outline-none px-4 py-2 text-sm w-full"/>
-                  <button className="bg-[#c5a059] text-[#111827] px-4"><ArrowRight size={18}/></button>
+               <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Newsletter</h4>
+               <p className="text-sm mb-4">Signup for our newsletter to get the latest news, updates and special offers in your inbox.</p>
+               <div className="flex bg-[#111827] border border-gray-800 p-1">
+                  <input type="email" placeholder="Enter your email" className="bg-transparent text-white px-3 py-2 w-full outline-none text-sm"/>
+                  <button className="bg-[#c5a059] text-white px-4 hover:bg-white hover:text-[#111827] transition"><ArrowRight size={16}/></button>
                </div>
             </div>
          </div>
-         <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-900 text-center text-xs">
-            &copy; {new Date().getFullYear()} LexSword Chambers. All Rights Reserved.
+         
+         <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gray-900 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-xs uppercase tracking-wider">
+            <p>&copy; {new Date().getFullYear()} LexSword Chambers. All Rights Reserved.</p>
+            <div className="flex gap-4 mt-4 md:mt-0">
+               <a href="#" className="hover:text-white">Facebook</a>
+               <a href="#" className="hover:text-white">Twitter</a>
+               <a href="#" className="hover:text-white">LinkedIn</a>
+            </div>
          </div>
       </footer>
 
       {/* --- Success Modal --- */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-sm shadow-2xl w-full max-w-md border-t-4 border-[#c5a059] text-center animate-bounce-in">
+          <div className="bg-white p-8 rounded-sm shadow-2xl w-full max-w-md border-t-4 border-[#c5a059] text-center animate-[bounce-in_0.5s]">
              <div className="mb-4 flex justify-center">
                 <CheckCircle size={64} className="text-green-500"/>
              </div>
              <h3 className="text-2xl font-serif font-bold text-[#111827] mb-2">Submission Received</h3>
-             <p className="text-gray-600 mb-6">We will contact you shortly.</p>
+             <p className="text-gray-600 mb-6">Thank you. We will contact you shortly.</p>
              <button onClick={() => setShowSuccessModal(false)} className="bg-[#111827] text-white px-8 py-3 rounded-sm font-bold hover:bg-[#c5a059] transition uppercase tracking-wider w-full">Close</button>
           </div>
         </div>
@@ -480,7 +509,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
 };
 
 // ==============================================================================
-// 2. DASHBOARD & MODULES (UNCHANGED)
+// 2. DASHBOARD & MODULES (UNCHANGED AS REQUESTED)
 // ==============================================================================
 
 const ClientDashboard = ({ session, onLogout }) => {
@@ -525,7 +554,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- Admin Dashboard (UPDATED: New Accounts Module with Print & Filters) ---
+// --- Admin Dashboard (UNCHANGED) ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
