@@ -338,7 +338,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
       </section>
 
       {/* --- 5. FUN FACTS (Realistic BD Law Firm Metrics) --- */}
-      <section className="py-24 bg-fixed bg-cover bg-center relative" style={{backgroundImage: "url('https://images.unsplash.com/photo-1589829085413-56de8ae18c73?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')"}}>
+      <section className="py-24 bg-fixed bg-cover bg-center relative" style={{backgroundImage: "url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgdM8KQNidY8DjlEryVvsguYsHW8fUBWUIA-C-RnnEwkIQJ-U1Eud7VtI7NklAslk-WjwoV9OuzzwClwEkF4qM0WbibbYq5mWY62y7G0E3jmsmMevh1VvXvGRnz0zLruF6JbGk1M9JWluRrXLwj4HFFDpwToJcDg3Td7kTfQ3Bg6OzZNeUdZfUqdxxf85LD/s1600/2334.jpg')"}}>
          <div className="absolute inset-0 bg-soft-blue-solid/90"></div>
          <div className="max-w-7xl mx-auto px-6 relative z-10">
              <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center text-white reveal-modern">
