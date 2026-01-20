@@ -55,15 +55,32 @@ const PublicHome = ({ onLoginClick, loading }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // UPDATED: Formspree Implementation for lexsword.bd@gmail.com
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     setIsSubmitting(true);
-    // Simulate submission success for demo
-    setTimeout(() => {
-        setIsSubmitting(false);
+    const form = e.target;
+    const data = new FormData(form);
+
+    try {
+      // NOTE: Ensure you have created a Formspree form for lexsword.bd@gmail.com and replace 'xqeepnrr' if needed.
+      const response = await fetch("https://formspree.io/f/xqeepnrr", {
+        method: "POST",
+        body: data,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (response.ok) {
         setShowSuccessModal(true);
-        e.target.reset();
-    }, 1500);
+        form.reset();
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      alert("Error connecting to server.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const practiceAreas = [
@@ -395,7 +412,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                  <div className="bg-white text-slate-900 p-6 text-center relative z-10 border-b-4 border-[#c5a059] group-hover:bg-soft-blue-solid group-hover:text-white transition">
                     <h3 className="text-lg font-serif font-bold truncate">Adv. Anisur Rahman</h3>
                     <p className="text-[#c5a059] text-xs uppercase tracking-wider mt-1 font-bold">Senior Associate</p>
-                    <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">Judge Court</p>
+                    <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">High Court Division</p>
                  </div>
              </div>
 
@@ -407,7 +424,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                  <div className="bg-white text-slate-900 p-6 text-center relative z-10 border-b-4 border-[#c5a059] group-hover:bg-soft-blue-solid group-hover:text-white transition">
                     <h3 className="text-lg font-serif font-bold truncate">Adv. Abdur Razzak</h3>
                     <p className="text-[#c5a059] text-xs uppercase tracking-wider mt-1 font-bold">Associate Lawyer</p>
-                    <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">High Court Division</p>
+                    <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">Judge Court</p>
                  </div>
              </div>
 
@@ -476,7 +493,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-       {/* --- Contact / Consultation Form --- */}
+       {/* --- Contact / Consultation Form (UPDATED EMAIL) --- */}
        <section id="contact" className="py-24 bg-white relative">
          <div className="max-w-7xl mx-auto px-6 reveal-modern">
             <div className="bg-white shadow-2xl rounded-xl overflow-hidden flex flex-col md:flex-row">
@@ -499,7 +516,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                            <div className="w-12 h-12 rounded-sm bg-[#c5a059] flex items-center justify-center text-slate-900 shrink-0"><Mail size={24}/></div>
                            <div className="overflow-hidden">
                               <p className="text-xs text-[#c5a059] uppercase font-bold">Email</p>
-                              <p className="text-lg font-bold truncate">bdkanoon@gmail.com</p>
+                              <p className="text-lg font-bold truncate">lexsword.bd@gmail.com</p>
                            </div>
                         </div>
                         <div className="flex items-start gap-4">
@@ -539,7 +556,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- 9. FOOTER (Soft Blue Dark) --- */}
+      {/* --- 9. FOOTER (UPDATED EMAIL) --- */}
       <footer className="bg-soft-blue-solid text-gray-400 pt-20 pb-10 border-t-4 border-[#c5a059] relative z-10">
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10 mb-12 text-sm">
             <div>
@@ -587,7 +604,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   </li>
                   <li className="flex items-center gap-3">
                      <Mail size={20} className="text-[#c5a059] shrink-0"/>
-                     <a href="mailto:bdkanoon@gmail.com" className="hover:text-[#c5a059] transition">bdkanoon@gmail.com</a>
+                     <a href="mailto:lexsword.bd@gmail.com" className="hover:text-[#c5a059] transition">lexsword.bd@gmail.com</a>
                   </li>
                </ul>
             </div>
