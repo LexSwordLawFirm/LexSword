@@ -317,7 +317,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
                  
                  {/* Signature Placeholder */}
                  <div className="pt-4">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Signature_sample.svg/1200px-Signature_sample.svg.png" alt="Signature" className="h-16 opacity-60 filter grayscale"/>
+                    <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0DwJoJmLaK_Afp4Vd_6MF4swNbTGUYveLivralUSYJ9sOqnb4JfyntWRIx8b9dv-8L2WreZYSmg9AwHxVP4n39sRyQkMtMYflgyrzD0pmpg21xIlXfHVfQdylAurZGt2NXe53sHDuxaOsSMC99aQHfMpRaH8FMKqaRSqpA2ei-lDsMWlzc8YzCZ4blLG2/s320/signature-removebg-preview.png" alt="Signature" className="h-16 opacity-60 filter grayscale"/>
                  </div>
              </div>
          </div>
