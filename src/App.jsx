@@ -231,10 +231,10 @@ const PublicHome = ({ onLoginClick, loading }) => {
                
                <div className="pt-6 flex flex-col md:flex-row gap-4 relative z-30 justify-center md:justify-start">
                   <a href="#contact" className="bg-[#c5a059] text-white px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:bg-white hover:text-slate-900 transition duration-300 shadow-xl flex items-center justify-center gap-2">
-                      Free Consultation <ArrowRight size={18}/>
+                     Free Consultation <ArrowRight size={18}/>
                   </a>
                   <a href="#practice" className="border-2 border-gray-400 text-gray-300 px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:border-[#c5a059] hover:text-[#c5a059] transition duration-300 flex items-center justify-center">
-                      Our Services
+                     Our Services
                   </a>
                </div>
             </div>
@@ -296,13 +296,13 @@ const PublicHome = ({ onLoginClick, loading }) => {
              <div className="space-y-6 reveal-modern delay-200">
                  <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm">About LexSword</h4>
                  <h2 className="text-4xl md:text-5xl font-serif font-bold text-slate-900 leading-tight">
-                    Integrity, Strategy, <br/> & Results.
+                   Integrity, Strategy, <br/> & Results.
                  </h2>
                  <p className="text-gray-600 text-lg leading-relaxed">
-                    Founded in {establishedYear}, LexSword Chambers is led by Advocate Azadur Rahman of the Supreme Court of Bangladesh. We combine deep legal knowledge with a modern, client-focused approach.
+                   Founded in {establishedYear}, LexSword Chambers is led by Advocate Azadur Rahman of the Supreme Court of Bangladesh. We combine deep legal knowledge with a modern, client-focused approach.
                  </p>
                  <p className="text-gray-500 leading-relaxed text-sm">
-                    Whether facing complex civil litigation, criminal charges, or corporate legal challenges, our team ensures your voice is heard and your rights are protected under Bangladeshi law.
+                   Whether facing complex civil litigation, criminal charges, or corporate legal challenges, our team ensures your voice is heard and your rights are protected under Bangladeshi law.
                  </p>
                  
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
@@ -708,7 +708,7 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [modalMode, setModalMode] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
   const [formData, setFormData] = useState({});
-  const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' });
+  const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null });
 
   useEffect(() => { fetchAllData(); }, [refresh]);
 
@@ -829,37 +829,40 @@ const AdminDashboard = ({ session, onLogout }) => {
       window.open(url, '_blank');
   };
 
+  // UPDATED: Handle Save / Update Document
   const handleSaveDoc = async () => {
     if(!newDoc.drive_link) return alert("Please provide a link");
     
-    // Check if we are updating (editing) or inserting new
-    let error;
+    // Check if ID exists for Update
     if (newDoc.id) {
-       // Update logic
-       const { error: updateError } = await supabase.from('documents').update({
-          folder_type: newDoc.folder_type,
-          doc_name: newDoc.doc_name,
-          drive_link: newDoc.drive_link
-       }).eq('id', newDoc.id);
-       error = updateError;
+        const { error } = await supabase.from('documents').update({
+            folder_type: newDoc.folder_type,
+            doc_name: newDoc.doc_name,
+            drive_link: newDoc.drive_link
+        }).eq('id', newDoc.id);
+        
+        if(error) alert(error.message);
+        else { 
+            fetchDocuments(selectedCase.id); 
+            setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null }); 
+        }
     } else {
-       // Insert logic
-       const { error: insertError } = await supabase.from('documents').insert([{...newDoc, case_id: selectedCase.id}]);
-       error = insertError;
-    }
-
-    if(error) alert(error.message);
-    else { 
-       fetchDocuments(selectedCase.id); 
-       setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' }); // Reset form
+        // Insert New
+        const { error } = await supabase.from('documents').insert([{...newDoc, case_id: selectedCase.id}]);
+        if(error) alert(error.message);
+        else { 
+            fetchDocuments(selectedCase.id); 
+            setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null }); 
+        }
     }
   };
 
+  // NEW: Handle Delete Document
   const handleDeleteDoc = async (id) => {
-    if(confirm("Delete this document?")) {
-       const { error } = await supabase.from('documents').delete().eq('id', id);
-       if(error) alert(error.message);
-       else fetchDocuments(selectedCase.id);
+    if(confirm("Are you sure you want to delete this document?")) {
+        const { error } = await supabase.from('documents').delete().eq('id', id);
+        if(error) alert(error.message);
+        else fetchDocuments(selectedCase.id);
     }
   };
 
@@ -1343,8 +1346,8 @@ const AdminDashboard = ({ session, onLogout }) => {
                </div>
                <div className="p-6 space-y-4">
                   <div className="flex gap-2">
-                     <button onClick={() => setFormData({...formData, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Income' ? 'bg-green-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Income</button>
-                     <button onClick={() => setFormData({...formData, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Expense' ? 'bg-red-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Expense</button>
+                      <button onClick={() => setFormData({...formData, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Income' ? 'bg-green-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Income</button>
+                      <button onClick={() => setFormData({...formData, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Expense' ? 'bg-red-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Expense</button>
                   </div>
                   <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
                   <input placeholder="Client Name" value={formData.client_name} onChange={e => setFormData({...formData, client_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
@@ -1383,14 +1386,14 @@ const AdminDashboard = ({ session, onLogout }) => {
                </div>
                <div className="grid grid-cols-2 gap-4">
                   <div>
-                     <label className="block text-xs font-bold text-slate-700 mb-1">Due Date</label>
-                     <input type="date" value={formData.due_date} onChange={e => setFormData({...formData, due_date: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Due Date</label>
+                      <input type="date" value={formData.due_date} onChange={e => setFormData({...formData, due_date: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
                   </div>
                   <div>
-                     <label className="block text-xs font-bold text-slate-700 mb-1">Priority</label>
-                     <select value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
-                       <option>Normal</option><option>High</option><option>Urgent</option><option>Low</option>
-                     </select>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Priority</label>
+                      <select value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
+                        <option>Normal</option><option>High</option><option>Urgent</option><option>Low</option>
+                      </select>
                   </div>
                </div>
                <button onClick={handleSaveTask} className="w-full bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">CREATE TASK</button>
@@ -1514,7 +1517,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                       <div className="flex-1 space-y-1">
                          <label className="text-xs font-bold text-slate-600">Folder</label>
                          <select className="w-full p-2 border rounded text-sm text-slate-900 bg-white" 
-                            value={newDoc.folder_type}
+                            value={newDoc.folder_type} // Ensure value is controlled
                             onChange={e => setNewDoc({...newDoc, folder_type: e.target.value})}>
                             <option>Plaint (Arji)</option><option>Written Statement (Jabab)</option>
                             <option>Complaint (Nalishi)</option><option>Judgment</option><option>Misc</option>
@@ -1530,10 +1533,9 @@ const AdminDashboard = ({ session, onLogout }) => {
                          <input placeholder="https://..." className="w-full p-2 border rounded text-sm text-slate-900"
                            value={newDoc.drive_link} onChange={e => setNewDoc({...newDoc, drive_link: e.target.value})}/>
                       </div>
-                      <div className="flex gap-2">
-                        {newDoc.id && <button onClick={() => setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' })} className="bg-gray-400 text-white px-3 py-2 rounded text-sm font-bold hover:bg-gray-500"><X size={16}/></button>}
-                        <button onClick={handleSaveDoc} className="bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#c5a059]">{newDoc.id ? 'UPDATE' : 'ADD'}</button>
-                      </div>
+                      <button onClick={handleSaveDoc} className="bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#c5a059]">
+                          {newDoc.id ? 'UPDATE' : 'ADD'}
+                      </button>
                    </div>
                    <div className="space-y-2">
                       {documents.map(d => (
@@ -1543,9 +1545,9 @@ const AdminDashboard = ({ session, onLogout }) => {
                                <div><p className="font-bold text-sm text-slate-900">{d.folder_type}</p><p className="text-xs text-slate-500">{d.doc_name}</p></div>
                             </div>
                             <div className="flex items-center gap-2">
-                               <a href={d.drive_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 font-bold text-xs border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">OPEN <ExternalLink size={12}/></a>
-                               <button onClick={() => setNewDoc(d)} className="text-slate-400 hover:text-blue-600 p-1"><Edit3 size={16}/></button>
-                               <button onClick={() => handleDeleteDoc(d.id)} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={16}/></button>
+                                <a href={d.drive_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 font-bold text-xs border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">OPEN <ExternalLink size={12}/></a>
+                                <button onClick={() => setNewDoc(d)} className="text-blue-600 hover:bg-blue-100 p-1 rounded" title="Edit Link/Folder"><Edit3 size={16}/></button>
+                                <button onClick={() => handleDeleteDoc(d.id)} className="text-red-600 hover:bg-red-100 p-1 rounded" title="Delete Doc"><Trash2 size={16}/></button>
                             </div>
                          </div>
                       ))}
@@ -1582,3 +1584,73 @@ const AdminDashboard = ({ session, onLogout }) => {
     </div>
   );
 };
+
+// ==============================================================================
+// 3. MAIN APP CONTROLLER
+// ==============================================================================
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [userRole, setUserRole] = useState(null); 
+  const [view, setView] = useState('home');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if(session) checkRole(session.user.id);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if(session) checkRole(session.user.id);
+      else { setView('home'); setUserRole(null); }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkRole = async (uid) => {
+    const { data } = await supabase.from('profiles').select('role').eq('id', uid).single();
+    if(data) {
+      setUserRole(data.role);
+      setView('dashboard');
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ 
+      email: e.target.email.value, password: e.target.password.value 
+    });
+    if (error) {
+      alert(error.message);
+      setLoading(false);
+    }
+  };
+
+  if (view === 'home') return <PublicHome onLoginClick={() => setView('login')} loading={loading} />;
+   
+  if (view === 'login') return (
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="bg-white p-8 rounded shadow-2xl w-full max-w-md border-t-8 border-[#c5a059]">
+        <div className="text-center mb-6">
+           <Lock className="mx-auto h-12 w-12 text-[#c5a059] mb-2"/>
+           <h2 className="text-2xl font-bold">Secure Portal</h2>
+           <p className="text-gray-500 text-sm">Client & Admin Access</p>
+        </div>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input name="email" type="email" placeholder="Email Address" className="w-full p-3 border rounded text-slate-900" required />
+          <input name="password" type="password" placeholder="Password" className="w-full p-3 border rounded text-slate-900" required />
+          <button type="submit" className="w-full bg-slate-900 text-white py-3 font-bold hover:bg-[#c5a059] flex justify-center items-center gap-2">
+            {loading ? <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "AUTHENTICATE"}
+          </button>
+        </form>
+        <button onClick={() => setView('home')} className="w-full text-center mt-4 text-sm text-gray-500 hover:text-[#c5a059]">Return to Home</button>
+      </div>
+    </div>
+  );
+
+  if (userRole === 'client') return <ClientDashboard session={session} onLogout={() => supabase.auth.signOut()} />;
+   
+  return <AdminDashboard session={session} onLogout={() => supabase.auth.signOut()} />;
+}
