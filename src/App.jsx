@@ -231,10 +231,10 @@ const PublicHome = ({ onLoginClick, loading }) => {
                
                <div className="pt-6 flex flex-col md:flex-row gap-4 relative z-30 justify-center md:justify-start">
                   <a href="#contact" className="bg-[#c5a059] text-white px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:bg-white hover:text-slate-900 transition duration-300 shadow-xl flex items-center justify-center gap-2">
-                     Free Consultation <ArrowRight size={18}/>
+                      Free Consultation <ArrowRight size={18}/>
                   </a>
                   <a href="#practice" className="border-2 border-gray-400 text-gray-300 px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:border-[#c5a059] hover:text-[#c5a059] transition duration-300 flex items-center justify-center">
-                     Our Services
+                      Our Services
                   </a>
                </div>
             </div>
@@ -831,9 +831,36 @@ const AdminDashboard = ({ session, onLogout }) => {
 
   const handleSaveDoc = async () => {
     if(!newDoc.drive_link) return alert("Please provide a link");
-    const { error } = await supabase.from('documents').insert([{...newDoc, case_id: selectedCase.id}]);
+    
+    // Check if we are updating (editing) or inserting new
+    let error;
+    if (newDoc.id) {
+       // Update logic
+       const { error: updateError } = await supabase.from('documents').update({
+          folder_type: newDoc.folder_type,
+          doc_name: newDoc.doc_name,
+          drive_link: newDoc.drive_link
+       }).eq('id', newDoc.id);
+       error = updateError;
+    } else {
+       // Insert logic
+       const { error: insertError } = await supabase.from('documents').insert([{...newDoc, case_id: selectedCase.id}]);
+       error = insertError;
+    }
+
     if(error) alert(error.message);
-    else { fetchDocuments(selectedCase.id); setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' }); }
+    else { 
+       fetchDocuments(selectedCase.id); 
+       setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' }); // Reset form
+    }
+  };
+
+  const handleDeleteDoc = async (id) => {
+    if(confirm("Delete this document?")) {
+       const { error } = await supabase.from('documents').delete().eq('id', id);
+       if(error) alert(error.message);
+       else fetchDocuments(selectedCase.id);
+    }
   };
 
   const handleSaveTxn = async () => {
@@ -1131,57 +1158,57 @@ const AdminDashboard = ({ session, onLogout }) => {
           {activeTab === 'calendar' && (
             <div className="bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900 no-print">
               <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-                 <h2 className="text-2xl font-bold">Monthly Schedule</h2>
-                 <div className="flex items-center gap-4 bg-slate-200 p-2 rounded text-slate-900">
-                   <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-slate-300 rounded"><ChevronLeft/></button>
-                   <span className="font-bold text-lg w-32 text-center">{calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                   <button onClick={() => changeMonth(1)} className="p-2 hover:bg-slate-300 rounded"><ChevronRight/></button>
-                 </div>
+                  <h2 className="text-2xl font-bold">Monthly Schedule</h2>
+                  <div className="flex items-center gap-4 bg-slate-200 p-2 rounded text-slate-900">
+                    <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-slate-300 rounded"><ChevronLeft/></button>
+                    <span className="font-bold text-lg w-32 text-center">{calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                    <button onClick={() => changeMonth(1)} className="p-2 hover:bg-slate-300 rounded"><ChevronRight/></button>
+                  </div>
               </div>
               <div className="grid grid-cols-7 gap-1 font-bold text-center bg-slate-200 text-slate-900 p-2 rounded mb-2 text-xs md:text-base">
-                 <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                  <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
               </div>
               <div className="grid grid-cols-7 gap-1 flex-1">
-                 {[...Array(35)].map((_, i) => {
-                   const year = calendarDate.getFullYear();
-                   const month = calendarDate.getMonth();
-                   const firstDay = new Date(year, month, 1).getDay();
-                   const d = new Date(year, month, 1 + i - firstDay);
-                   const dateStr = getLocalStr(d); 
-                   const isCurrentMonth = d.getMonth() === month;
-                   const hasCase = cases.filter(c => c.next_date === dateStr);
-                   const hasTask = tasks.filter(t => t.due_date === dateStr && t.status !== 'Done');
-                   
-                   return (
-                     <div key={i} onClick={() => isCurrentMonth && setSelectedDateCases(hasCase)} 
-                       className={`border p-1 md:p-2 h-16 md:h-24 rounded cursor-pointer transition ${!isCurrentMonth ? 'bg-slate-100 opacity-50' : hasCase.length > 0 ? 'bg-red-50 border-red-300 hover:bg-red-100' : 'bg-white hover:bg-blue-50 border-slate-300'}`}>
-                       <div className="flex justify-between items-start">
-                         <span className={`text-[10px] md:text-xs font-bold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>{d.getDate()}</span>
-                         <div className="flex gap-1">
-                           {isCurrentMonth && hasTask.length > 0 && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
-                           {isCurrentMonth && hasCase.length > 0 && <span className="text-[10px] md:text-xs bg-red-600 text-white px-1 rounded-full">{hasCase.length}</span>}
-                         </div>
-                       </div>
-                       <div className="mt-1 overflow-hidden h-8 md:h-14">
-                         {isCurrentMonth && hasCase.map(c => <div key={c.id} className="text-[8px] md:text-[10px] truncate text-slate-900 font-bold">• {c.case_no}</div>)}
-                       </div>
-                     </div>
-                   )
-                 })}
+                  {[...Array(35)].map((_, i) => {
+                    const year = calendarDate.getFullYear();
+                    const month = calendarDate.getMonth();
+                    const firstDay = new Date(year, month, 1).getDay();
+                    const d = new Date(year, month, 1 + i - firstDay);
+                    const dateStr = getLocalStr(d); 
+                    const isCurrentMonth = d.getMonth() === month;
+                    const hasCase = cases.filter(c => c.next_date === dateStr);
+                    const hasTask = tasks.filter(t => t.due_date === dateStr && t.status !== 'Done');
+                    
+                    return (
+                      <div key={i} onClick={() => isCurrentMonth && setSelectedDateCases(hasCase)} 
+                        className={`border p-1 md:p-2 h-16 md:h-24 rounded cursor-pointer transition ${!isCurrentMonth ? 'bg-slate-100 opacity-50' : hasCase.length > 0 ? 'bg-red-50 border-red-300 hover:bg-red-100' : 'bg-white hover:bg-blue-50 border-slate-300'}`}>
+                        <div className="flex justify-between items-start">
+                          <span className={`text-[10px] md:text-xs font-bold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>{d.getDate()}</span>
+                          <div className="flex gap-1">
+                            {isCurrentMonth && hasTask.length > 0 && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                            {isCurrentMonth && hasCase.length > 0 && <span className="text-[10px] md:text-xs bg-red-600 text-white px-1 rounded-full">{hasCase.length}</span>}
+                          </div>
+                        </div>
+                        <div className="mt-1 overflow-hidden h-8 md:h-14">
+                          {isCurrentMonth && hasCase.map(c => <div key={c.id} className="text-[8px] md:text-[10px] truncate text-slate-900 font-bold">• {c.case_no}</div>)}
+                        </div>
+                      </div>
+                    )
+                  })}
               </div>
               {selectedDateCases && (
-                 <div className="mt-4 border-t pt-4">
-                   <h3 className="font-bold text-lg mb-2 text-slate-900">Cases on Selected Date:</h3>
-                   {selectedDateCases.length === 0 ? <p className="text-slate-600">No cases.</p> : 
-                     selectedDateCases.map(c => (
-                       <div key={c.id} className="flex gap-4 items-center bg-slate-100 p-2 mb-2 rounded border text-sm text-slate-900">
-                         <span className="font-bold">{c.case_no}</span>
-                         <span className="truncate flex-1">{c.party_name}</span>
-                         <span className="text-[#c5a059] font-bold">{c.current_step}</span>
-                       </div>
-                     ))
-                   }
-                 </div>
+                  <div className="mt-4 border-t pt-4">
+                    <h3 className="font-bold text-lg mb-2 text-slate-900">Cases on Selected Date:</h3>
+                    {selectedDateCases.length === 0 ? <p className="text-slate-600">No cases.</p> : 
+                      selectedDateCases.map(c => (
+                        <div key={c.id} className="flex gap-4 items-center bg-slate-100 p-2 mb-2 rounded border text-sm text-slate-900">
+                          <span className="font-bold">{c.case_no}</span>
+                          <span className="truncate flex-1">{c.party_name}</span>
+                          <span className="text-[#c5a059] font-bold">{c.current_step}</span>
+                        </div>
+                      ))
+                    }
+                  </div>
               )}
             </div>
           )}
@@ -1226,32 +1253,32 @@ const AdminDashboard = ({ session, onLogout }) => {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded shadow border-l-4 border-green-500 flex flex-col justify-between">
-                   <div>
-                       <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingUp size={14}/> Total Income</p>
-                       <p className="text-2xl font-bold text-slate-900 mt-1">৳{accStats.income}</p>
-                   </div>
-                   <p className="text-xs text-green-600 font-bold mt-2 bg-green-50 inline-block px-2 py-1 rounded w-max">Paid: ৳{accStats.income}</p>
+                    <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingUp size={14}/> Total Income</p>
+                        <p className="text-2xl font-bold text-slate-900 mt-1">৳{accStats.income}</p>
+                    </div>
+                    <p className="text-xs text-green-600 font-bold mt-2 bg-green-50 inline-block px-2 py-1 rounded w-max">Paid: ৳{accStats.income}</p>
                 </div>
                 <div className="bg-white p-4 rounded shadow border-l-4 border-red-500 flex flex-col justify-between">
-                   <div>
-                       <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingDown size={14}/> Total Expense</p>
-                       <p className="text-2xl font-bold text-slate-900 mt-1">৳{accStats.expense}</p>
-                   </div>
-                   <p className="text-xs text-red-600 font-bold mt-2 bg-red-50 inline-block px-2 py-1 rounded w-max">Paid: ৳{accStats.expense}</p>
+                    <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingDown size={14}/> Total Expense</p>
+                        <p className="text-2xl font-bold text-slate-900 mt-1">৳{accStats.expense}</p>
+                    </div>
+                    <p className="text-xs text-red-600 font-bold mt-2 bg-red-50 inline-block px-2 py-1 rounded w-max">Paid: ৳{accStats.expense}</p>
                 </div>
                 <div className="bg-slate-900 p-4 rounded shadow text-white flex flex-col justify-between">
-                   <div>
-                       <p className="text-xs font-bold text-[#c5a059] uppercase flex items-center gap-2"><PieChart size={14}/> Balance / Profit</p>
-                       <p className="text-3xl font-bold mt-1">৳{cashInHand}</p>
-                   </div>
-                   <p className="text-[10px] text-gray-400 mt-2">Cash In Hand</p>
+                    <div>
+                        <p className="text-xs font-bold text-[#c5a059] uppercase flex items-center gap-2"><PieChart size={14}/> Balance / Profit</p>
+                        <p className="text-3xl font-bold mt-1">৳{cashInHand}</p>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2">Cash In Hand</p>
                 </div>
                 <div className="bg-white p-4 rounded shadow border-l-4 border-orange-500 flex flex-col justify-between">
-                   <div>
-                       <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><AlertTriangle size={14}/> Pending Dues</p>
-                       <p className="text-xl font-bold text-slate-900 mt-1">Receivable: ৳{accStats.dueIncome}</p>
-                   </div>
-                   <p className="text-xs text-red-600 font-bold mt-2">Payable: ৳{accStats.dueExpense}</p>
+                    <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><AlertTriangle size={14}/> Pending Dues</p>
+                        <p className="text-xl font-bold text-slate-900 mt-1">Receivable: ৳{accStats.dueIncome}</p>
+                    </div>
+                    <p className="text-xs text-red-600 font-bold mt-2">Payable: ৳{accStats.dueExpense}</p>
                 </div>
               </div>
 
@@ -1487,6 +1514,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                       <div className="flex-1 space-y-1">
                          <label className="text-xs font-bold text-slate-600">Folder</label>
                          <select className="w-full p-2 border rounded text-sm text-slate-900 bg-white" 
+                            value={newDoc.folder_type}
                             onChange={e => setNewDoc({...newDoc, folder_type: e.target.value})}>
                             <option>Plaint (Arji)</option><option>Written Statement (Jabab)</option>
                             <option>Complaint (Nalishi)</option><option>Judgment</option><option>Misc</option>
@@ -1502,7 +1530,10 @@ const AdminDashboard = ({ session, onLogout }) => {
                          <input placeholder="https://..." className="w-full p-2 border rounded text-sm text-slate-900"
                            value={newDoc.drive_link} onChange={e => setNewDoc({...newDoc, drive_link: e.target.value})}/>
                       </div>
-                      <button onClick={handleSaveDoc} className="bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#c5a059]">ADD</button>
+                      <div className="flex gap-2">
+                        {newDoc.id && <button onClick={() => setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '' })} className="bg-gray-400 text-white px-3 py-2 rounded text-sm font-bold hover:bg-gray-500"><X size={16}/></button>}
+                        <button onClick={handleSaveDoc} className="bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#c5a059]">{newDoc.id ? 'UPDATE' : 'ADD'}</button>
+                      </div>
                    </div>
                    <div className="space-y-2">
                       {documents.map(d => (
@@ -1511,7 +1542,11 @@ const AdminDashboard = ({ session, onLogout }) => {
                                <Folder className="text-yellow-500" size={18}/>
                                <div><p className="font-bold text-sm text-slate-900">{d.folder_type}</p><p className="text-xs text-slate-500">{d.doc_name}</p></div>
                             </div>
-                            <a href={d.drive_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 font-bold text-xs border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">OPEN <ExternalLink size={12}/></a>
+                            <div className="flex items-center gap-2">
+                               <a href={d.drive_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 font-bold text-xs border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">OPEN <ExternalLink size={12}/></a>
+                               <button onClick={() => setNewDoc(d)} className="text-slate-400 hover:text-blue-600 p-1"><Edit3 size={16}/></button>
+                               <button onClick={() => handleDeleteDoc(d.id)} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={16}/></button>
+                            </div>
                          </div>
                       ))}
                    </div>
@@ -1547,73 +1582,3 @@ const AdminDashboard = ({ session, onLogout }) => {
     </div>
   );
 };
-
-// ==============================================================================
-// 3. MAIN APP CONTROLLER
-// ==============================================================================
-export default function App() {
-  const [session, setSession] = useState(null);
-  const [userRole, setUserRole] = useState(null); 
-  const [view, setView] = useState('home');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if(session) checkRole(session.user.id);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if(session) checkRole(session.user.id);
-      else { setView('home'); setUserRole(null); }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const checkRole = async (uid) => {
-    const { data } = await supabase.from('profiles').select('role').eq('id', uid).single();
-    if(data) {
-      setUserRole(data.role);
-      setView('dashboard');
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ 
-      email: e.target.email.value, password: e.target.password.value 
-    });
-    if (error) {
-      alert(error.message);
-      setLoading(false);
-    }
-  };
-
-  if (view === 'home') return <PublicHome onLoginClick={() => setView('login')} loading={loading} />;
-   
-  if (view === 'login') return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded shadow-2xl w-full max-w-md border-t-8 border-[#c5a059]">
-        <div className="text-center mb-6">
-           <Lock className="mx-auto h-12 w-12 text-[#c5a059] mb-2"/>
-           <h2 className="text-2xl font-bold">Secure Portal</h2>
-           <p className="text-gray-500 text-sm">Client & Admin Access</p>
-        </div>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input name="email" type="email" placeholder="Email Address" className="w-full p-3 border rounded text-slate-900" required />
-          <input name="password" type="password" placeholder="Password" className="w-full p-3 border rounded text-slate-900" required />
-          <button type="submit" className="w-full bg-slate-900 text-white py-3 font-bold hover:bg-[#c5a059] flex justify-center items-center gap-2">
-            {loading ? <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "AUTHENTICATE"}
-          </button>
-        </form>
-        <button onClick={() => setView('home')} className="w-full text-center mt-4 text-sm text-gray-500 hover:text-[#c5a059]">Return to Home</button>
-      </div>
-    </div>
-  );
-
-  if (userRole === 'client') return <ClientDashboard session={session} onLogout={() => supabase.auth.signOut()} />;
-   
-  return <AdminDashboard session={session} onLogout={() => supabase.auth.signOut()} />;
-}
