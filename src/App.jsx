@@ -830,7 +830,7 @@ const AdminDashboard = ({ session, onLogout }) => {
   };
 
   // UPDATED: Handle Save / Update Document
-  const handleSaveDoc = async () => {
+const handleSaveDoc = async () => {
     if(!newDoc.drive_link) return alert("Please provide a link");
     
     // Check if ID exists for Update
@@ -847,15 +847,23 @@ const AdminDashboard = ({ session, onLogout }) => {
             setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null }); 
         }
     } else {
-        // Insert New
-        const { error } = await supabase.from('documents').insert([{...newDoc, case_id: selectedCase.id}]);
+        // Insert New (সংশোধিত অংশ)
+        // ১. id বাদে বাকি সব ডেটা আলাদা করে নিচ্ছি
+        const { id, ...docData } = newDoc; 
+
+        // ২. এখন docData পাঠাচ্ছি (যেখানে id নেই)
+        const { error } = await supabase.from('documents').insert([{
+            ...docData, 
+            case_id: selectedCase.id
+        }]);
+
         if(error) alert(error.message);
         else { 
             fetchDocuments(selectedCase.id); 
             setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null }); 
         }
     }
-  };
+};
 
   // NEW: Handle Delete Document
   const handleDeleteDoc = async (id) => {
