@@ -18,10 +18,8 @@ const useScrollAnimation = () => {
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        // Trigger when 10% of element is visible
         if (entry.isIntersecting) {
           entry.target.classList.add('animate-active');
-          // Stop observing once animated for performance
           observer.unobserve(entry.target); 
         }
       });
@@ -45,17 +43,14 @@ const PublicHome = ({ onLoginClick, loading }) => {
   const currentYear = new Date().getFullYear();
   const yearsOfService = currentYear - establishedYear;
 
-  // Initialize Scroll Animation
   useScrollAnimation();
 
-  // Navbar Scroll Effect
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // UPDATED: Formspree Implementation for lexsword.bd@gmail.com
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     setIsSubmitting(true);
@@ -63,7 +58,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
     const data = new FormData(form);
 
     try {
-      // NOTE: Ensure you have created a Formspree form for lexsword.bd@gmail.com and replace 'xqeepnrr' if needed.
       const response = await fetch("https://formspree.io/f/xqeepnrr", {
         method: "POST",
         body: data,
@@ -97,48 +91,29 @@ const PublicHome = ({ onLoginClick, loading }) => {
 
   return (
     <div className="font-sans text-slate-800 bg-white selection:bg-[#c5a059] selection:text-white overflow-x-hidden">
-      
-      {/* --- CUSTOM STYLES & ANIMATIONS --- */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;700&display=swap');
-        
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-sans { font-family: 'Outfit', sans-serif; }
-        
-        /* Modern Reveal Animation Classes */
         .reveal-modern {
             opacity: 0;
             filter: blur(8px);
             transform: translateY(40px) scale(0.98);
-            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); /* Smooth easing */
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .reveal-modern.animate-active {
             opacity: 1;
             filter: blur(0px);
             transform: translateY(0) scale(1);
         }
-        
         .delay-100 { transition-delay: 0.1s; }
         .delay-200 { transition-delay: 0.2s; }
         .delay-300 { transition-delay: 0.3s; }
-
-        /* Custom Gradients & Colors */
-        /* Soft Blue Gradient */
         .bg-soft-blue-gradient { background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%); } 
         .bg-soft-blue-solid { background-color: #1e293b; }
-
         .text-gold { color: #c5a059; }
         .bg-gold { background-color: #c5a059; }
         .border-gold { border-color: #c5a059; }
-        
-        .section-title-bar {
-            width: 60px;
-            height: 3px;
-            background-color: #c5a059;
-            margin: 1rem auto;
-        }
-
-        /* Floating animation for Hero Image */
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
@@ -147,13 +122,16 @@ const PublicHome = ({ onLoginClick, loading }) => {
         .animate-float {
             animation: float 6s ease-in-out infinite;
         }
+        /* Custom scrollbar for modern calendar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #94a3b8; }
       `}</style>
 
-      {/* --- Header / Navbar --- */}
+      {/* Header / Navbar */}
       <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-lg py-2' : 'bg-transparent py-4 md:py-6'}`}>
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
-          
-          {/* Logo */}
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-full border-2 ${scrolled ? 'border-[#c5a059] text-[#c5a059]' : 'border-white text-[#c5a059]'}`}>
               <Scale size={22} />
@@ -163,8 +141,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
               <p className={`text-[10px] font-bold tracking-[0.3em] uppercase ${scrolled ? 'text-gray-500' : 'text-gray-300'} mt-1`}>Chambers of Law</p>
             </div>
           </div>
-
-          {/* Desktop Menu */}
           <div className={`hidden lg:flex items-center gap-8 text-sm font-bold uppercase tracking-wider ${scrolled ? 'text-slate-800' : 'text-white'}`}>
             <a href="#home" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Home</a>
             <a href="#about" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">About</a>
@@ -172,13 +148,9 @@ const PublicHome = ({ onLoginClick, loading }) => {
             <a href="#team" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Team</a>
             <a href="#contact" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Contact</a>
           </div>
-
-          {/* Right Info */}
           <div className="hidden md:flex items-center gap-6">
              <a href="tel:+8801911008518" className="flex items-center gap-3 group">
-                <div className={`text-[#c5a059] group-hover:animate-pulse`}>
-                   <Phone size={24}/>
-                </div>
+                <div className={`text-[#c5a059] group-hover:animate-pulse`}><Phone size={24}/></div>
                 <div className={`${scrolled ? 'text-slate-800' : 'text-white'} leading-tight`}>
                    <p className="text-[10px] opacity-80 uppercase">Call for Consultation</p>
                    <p className="font-bold text-lg">+88 01911 008 518</p>
@@ -188,14 +160,10 @@ const PublicHome = ({ onLoginClick, loading }) => {
                 {loading ? '...' : 'Login Portal'}
              </button>
           </div>
-
-          {/* Mobile Toggle */}
           <button onClick={() => setMenuOpen(!menuOpen)} className={`lg:hidden ${scrolled ? 'text-slate-900' : 'text-white'}`}>
             {menuOpen ? <X size={28}/> : <Menu size={28}/>}
           </button>
         </div>
-
-        {/* Mobile Menu */}
         {menuOpen && (
           <div className="lg:hidden absolute top-full left-0 w-full bg-soft-blue-solid border-t border-slate-700 p-6 flex flex-col gap-4 font-bold text-center text-gray-300 shadow-xl">
              <a href="#home" onClick={()=>setMenuOpen(false)}>Home</a>
@@ -208,27 +176,21 @@ const PublicHome = ({ onLoginClick, loading }) => {
         )}
       </nav>
 
-      {/* --- 1. HERO SECTION (SOFT BLUE GRADIENT + 3D LAW VECTOR) --- */}
+      {/* 1. HERO SECTION */}
       <header id="home" className="relative min-h-screen flex items-center bg-soft-blue-gradient overflow-hidden pt-32 md:pt-48 pb-48">
-         {/* Subtle Pattern Overlay */}
          <div className="absolute inset-0 z-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-
          <div className="max-w-7xl mx-auto px-6 relative z-10 w-full grid md:grid-cols-2 gap-12 items-center">
-            {/* Left Side Text */}
             <div className="space-y-6 reveal-modern order-2 md:order-1 relative z-20 text-center md:text-left">
                <p className="text-[#c5a059] font-bold text-lg md:text-xl tracking-wide flex items-center justify-center md:justify-start gap-2">
                   <span className="w-8 h-[2px] bg-[#c5a059]"></span> Established {establishedYear}
                </p>
-               
                <h1 className="text-5xl md:text-7xl font-serif font-bold text-white leading-[1.1]">
                   Defending Your Rights, <br/>
                   <span className="text-[#c5a059]">Securing Your Future.</span>
                </h1>
-               
                <p className="text-gray-300 text-base md:text-lg leading-relaxed max-w-lg border-l-0 md:border-l-2 border-[#c5a059] pl-0 md:pl-6 mx-auto md:mx-0">
                   LexSword Chambers provides expert legal representation in the Supreme Court and all lower courts of Bangladesh with uncompromised integrity.
                </p>
-               
                <div className="pt-6 flex flex-col md:flex-row gap-4 relative z-30 justify-center md:justify-start">
                   <a href="#contact" className="bg-[#c5a059] text-white px-8 py-4 rounded-sm font-bold uppercase tracking-widest hover:bg-white hover:text-slate-900 transition duration-300 shadow-xl flex items-center justify-center gap-2">
                      Free Consultation <ArrowRight size={18}/>
@@ -238,73 +200,50 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   </a>
                </div>
             </div>
-
-            {/* Right Side Vector Art with Animation */}
             <div className="order-1 md:order-2 reveal-modern delay-200 flex justify-center md:justify-end relative">
-               {/* 3D Law Illustration Placeholder */}
                <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full"></div>
-               <img 
-                  src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhrv5fWOLISqAtdKDYvsYoOXFgr22v8F-jFBpRf5dAU-KhjLHalm8MFM6BtG-BBENBq_iOnCag47N5I2fx08NXBZwOdSf8eTbMbsajHIQryrqBb4m88oi5hIBc9ioLUzjG1qNUC6oEulThS-YtRmp83mszAyWjHJiX4nhcPtKXB_fdy7nB4iC7niJG9P3cr/s1600/2332.png" 
-                  alt="LexSword" 
-                  className="w-full max-w-md md:max-w-lg animate-float drop-shadow-2xl relative z-10"
-               />
+               <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhrv5fWOLISqAtdKDYvsYoOXFgr22v8F-jFBpRf5dAU-KhjLHalm8MFM6BtG-BBENBq_iOnCag47N5I2fx08NXBZwOdSf8eTbMbsajHIQryrqBb4m88oi5hIBc9ioLUzjG1qNUC6oEulThS-YtRmp83mszAyWjHJiX4nhcPtKXB_fdy7nB4iC7niJG9P3cr/s1600/2332.png" alt="LexSword" className="w-full max-w-md md:max-w-lg animate-float drop-shadow-2xl relative z-10" />
             </div>
          </div>
       </header>
 
-      {/* --- 2. THREE COLORED CARDS (MODERN UX, NO READ MORE) --- */}
+      {/* 2. THREE COLORED CARDS */}
       <section className="relative z-20 -mt-16 md:-mt-24 px-4 md:px-0">
           <div className="max-w-7xl mx-auto grid md:grid-cols-3 shadow-2xl reveal-modern delay-200">
-             
-             {/* Card 1: Light Beige (Request Quote) */}
              <div className="bg-[#fdfaf5] p-10 md:p-12 text-center group hover:-translate-y-2 transition duration-300 border-b-4 border-transparent hover:border-[#c5a059]">
                 <div className="text-[#c5a059] mb-4 flex justify-center group-hover:scale-110 transition"><ClipboardList size={48}/></div>
                 <h3 className="text-xl font-serif font-bold text-slate-900 mb-3">Case Evaluation</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">Submit your case details for a preliminary assessment by our legal experts to understand your position.</p>
              </div>
-
-             {/* Card 2: Gold/Tan (Investigation) */}
              <div className="bg-[#cfa660] p-10 md:p-12 text-center group hover:-translate-y-2 transition duration-300 relative overflow-hidden border-b-4 border-transparent hover:border-white">
                 <div className="text-white mb-4 flex justify-center group-hover:scale-110 transition"><Search size={48}/></div>
                 <h3 className="text-xl font-serif font-bold text-white mb-3">Legal Investigation</h3>
                 <p className="text-white/90 text-sm leading-relaxed">We conduct thorough factual and legal investigations to build a strong foundation for your case strategy.</p>
              </div>
-
-             {/* Card 3: Dark Brown/Black (Case Fight) */}
              <div className="bg-[#2a2520] p-10 md:p-12 text-center group hover:-translate-y-2 transition duration-300 border-b-4 border-transparent hover:border-[#c5a059]">
                 <div className="text-[#c5a059] mb-4 flex justify-center group-hover:scale-110 transition"><Gavel size={48}/></div>
                 <h3 className="text-xl font-serif font-bold text-white mb-3">Court Representation</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">Aggressive and strategic representation in trial and appellate courts to fight for the best possible outcome.</p>
              </div>
-
           </div>
       </section>
 
-      {/* --- 3. ABOUT SECTION (Full Image & Signature) --- */}
+      {/* 3. ABOUT SECTION */}
       <section id="about" className="py-20 md:py-28 bg-white overflow-hidden">
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
              <div className="relative reveal-modern h-full min-h-[400px] md:min-h-[500px]">
                  <div className="absolute top-4 left-4 w-full h-full border-4 border-[#c5a059] rounded-sm -z-10"></div>
-                 {/* Using object-contain to show full image without cropping */}
                  <img src="/head.jpg" alt="Advocate Azadur Rahman" className="w-full h-full object-contain shadow-lg rounded-sm grayscale hover:grayscale-0 transition duration-700 bg-gray-50"/>
                  <div className="absolute bottom-10 left-[-10px] bg-soft-blue-solid text-white p-6 md:p-8 max-w-[220px] shadow-2xl border-t-4 border-[#c5a059]">
                     <span className="block text-5xl font-serif font-bold text-[#c5a059]">{yearsOfService}+</span>
                     <span className="block text-sm uppercase font-bold mt-2 leading-tight">Years of Professional Service</span>
                  </div>
              </div>
-             
              <div className="space-y-6 reveal-modern delay-200">
                  <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm">About LexSword</h4>
-                 <h2 className="text-4xl md:text-5xl font-serif font-bold text-slate-900 leading-tight">
-                   Integrity, Strategy, <br/> & Results.
-                 </h2>
-                 <p className="text-gray-600 text-lg leading-relaxed">
-                   Founded in {establishedYear}, LexSword Chambers is led by Advocate Azadur Rahman of the Supreme Court of Bangladesh. We combine deep legal knowledge with a modern, client-focused approach.
-                 </p>
-                 <p className="text-gray-500 leading-relaxed text-sm">
-                   Whether facing complex civil litigation, criminal charges, or corporate legal challenges, our team ensures your voice is heard and your rights are protected under Bangladeshi law.
-                 </p>
-                 
+                 <h2 className="text-4xl md:text-5xl font-serif font-bold text-slate-900 leading-tight">Integrity, Strategy, <br/> & Results.</h2>
+                 <p className="text-gray-600 text-lg leading-relaxed">Founded in {establishedYear}, LexSword Chambers is led by Advocate Azadur Rahman of the Supreme Court of Bangladesh. We combine deep legal knowledge with a modern, client-focused approach.</p>
+                 <p className="text-gray-500 leading-relaxed text-sm">Whether facing complex civil litigation, criminal charges, or corporate legal challenges, our team ensures your voice is heard and your rights are protected under Bangladeshi law.</p>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                     <ul className="space-y-3">
                        {['Supreme Court Practice', 'Strategic Defense', 'Transparent Process'].map((item,i) => (
@@ -314,8 +253,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                        ))}
                     </ul>
                  </div>
-                 
-                 {/* Signature Placeholder */}
                  <div className="pt-4">
                     <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0DwJoJmLaK_Afp4Vd_6MF4swNbTGUYveLivralUSYJ9sOqnb4JfyntWRIx8b9dv-8L2WreZYSmg9AwHxVP4n39sRyQkMtMYflgyrzD0pmpg21xIlXfHVfQdylAurZGt2NXe53sHDuxaOsSMC99aQHfMpRaH8FMKqaRSqpA2ei-lDsMWlzc8YzCZ4blLG2/s320/signature-removebg-preview.png" alt="Signature" className="h-16 opacity-60 filter grayscale"/>
                  </div>
@@ -323,11 +260,9 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- 4. AREAS OF PRACTICE (Updated List) --- */}
+      {/* 4. AREAS OF PRACTICE */}
       <section id="practice" className="py-24 bg-soft-blue-solid relative overflow-hidden">
-         {/* Background Element */}
          <div className="absolute -top-24 -right-24 p-4 opacity-5 pointer-events-none text-white"><Scale size={500}/></div>
-         
          <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 reveal-modern">
                <div>
@@ -335,17 +270,12 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   <h2 className="text-4xl font-serif font-bold text-white">Areas of Practice</h2>
                   <div className="w-20 h-1 bg-[#c5a059] mt-4"></div>
                </div>
-               <p className="text-gray-300 max-w-md text-sm mt-4 md:mt-0">
-                  Specialized legal services tailored to meet complex challenges in the Bangladeshi legal landscape.
-               </p>
+               <p className="text-gray-300 max-w-md text-sm mt-4 md:mt-0">Specialized legal services tailored to meet complex challenges in the Bangladeshi legal landscape.</p>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal-modern delay-100">
                {practiceAreas.map((item, i) => (
                   <div key={i} className="bg-[#2a3447] p-8 group hover:bg-[#c5a059] transition duration-500 cursor-pointer border-b-4 border-transparent hover:border-white shadow-lg rounded-sm hover:-translate-y-1">
-                     <div className="text-[#c5a059] group-hover:text-white transition mb-6">
-                        <item.icon size={40}/>
-                     </div>
+                     <div className="text-[#c5a059] group-hover:text-white transition mb-6"><item.icon size={40}/></div>
                      <h3 className="text-xl font-serif font-bold text-white mb-3">{item.title}</h3>
                      <p className="text-gray-400 group-hover:text-white/90 transition text-sm leading-relaxed">{item.desc}</p>
                   </div>
@@ -354,7 +284,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- 5. FUN FACTS (Realistic BD Law Firm Metrics) --- */}
+      {/* 5. FUN FACTS */}
       <section className="py-24 bg-fixed bg-cover bg-center relative" style={{backgroundImage: "url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgdM8KQNidY8DjlEryVvsguYsHW8fUBWUIA-C-RnnEwkIQJ-U1Eud7VtI7NklAslk-WjwoV9OuzzwClwEkF4qM0WbibbYq5mWY62y7G0E3jmsmMevh1VvXvGRnz0zLruF6JbGk1M9JWluRrXLwj4HFFDpwToJcDg3Td7kTfQ3Bg6OzZNeUdZfUqdxxf85LD/s1600/2334.jpg')"}}>
          <div className="absolute inset-0 bg-soft-blue-solid/90"></div>
          <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -383,16 +313,14 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- 6. TEAM SECTION (Exactly 4 Members) --- */}
+      {/* 6. TEAM SECTION */}
       <section id="team" className="py-24 bg-white">
          <div className="max-w-7xl mx-auto px-6 text-center mb-16 reveal-modern">
             <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-2">The Team</h4>
             <h2 className="text-4xl font-serif font-bold text-slate-900">Our Legal Experts</h2>
             <div className="w-16 h-1 bg-[#c5a059] mx-auto mt-4"></div>
          </div>
-
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-6 reveal-modern delay-200">
-             {/* Lawyer 1 (Head) */}
              <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden hover:-translate-y-2 transition duration-300">
                  <div className="overflow-hidden h-[350px]">
                     <img src="/head.jpg" alt="Adv. Azadur Rahman" className="w-full h-full object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"/>
@@ -403,8 +331,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                     <p className="text-gray-400 text-[10px] mt-1">Supreme Court of Bangladesh</p>
                  </div>
              </div>
-             
-             {/* Lawyer 2 */}
              <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden hover:-translate-y-2 transition duration-300">
                  <div className="overflow-hidden h-[350px]">
                     <img src="/team1.jpg" alt="Senior Associate" className="w-full h-full object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0 bg-gray-200"/>
@@ -415,8 +341,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                     <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">Judge Court</p>
                  </div>
              </div>
-
-             {/* Lawyer 3 */}
              <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden hover:-translate-y-2 transition duration-300">
                  <div className="overflow-hidden h-[350px]">
                     <img src="/team2.jpg" alt="Associate" className="w-full h-full object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0 bg-gray-200"/>
@@ -427,8 +351,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                     <p className="text-gray-500 group-hover:text-gray-300 text-[10px] mt-1">High Court Division</p>
                  </div>
              </div>
-
-              {/* Lawyer 4 */}
               <div className="group relative bg-white shadow-xl rounded-sm overflow-hidden hover:-translate-y-2 transition duration-300">
                  <div className="overflow-hidden h-[350px]">
                     <img src="/team3.jpg" alt="Associate" className="w-full h-full object-cover object-top transition duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0 bg-gray-200"/>
@@ -442,7 +364,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- 7. EXPERIENCE BANNER (Soft Blue) --- */}
+      {/* 7. EXPERIENCE BANNER */}
       <section className="bg-soft-blue-gradient py-20 px-6 relative overflow-hidden">
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 reveal-modern relative z-10">
@@ -463,14 +385,13 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- 8. TESTIMONIALS --- */}
+      {/* 8. TESTIMONIALS */}
       <section className="py-24 bg-gray-50">
          <div className="max-w-7xl mx-auto px-6 text-center mb-12 reveal-modern">
              <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-2">Testimonials</h4>
              <h2 className="text-4xl font-serif font-bold text-slate-900">What Clients Say</h2>
              <div className="w-16 h-1 bg-[#c5a059] mx-auto mt-4"></div>
          </div>
-
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8 reveal-modern delay-100">
              {[
                { title: "Strategic & Effective", text: "Advocate Rahman's strategic approach in my complex land dispute in the High Court was impressive. Highly recommended for civil matters." },
@@ -493,17 +414,15 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-       {/* --- Contact / Consultation Form (UPDATED EMAIL) --- */}
+       {/* Contact / Consultation Form */}
        <section id="contact" className="py-24 bg-white relative">
          <div className="max-w-7xl mx-auto px-6 reveal-modern">
             <div className="bg-white shadow-2xl rounded-xl overflow-hidden flex flex-col md:flex-row">
-               {/* Info Side - Soft Blue */}
                <div className="bg-soft-blue-solid p-12 md:w-2/5 text-white flex flex-col justify-between relative overflow-hidden">
                   <div className="absolute -right-10 -bottom-10 opacity-10 text-[#c5a059]"><Scale size={200}/></div>
                   <div className="relative z-10">
                      <h3 className="text-3xl font-serif font-bold mb-2">Get In Touch</h3>
                      <p className="text-gray-400 mb-8">Contact us for a free initial case evaluation.</p>
-                     
                      <div className="space-y-6">
                         <div className="flex items-center gap-4">
                            <div className="w-12 h-12 rounded-sm bg-[#c5a059] flex items-center justify-center text-slate-900 shrink-0"><Phone size={24}/></div>
@@ -529,8 +448,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                      </div>
                   </div>
                </div>
-               
-               {/* Form Side */}
                <div className="p-12 md:w-3/5 bg-gray-50">
                   <h3 className="text-2xl font-serif font-bold text-slate-900 mb-6">Request A Consultation</h3>
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -556,7 +473,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* --- 9. FOOTER (UPDATED EMAIL) --- */}
+      {/* 9. FOOTER */}
       <footer className="bg-soft-blue-solid text-gray-400 pt-20 pb-10 border-t-4 border-[#c5a059] relative z-10">
          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10 mb-12 text-sm">
             <div>
@@ -570,7 +487,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   <a href="#" className="w-10 h-10 rounded-full border border-gray-600 flex items-center justify-center hover:bg-[#c5a059] hover:border-[#c5a059] hover:text-white transition">Li</a>
                </div>
             </div>
-            
             <div>
                <h4 className="text-white font-bold mb-6 uppercase tracking-wider">Practice Areas</h4>
                <ul className="space-y-3">
@@ -579,7 +495,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   ))}
                </ul>
             </div>
-            
             <div>
                <h4 className="text-white font-bold mb-6 uppercase tracking-wider">Quick Links</h4>
                <ul className="space-y-3">
@@ -590,7 +505,6 @@ const PublicHome = ({ onLoginClick, loading }) => {
                   <li><a href="#" className="hover:text-[#c5a059] transition flex items-center gap-2"><ChevronRight size={14} className="text-[#c5a059]"/> Privacy Policy</a></li>
                </ul>
             </div>
-            
             <div>
                <h4 className="text-white font-bold mb-6 uppercase tracking-wider">Contact Info</h4>
                 <ul className="space-y-4">
@@ -609,19 +523,15 @@ const PublicHome = ({ onLoginClick, loading }) => {
                </ul>
             </div>
          </div>
-         
          <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gray-800 text-center text-sm">
             <p>&copy; {currentYear} <span className="text-[#c5a059] font-bold">LexSword Chambers</span>. All Rights Reserved.</p>
          </div>
       </footer>
 
-      {/* --- Success Modal --- */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white p-8 rounded-sm shadow-2xl w-full max-w-md border-t-4 border-[#c5a059] text-center animate-[bounce-in_0.5s]">
-             <div className="mb-4 flex justify-center">
-                <CheckCircle size={64} className="text-green-500"/>
-             </div>
+             <div className="mb-4 flex justify-center"><CheckCircle size={64} className="text-green-500"/></div>
              <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Submission Received</h3>
              <p className="text-gray-600 mb-6">Thank you for contacting LexSword. We will get back to you shortly.</p>
              <button onClick={() => setShowSuccessModal(false)} className="bg-soft-blue-solid text-white px-8 py-3 rounded-sm font-bold hover:bg-[#c5a059] hover:text-slate-900 transition uppercase tracking-wider w-full">Close</button>
@@ -636,47 +546,347 @@ const PublicHome = ({ onLoginClick, loading }) => {
 // 2. DASHBOARD & MODULES 
 // ==============================================================================
 
+// --- NEW UPDATED CLIENT DASHBOARD ---
 const ClientDashboard = ({ session, onLogout }) => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [myCases, setMyCases] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Filters & State
+  const [searchTerm, setSearchTerm] = useState(''); 
+  const [mainCaseTab, setMainCaseTab] = useState('judge'); 
+  const [caseFilter, setCaseFilter] = useState('all'); 
+  
+  // Modals & Document States
+  const [modalMode, setModalMode] = useState(null);
+  const [selectedCase, setSelectedCase] = useState(null);
+  const [historyLog, setHistoryLog] = useState([]);
+  const [documents, setDocuments] = useState([]);
+
+  // Calendar
+  const [calendarDate, setCalendarDate] = useState(new Date()); 
+
   useEffect(() => {
-    const fetchClientData = async () => {
-      const { data: profile } = await supabase.from('profiles').select('mobile_no').eq('id', session.user.id).single();
-      if (profile && profile.mobile_no) {
-        const { data: cases } = await supabase.from('cases').select('*').eq('client_mobile', profile.mobile_no);
-        setMyCases(cases || []);
-      }
-      setLoading(false);
-    };
     fetchClientData();
   }, [session]);
 
+  const fetchClientData = async () => {
+    const { data: profile } = await supabase.from('profiles').select('mobile_no').eq('id', session.user.id).single();
+    if (profile && profile.mobile_no) {
+      const { data: cases } = await supabase.from('cases').select('*').eq('client_mobile', profile.mobile_no).order('next_date', { ascending: true });
+      setMyCases(cases || []);
+    }
+    setLoading(false);
+  };
+
+  const fetchHistory = async (caseId) => {
+    const { data } = await supabase.from('case_history').select('*').eq('case_id', caseId).order('recorded_at', { ascending: false });
+    setHistoryLog(data || []);
+  };
+
+  const fetchDocuments = async (caseId) => {
+    const { data } = await supabase.from('documents').select('*').eq('case_id', caseId).order('created_at', { ascending: false });
+    setDocuments(data || []);
+  };
+
+  const changeMonth = (offset) => {
+    const newDate = new Date(calendarDate.setMonth(calendarDate.getMonth() + offset));
+    setCalendarDate(new Date(newDate));
+  };
+
+  const getLocalStr = (d) => {
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().split('T')[0];
+  };
+
+  const today = getLocalStr(new Date());
+  const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = getLocalStr(tomorrowDate);
+  const curr = new Date();
+  const first = curr.getDate() - curr.getDay(); 
+  const last = first + 4; 
+  const sunday = getLocalStr(new Date(curr.setDate(first)));
+  const thursday = getLocalStr(new Date(curr.setDate(last)));
+
+  const getCounts = (tab) => {
+    const activeList = myCases.filter(c => tab === 'judge' ? c.court_type === 'Judge Court' : c.court_type === 'High Court');
+    return {
+        all: activeList.length,
+        today: activeList.filter(c => c.next_date === today).length,
+        tomorrow: activeList.filter(c => c.next_date === tomorrow).length,
+        week: activeList.filter(c => c.next_date >= sunday && c.next_date <= thursday).length,
+        update: activeList.filter(c => c.next_date < today && c.status === 'Ongoing').length,
+        disposed: activeList.filter(c => c.status === 'Disposed').length,
+        pending: activeList.filter(c => c.status === 'Ongoing').length,
+        writ: activeList.filter(c => c.case_nature === 'Writ Petition').length,
+        civilRev: activeList.filter(c => c.case_nature === 'Civil Revision').length,
+        crimRev: activeList.filter(c => c.case_nature === 'Criminal Revision').length,
+        civilApp: activeList.filter(c => c.case_nature === 'Civil Appeal').length,
+        crimApp: activeList.filter(c => c.case_nature === 'Criminal Appeal').length,
+        misc: activeList.filter(c => c.case_nature === 'Misc Case').length,
+    };
+  };
+
+  const currentCounts = getCounts(mainCaseTab);
+
+  const getFilteredCases = () => {
+    let result = myCases.filter(c => 
+      (c.case_no && c.case_no.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (c.party_name && c.party_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+    result = result.filter(c => c.court_type === (mainCaseTab === 'judge' ? 'Judge Court' : 'High Court'));
+
+    if (caseFilter === 'today') result = result.filter(c => c.next_date === today);
+    else if (caseFilter === 'tomorrow') result = result.filter(c => c.next_date === tomorrow);
+    else if (caseFilter === 'week') result = result.filter(c => c.next_date >= sunday && c.next_date <= thursday);
+    else if (caseFilter === 'update') result = result.filter(c => c.next_date < today && c.status === 'Ongoing');
+    else if (caseFilter === 'disposed') result = result.filter(c => c.status === 'Disposed');
+    else if (caseFilter === 'pending') result = result.filter(c => c.status === 'Ongoing');
+    else if (caseFilter !== 'all') {
+        result = result.filter(c => c.case_nature === caseFilter);
+    }
+    return result;
+  };
+
   return (
-    <div className="min-h-screen bg-slate-100 font-sans">
-      <nav className="bg-slate-900 text-white p-4 flex justify-between items-center shadow-lg no-print">
-        <div className="flex items-center gap-2"><Scale className="text-[#c5a059]"/> <span className="font-bold text-xl">My Case Portal</span></div>
-        <button onClick={onLogout} className="text-red-400 font-bold flex gap-2"><LogOut size={20}/> Logout</button>
-      </nav>
-      <main className="max-w-4xl mx-auto p-4 md:p-6">
-        <h2 className="text-2xl font-bold mb-6 text-slate-800">My Ongoing Cases</h2>
-        {loading && <p className="text-slate-700">Loading records...</p>}
-        <div className="grid gap-6">
-          {myCases.map(c => (
-            <div key={c.id} className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#c5a059]">
-              <h3 className="text-2xl font-bold text-slate-900 mt-2">{c.case_no}</h3>
-              <p className="text-lg text-slate-700">{c.party_name}</p>
-              <div className="bg-slate-100 p-4 rounded border mt-4">
-                <p className="text-sm font-bold text-slate-600">Next Date: <span className="text-red-600">{c.next_date}</span></p>
-                <p className="text-lg font-bold text-[#c5a059]">{c.current_step}</p>
+    <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
+      
+      {/* Mobile Dark Overlay */}
+      {mobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)}></div>}
+
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static no-print`}>
+        <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800 tracking-wider flex justify-between items-center">
+          CHAMBERS <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(false)}><X size={24}/></button>
+        </div>
+        <nav className="flex-1 p-4 space-y-2 mt-4 overflow-y-auto">
+          <button onClick={() => {setActiveTab('dashboard'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'dashboard' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+            <Gavel size={20}/> My Cases
+          </button>
+          <button onClick={() => {setActiveTab('calendar'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'calendar' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+            <CalIcon size={20}/> Calendar View
+          </button>
+        </nav>
+        <button onClick={onLogout} className="m-4 p-3 flex items-center gap-2 text-red-400 hover:bg-slate-800 rounded"><LogOut size={20}/> Logout</button>
+      </aside>
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print">
+           <span className="font-bold font-serif text-[#c5a059]">My Case Portal</span>
+           <button onClick={() => setMobileMenuOpen(true)}><Menu size={24}/></button>
+        </div>
+
+        <main className="flex-1 overflow-y-auto relative p-4 md:p-6 print-container">
+          
+          {activeTab === 'dashboard' && (
+            <div>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-900">My Case Dashboard</h2>
+              </div>
+
+              <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
+                  <button onClick={() => { setMainCaseTab('judge'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'judge' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
+                      Judge Court ({getCounts('judge').all})
+                  </button>
+                  <button onClick={() => { setMainCaseTab('high'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'high' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
+                      High Court ({getCounts('high').all})
+                  </button>
+              </div>
+
+              <div className="mb-4 relative">
+                  <Search className="absolute left-3 top-2.5 text-gray-400" size={20}/>
+                  <input type="text" placeholder="Search by Case No or Party Name..." className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded focus:border-[#c5a059] outline-none text-slate-900" onChange={(e) => setSearchTerm(e.target.value)}/>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                {mainCaseTab === 'judge' ? (
+                    <>
+                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
+                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending ({currentCounts.pending})</button>
+                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed ({currentCounts.disposed})</button>
+                        <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today ({currentCounts.today})</button>
+                        <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow ({currentCounts.tomorrow})</button>
+                        <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week ({currentCounts.week})</button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>Needs Update ({currentCounts.update})</button>
+                    </>
+                ) : (
+                    <>
+                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
+                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending ({currentCounts.pending})</button>
+                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed ({currentCounts.disposed})</button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>Needs Update ({currentCounts.update})</button>
+                        <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ ({currentCounts.writ})</button>
+                        <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev ({currentCounts.civilRev})</button>
+                        <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev ({currentCounts.crimRev})</button>
+                        <button onClick={() => setCaseFilter('Civil Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Appeal ({currentCounts.civilApp})</button>
+                        <button onClick={() => setCaseFilter('Criminal Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Appeal ({currentCounts.crimApp})</button>
+                        <button onClick={() => setCaseFilter('Misc Case')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Misc Case' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Misc ({currentCounts.misc})</button>
+                    </>
+                )}
+              </div>
+
+              <div className="grid gap-4">
+                {getFilteredCases().length === 0 && <p className="text-slate-500 italic">No cases found.</p>}
+                {getFilteredCases().map(c => (
+                  <div key={c.id} className="bg-white p-4 md:p-5 rounded-lg shadow border-l-4 border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 transition">
+                    <div className="flex-1">
+                      <div className="flex gap-2 mb-1">
+                        <span className="text-xs font-bold bg-blue-100 text-blue-900 px-2 rounded">{c.court_type}</span>
+                        {c.court_type === 'High Court' && <span className="text-xs font-bold bg-yellow-100 text-yellow-900 px-2 rounded">{c.case_nature}</span>}
+                        <span className="text-xs font-bold bg-gray-200 text-slate-800 px-2 rounded truncate max-w-[150px]">{c.court_name}</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900">{c.case_no}</h3>
+                      <p className="text-slate-700 font-medium">{c.party_name}</p>
+                      <p className="text-xs text-slate-500">Section: {c.section}</p>
+                    </div>
+                    
+                    <div className="text-left md:text-right w-full md:w-auto">
+                      <p className="text-xs text-slate-600">Next Date</p>
+                      <p className="text-lg font-bold text-red-600">{c.next_date}</p>
+                      <p className="text-xs font-bold text-[#c5a059] uppercase">{c.current_step}</p>
+                    </div>
+
+                    <div className="flex gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
+                      <button onClick={() => { setSelectedCase(c); setModalMode('viewCase'); }} className="p-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 font-bold flex items-center gap-2 px-4"><Eye size={18}/> View Details</button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          )}
+
+          {activeTab === 'calendar' && (
+            <div className="bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900">
+              <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                  <h2 className="text-2xl font-bold">Monthly Schedule</h2>
+                  <div className="flex items-center gap-4 bg-slate-200 p-2 rounded text-slate-900">
+                    <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-slate-300 rounded"><ChevronLeft/></button>
+                    <span className="font-bold text-lg w-32 text-center">{calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                    <button onClick={() => changeMonth(1)} className="p-2 hover:bg-slate-300 rounded"><ChevronRight/></button>
+                  </div>
+              </div>
+              <div className="grid grid-cols-7 gap-1 font-bold text-center bg-slate-200 text-slate-900 p-2 rounded mb-2 text-xs md:text-base">
+                  <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+              </div>
+              <div className="grid grid-cols-7 gap-1 md:gap-2 flex-1">
+                  {[...Array(35)].map((_, i) => {
+                    const year = calendarDate.getFullYear();
+                    const month = calendarDate.getMonth();
+                    const firstDay = new Date(year, month, 1).getDay();
+                    const d = new Date(year, month, 1 + i - firstDay);
+                    const dateStr = getLocalStr(d); 
+                    const isCurrentMonth = d.getMonth() === month;
+                    const hasCase = myCases.filter(c => c.next_date === dateStr);
+                    
+                    return (
+                      <div key={i} className={`border p-1 md:p-2 h-24 md:h-32 rounded-lg flex flex-col transition-all ${!isCurrentMonth ? 'bg-slate-50 opacity-50' : hasCase.length > 0 ? 'bg-white border-red-200 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+                        <div className="flex justify-between items-start mb-1.5">
+                          <span className={`text-xs md:text-sm font-bold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>{d.getDate()}</span>
+                        </div>
+                        <div className="flex flex-col gap-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar">
+                          {isCurrentMonth && hasCase.map(c => (
+                            <div key={c.id} onClick={(e) => { e.stopPropagation(); setSelectedCase(c); setModalMode('viewCase'); }} className="text-[10px] md:text-xs truncate bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded cursor-pointer hover:bg-red-600 hover:text-white transition-colors font-semibold shadow-sm flex items-center gap-1.5" title={`${c.case_no} - ${c.party_name}`}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span> 
+                              <span className="truncate">{c.case_no}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
+          )}
+
+        </main>
+      </div>
+
+      {/* --- CLIENT MODALS --- */}
+      {modalMode === 'viewCase' && selectedCase && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto text-slate-900">
+             <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
+                <h3 className="font-bold flex items-center gap-2">Case Record: {selectedCase.case_no}</h3>
+                <button onClick={() => setModalMode(null)}><X/></button>
+             </div>
+             <div className="p-6 space-y-6">
+                <div className="grid grid-cols-2 gap-6 text-sm bg-slate-50 p-4 rounded border">
+                   <div>
+                      <p className="text-slate-500 font-bold uppercase text-xs">Court Info</p>
+                      <p className="font-bold text-lg text-slate-900">{selectedCase.court_name}</p>
+                      <p className="text-slate-700">{selectedCase.court_type} - {selectedCase.case_nature}</p>
+                   </div>
+                   <div>
+                      <p className="text-slate-500 font-bold uppercase text-xs">Parties</p>
+                      <p className="font-bold text-lg text-slate-900">{selectedCase.party_name}</p>
+                   </div>
+                   <div>
+                      <p className="text-slate-500 font-bold uppercase text-xs">Status</p>
+                      <p className="text-lg font-bold text-red-600">{selectedCase.next_date}</p>
+                      <p className="text-slate-900">{selectedCase.current_step}</p>
+                      {selectedCase.note && <p className="text-sm text-slate-700 mt-3 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">{selectedCase.note}</p>}
+                   </div>
+                   <div className="flex items-end">
+                      <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold hover:bg-[#c5a059] transition">
+                         <History size={16}/> VIEW HISTORY
+                      </button>
+                   </div>
+                </div>
+                <div>
+                   <div className="flex justify-between items-center mb-4 border-b pb-2">
+                     <h4 className="font-bold text-lg flex items-center gap-2 text-slate-900"><FolderOpen className="text-[#c5a059]"/> Digital Archive</h4>
+                     <button onClick={() => fetchDocuments(selectedCase.id)} className="text-xs underline text-slate-600">Refresh</button>
+                   </div>
+                   <div className="space-y-2 mt-4">
+                      {documents.map(d => (
+                         <div key={d.id} className="flex justify-between items-center bg-slate-50 border p-3 rounded">
+                            <div className="flex items-center gap-3">
+                               <Folder className="text-yellow-500" size={18}/>
+                               <div><p className="font-bold text-sm text-slate-900">{d.folder_type}</p><p className="text-xs text-slate-500">{d.doc_name}</p></div>
+                            </div>
+                            <a href={d.drive_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 font-bold text-xs border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">OPEN <ExternalLink size={12}/></a>
+                         </div>
+                      ))}
+                      {documents.length === 0 && <p className="text-sm text-slate-500 italic">No documents available.</p>}
+                   </div>
+                </div>
+             </div>
+          </div>
         </div>
-      </main>
+      )}
+
+      {modalMode === 'history' && (
+         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
+               <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
+                  <h3 className="font-bold">History Log</h3>
+                  <button onClick={() => setModalMode('viewCase')}><ChevronLeft/></button>
+               </div>
+               <div className="p-4 h-96 overflow-y-auto">
+                  {historyLog.map((h, i) => (
+                     <div key={i} className="flex gap-4 border-l-2 border-slate-300 pl-4 pb-6 relative">
+                        <div className="absolute -left-[9px] top-0 w-4 h-4 bg-slate-300 rounded-full"></div>
+                        <div className="w-full">
+                           <p className="font-bold text-slate-900">{h.prev_date}</p>
+                           <p className="text-sm text-slate-800 font-semibold">{h.prev_step}</p>
+                           {h.note && (
+                              <p className="text-sm text-slate-600 italic bg-slate-100 p-2 mt-2 rounded border-l-2 border-[#c5a059]">
+                                 {h.note}
+                              </p>
+                           )}
+                           <p className="text-[10px] text-slate-400 mt-2">Recorded: {new Date(h.recorded_at).toLocaleDateString()}</p>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+            </div>
+         </div>
+      )}
+
     </div>
   );
 };
+
 
 // --- Admin Dashboard ---
 const AdminDashboard = ({ session, onLogout }) => {
@@ -1040,6 +1250,11 @@ const AdminDashboard = ({ session, onLogout }) => {
           body { background: white; }
           .print-container { padding: 20px; width: 100%; }
         }
+        /* Custom scrollbar for modern calendar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #94a3b8; }
       `}</style>
 
       {mobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden no-print" onClick={() => setMobileMenuOpen(false)}></div>}
@@ -1245,7 +1460,7 @@ const AdminDashboard = ({ session, onLogout }) => {
               <div className="grid grid-cols-7 gap-1 font-bold text-center bg-slate-200 text-slate-900 p-2 rounded mb-2 text-xs md:text-base">
                   <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
               </div>
-              <div className="grid grid-cols-7 gap-1 flex-1">
+              <div className="grid grid-cols-7 gap-1 md:gap-2 flex-1">
                   {[...Array(35)].map((_, i) => {
                     const year = calendarDate.getFullYear();
                     const month = calendarDate.getMonth();
@@ -1257,36 +1472,25 @@ const AdminDashboard = ({ session, onLogout }) => {
                     const hasTask = tasks.filter(t => t.due_date === dateStr && t.status !== 'Done');
                     
                     return (
-                      <div key={i} onClick={() => isCurrentMonth && setSelectedDateCases(hasCase)} 
-                        className={`border p-1 md:p-2 h-16 md:h-24 rounded cursor-pointer transition ${!isCurrentMonth ? 'bg-slate-100 opacity-50' : hasCase.length > 0 ? 'bg-red-50 border-red-300 hover:bg-red-100' : 'bg-white hover:bg-blue-50 border-slate-300'}`}>
-                        <div className="flex justify-between items-start">
-                          <span className={`text-[10px] md:text-xs font-bold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>{d.getDate()}</span>
+                      <div key={i} className={`border p-1 md:p-2 h-24 md:h-32 rounded-lg flex flex-col transition-all ${!isCurrentMonth ? 'bg-slate-50 opacity-50' : hasCase.length > 0 ? 'bg-white border-red-200 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+                        <div className="flex justify-between items-start mb-1.5">
+                          <span className={`text-xs md:text-sm font-bold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>{d.getDate()}</span>
                           <div className="flex gap-1">
                             {isCurrentMonth && hasTask.length > 0 && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
-                            {isCurrentMonth && hasCase.length > 0 && <span className="text-[10px] md:text-xs bg-red-600 text-white px-1 rounded-full">{hasCase.length}</span>}
                           </div>
                         </div>
-                        <div className="mt-1 overflow-hidden h-8 md:h-14">
-                          {isCurrentMonth && hasCase.map(c => <div key={c.id} className="text-[8px] md:text-[10px] truncate text-slate-900 font-bold">• {c.case_no}</div>)}
+                        <div className="flex flex-col gap-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar">
+                          {isCurrentMonth && hasCase.map(c => (
+                            <div key={c.id} onClick={(e) => { e.stopPropagation(); setSelectedCase(c); setModalMode('viewCase'); }} className="text-[10px] md:text-xs truncate bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded cursor-pointer hover:bg-red-600 hover:text-white transition-colors font-semibold shadow-sm flex items-center gap-1.5" title={`${c.case_no} - ${c.party_name}`}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span> 
+                              <span className="truncate">{c.case_no}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )
                   })}
               </div>
-              {selectedDateCases && (
-                  <div className="mt-4 border-t pt-4">
-                    <h3 className="font-bold text-lg mb-2 text-slate-900">Cases on Selected Date:</h3>
-                    {selectedDateCases.length === 0 ? <p className="text-slate-600">No cases.</p> : 
-                      selectedDateCases.map(c => (
-                        <div key={c.id} className="flex gap-4 items-center bg-slate-100 p-2 mb-2 rounded border text-sm text-slate-900">
-                          <span className="font-bold">{c.case_no}</span>
-                          <span className="truncate flex-1">{c.party_name}</span>
-                          <span className="text-[#c5a059] font-bold">{c.current_step}</span>
-                        </div>
-                      ))
-                    }
-                  </div>
-              )}
             </div>
           )}
 
@@ -1423,10 +1627,10 @@ const AdminDashboard = ({ session, onLogout }) => {
 
               <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
                   <button onClick={() => setLoanTab('Taken')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Taken' ? 'border-b-4 border-red-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      My Debts
+                      My Debts (আমি ঋণী)
                   </button>
                   <button onClick={() => setLoanTab('Given')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Given' ? 'border-b-4 border-green-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      Loans Given
+                      Loans Given (আমি ধার দিয়েছি)
                   </button>
               </div>
 
@@ -1441,7 +1645,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                           <div className="flex justify-between items-start mb-4">
                               <div>
                                   <h3 className="text-xl font-bold text-slate-900">{l.person_name}</h3>
-                                  <p className="text-xs font-bold text-slate-500 uppercase">{l.loan_category === 'Taken' ? 'Lender' : 'Borrower'}</p>
+                                  <p className="text-xs font-bold text-slate-500 uppercase">{l.loan_category === 'Taken' ? 'Lender (পাওনাদার)' : 'Borrower (ঋণ গ্রহীতা)'}</p>
                               </div>
                               <div className="text-right">
                                   <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Current Balance</p>
@@ -1628,7 +1832,7 @@ const AdminDashboard = ({ session, onLogout }) => {
       {modalMode === 'viewCase' && selectedCase && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto text-slate-900">
-             <div className="bg-slate-900 p-4 text-white flex justify-between">
+             <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
                 <h3 className="font-bold flex items-center gap-2">Case Record: {selectedCase.case_no}</h3>
                 <button onClick={() => setModalMode(null)}><X/></button>
              </div>
@@ -1650,7 +1854,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                    {selectedCase.note && <p className="text-sm text-slate-700 mt-3 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">{selectedCase.note}</p>}
                    </div>
                    <div className="flex items-end">
-                      <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold">
+                      <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold hover:bg-[#c5a059] transition">
                          <History size={16}/> VIEW HISTORY
                       </button>
                    </div>
@@ -1708,7 +1912,7 @@ const AdminDashboard = ({ session, onLogout }) => {
       {modalMode === 'history' && (
          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
-               <div className="bg-slate-900 p-4 text-white flex justify-between">
+               <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
                   <h3 className="font-bold">History Log</h3>
                   <button onClick={() => setModalMode('viewCase')}><ChevronLeft/></button>
                </div>
@@ -1840,10 +2044,16 @@ export default function App() {
   }, []);
 
   const checkRole = async (uid) => {
-    const { data } = await supabase.from('profiles').select('role').eq('id', uid).single();
-    if(data) {
+    const { data, error } = await supabase.from('profiles').select('role').eq('id', uid).single();
+    
+    if (data) {
       setUserRole(data.role);
       setView('dashboard');
+      setLoading(false);
+    } else {
+      alert("Error: Profile not found! Please ask the Admin to add your profile in the database.");
+      setLoading(false); 
+      supabase.auth.signOut(); 
     }
   };
 
@@ -1853,6 +2063,7 @@ export default function App() {
     const { error } = await supabase.auth.signInWithPassword({ 
       email: e.target.email.value, password: e.target.password.value 
     });
+    
     if (error) {
       alert(error.message);
       setLoading(false);
