@@ -813,16 +813,7 @@ const AdminDashboard = ({ session, onLogout }) => {
     else { alert("Saved!"); setModalMode(null); setRefresh(r => r+1); }
   };
 
-  const handleUpdateStatus = async () => {
-    const { error } = await supabase.from('cases').update({
-        next_date: formData.next_date,
-        current_step: formData.current_step
-    }).eq('id', formData.id);
-
-    if(error) alert(error.message);
-    else { alert("Status Updated!"); setModalMode(null); setRefresh(r => r+1); }
-  };
-
+  
   const handleDeleteCase = async (id) => {
     if(confirm("Delete entire case record?")) {
       await supabase.from('cases').delete().eq('id', id);
@@ -1531,6 +1522,10 @@ const AdminDashboard = ({ session, onLogout }) => {
                   <label className="block text-xs font-bold text-red-700 mb-1">New Step</label>
                   <input value={formData.current_step} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white font-bold"/>
                </div>
+              <div>
+   <label className="block text-xs font-bold text-red-700 mb-1">Update Note / Order</label>
+   <textarea rows="3" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নতুন নোট লিখুন..." className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white"></textarea>
+</div>
                <button onClick={handleUpdateStatus} className="w-full bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">CONFIRM UPDATE</button>
             </div>
           </div>
@@ -1581,6 +1576,10 @@ const AdminDashboard = ({ session, onLogout }) => {
                   <input type="date" value={formData.next_date} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
                   <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Step</label>
                   <input value={formData.current_step} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
+                 <div className="col-span-2 space-y-1 mt-2">
+   <label className="text-xs font-bold text-red-700">Case Note / Order Summary</label>
+   <textarea rows="2" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আজকের ধার্য্য তারিখে কী হলো বা পরবর্তী নির্দেশ..." className="w-full border p-2 rounded bg-white text-slate-900"></textarea>
+</div>
                </div>
             </div>
             <div className="p-4 border-t flex justify-end gap-3">
@@ -1613,6 +1612,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                       <p className="text-slate-500 font-bold uppercase text-xs">Status</p>
                       <p className="text-lg font-bold text-red-600">{selectedCase.next_date}</p>
                       <p className="text-slate-900">{selectedCase.current_step}</p>
+                   {selectedCase.note && <p className="text-sm text-slate-700 mt-3 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">{selectedCase.note}</p>}
                    </div>
                    <div className="flex items-end">
                       <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold">
@@ -1681,11 +1681,16 @@ const AdminDashboard = ({ session, onLogout }) => {
                   {historyLog.map((h, i) => (
                      <div key={i} className="flex gap-4 border-l-2 border-slate-300 pl-4 pb-6 relative">
                         <div className="absolute -left-[9px] top-0 w-4 h-4 bg-slate-300 rounded-full"></div>
-                        <div>
-                           <p className="font-bold text-slate-900">{h.prev_date}</p>
-                           <p className="text-sm text-slate-700">{h.prev_step}</p>
-                           <p className="text-xs text-slate-500 mt-1">Recorded: {new Date(h.recorded_at).toLocaleDateString()}</p>
-                        </div>
+                       <div className="w-full">
+   <p className="font-bold text-slate-900">{h.prev_date}</p>
+   <p className="text-sm text-slate-800 font-semibold">{h.prev_step}</p>
+   {h.note && (
+      <p className="text-sm text-slate-600 italic bg-slate-100 p-2 mt-2 rounded border-l-2 border-[#c5a059]">
+         {h.note}
+      </p>
+   )}
+   <p className="text-[10px] text-slate-400 mt-2">Recorded: {new Date(h.recorded_at).toLocaleDateString()}</p>
+</div>
                      </div>
                   ))}
                </div>
