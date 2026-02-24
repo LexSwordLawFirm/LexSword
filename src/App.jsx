@@ -633,7 +633,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
 };
 
 // ==============================================================================
-// 2. DASHBOARD & MODULES (UNCHANGED)
+// 2. DASHBOARD & MODULES 
 // ==============================================================================
 
 const ClientDashboard = ({ session, onLogout }) => {
@@ -678,7 +678,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   );
 };
 
-// --- Admin Dashboard (UNCHANGED) ---
+// --- Admin Dashboard ---
 const AdminDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
@@ -690,6 +690,10 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [tasks, setTasks] = useState([]); 
   const [historyLog, setHistoryLog] = useState([]);
   const [documents, setDocuments] = useState([]); 
+  
+  // NEW: Loan States
+  const [loans, setLoans] = useState([]);
+  const [loanTab, setLoanTab] = useState('Taken');
    
   // Filters
   const [searchTerm, setSearchTerm] = useState(''); 
@@ -697,7 +701,7 @@ const AdminDashboard = ({ session, onLogout }) => {
   const [caseFilter, setCaseFilter] = useState('all'); 
   const [taskFilter, setTaskFilter] = useState('pending');
    
-  // NEW: Accounts Filters
+  // Accounts Filters
   const [accountSearch, setAccountSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -719,6 +723,10 @@ const AdminDashboard = ({ session, onLogout }) => {
     setAccounts(aData || []);
     const { data: tData } = await supabase.from('tasks').select('*').order('due_date', { ascending: true });
     setTasks(tData || []);
+    
+    // Fetch Loans
+    const { data: lnData } = await supabase.from('loans').select('*').order('date', { ascending: false });
+    setLoans(lnData || []);
   };
 
   const fetchHistory = async (caseId) => {
@@ -829,8 +837,7 @@ const AdminDashboard = ({ session, onLogout }) => {
       window.open(url, '_blank');
   };
 
-  // UPDATED: Handle Save / Update Document
-const handleSaveDoc = async () => {
+  const handleSaveDoc = async () => {
     if(!newDoc.drive_link) return alert("Please provide a link");
     
     // Check if ID exists for Update
@@ -847,11 +854,7 @@ const handleSaveDoc = async () => {
             setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null }); 
         }
     } else {
-        // Insert New (সংশোধিত অংশ)
-        // ১. id বাদে বাকি সব ডেটা আলাদা করে নিচ্ছি
         const { id, ...docData } = newDoc; 
-
-        // ২. এখন docData পাঠাচ্ছি (যেখানে id নেই)
         const { error } = await supabase.from('documents').insert([{
             ...docData, 
             case_id: selectedCase.id
@@ -863,9 +866,8 @@ const handleSaveDoc = async () => {
             setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null }); 
         }
     }
-};
+  };
 
-  // NEW: Handle Delete Document
   const handleDeleteDoc = async (id) => {
     if(confirm("Are you sure you want to delete this document?")) {
         const { error } = await supabase.from('documents').delete().eq('id', id);
@@ -889,7 +891,7 @@ const handleSaveDoc = async () => {
     }
   };
 
-  // --- NEW: Account Filtering & Calculations ---
+  // --- Account Filtering & Calculations ---
   const getFilteredAccounts = () => {
     return accounts.filter(a => {
         const matchSearch = accountSearch === '' || 
@@ -939,7 +941,7 @@ const handleSaveDoc = async () => {
       setEndDate(`${now.getFullYear()}-12-31`);
   };
 
-  // Task Stats
+  // --- Task Stats ---
   const handleSaveTask = async () => {
     const { error } = await supabase.from('tasks').insert([formData]);
     if(error) alert(error.message);
@@ -966,6 +968,41 @@ const handleSaveDoc = async () => {
     completed: tasks.filter(t => t.status === 'Done').length
   };
 
+  // --- NEW: Loan Grouping Logic ---
+  const loanSummaries = loans.reduce((acc, curr) => {
+      const key = `${curr.person_name}_${curr.loan_category}`;
+      if (!acc[key]) {
+          acc[key] = {
+              id: curr.id, 
+              person_name: curr.person_name,
+              loan_category: curr.loan_category,
+              balance: 0,
+              history: []
+          };
+      }
+      if (curr.action === 'Add') acc[key].balance += Number(curr.amount);
+      if (curr.action === 'Repay') acc[key].balance -= Number(curr.amount);
+
+      acc[key].history.push(curr);
+      return acc;
+  }, {});
+
+  const currentLoans = Object.values(loanSummaries).filter(l => l.loan_category === loanTab);
+  const totalLoanBalance = currentLoans.reduce((sum, l) => sum + l.balance, 0);
+
+  const handleSaveLoanTxn = async () => {
+      const { error } = await supabase.from('loans').insert([formData]);
+      if(error) alert(error.message);
+      else { alert("Loan Record Saved!"); setModalMode(null); setRefresh(r => r+1); }
+  };
+
+  const handleDeleteLoanTxn = async (id) => {
+      if(confirm("Delete this loan transaction permanently?")) {
+          await supabase.from('loans').delete().eq('id', id);
+          setRefresh(r => r+1);
+      }
+  };
+
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
       
@@ -986,7 +1023,7 @@ const handleSaveDoc = async () => {
         <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800 tracking-wider flex justify-between items-center">
           CHAMBERS <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(false)}><X size={24}/></button>
         </div>
-        <nav className="flex-1 p-4 space-y-2 mt-4">
+        <nav className="flex-1 p-4 space-y-2 mt-4 overflow-y-auto">
           <button onClick={() => {setActiveTab('dashboard'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'dashboard' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
             <Gavel size={20}/> Case Dashboard
           </button>
@@ -998,6 +1035,10 @@ const handleSaveDoc = async () => {
           </button>
           <button onClick={() => {setActiveTab('accounts'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'accounts' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
             <DollarSign size={20}/> Accounts & Ledger
+          </button>
+          {/* NEW: Loan Management Sidebar Link */}
+          <button onClick={() => {setActiveTab('loans'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'loans' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
+            <Landmark size={20}/> Loans & Debts
           </button>
         </nav>
         <button onClick={onLogout} className="m-4 p-3 flex items-center gap-2 text-red-400 hover:bg-slate-800 rounded"><LogOut size={20}/> Logout</button>
@@ -1342,6 +1383,66 @@ const handleSaveDoc = async () => {
               </div>
             </div>
           )}
+
+          {/* NEW: LOANS & DEBTS TAB CONTENT */}
+          {activeTab === 'loans' && (
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
+                <h2 className="text-3xl font-bold text-slate-900">Loan & Debt Management</h2>
+                <div className="flex gap-2 w-full md:w-auto">
+                    <button onClick={() => { setFormData({ loan_category: loanTab, action: 'Add', date: today, person_name: '', amount: '', note: '' }); setModalMode('addLoanTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] flex items-center gap-2">
+                        <Plus size={18}/> Add Record
+                    </button>
+                </div>
+              </div>
+
+              <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
+                  <button onClick={() => setLoanTab('Taken')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Taken' ? 'border-b-4 border-red-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
+                      My Debts (আমি ঋণী)
+                  </button>
+                  <button onClick={() => setLoanTab('Given')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Given' ? 'border-b-4 border-green-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
+                      Loans Given (আমি ধার দিয়েছি)
+                  </button>
+              </div>
+
+              <div className="bg-white p-6 rounded shadow border-l-4 border-[#c5a059]">
+                  <p className="text-sm font-bold text-gray-500 uppercase">Total Outstanding Balance</p>
+                  <p className={`text-3xl font-bold ${loanTab === 'Taken' ? 'text-red-600' : 'text-green-600'}`}>৳{totalLoanBalance}</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {currentLoans.map((l, idx) => (
+                      <div key={idx} className="bg-white p-5 rounded shadow border border-slate-200 flex flex-col justify-between hover:shadow-lg transition">
+                          <div className="flex justify-between items-start mb-4">
+                              <div>
+                                  <h3 className="text-xl font-bold text-slate-900">{l.person_name}</h3>
+                                  <p className="text-xs font-bold text-slate-500 uppercase">{l.loan_category === 'Taken' ? 'Lender (পাওনাদার)' : 'Borrower (ঋণ গ্রহীতা)'}</p>
+                              </div>
+                              <div className="text-right">
+                                  <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Current Balance</p>
+                                  <p className={`text-2xl font-bold ${l.balance === 0 ? 'text-slate-500' : loanTab === 'Taken' ? 'text-red-600' : 'text-green-600'}`}>
+                                      ৳{l.balance}
+                                  </p>
+                              </div>
+                          </div>
+                          <div className="flex gap-2 border-t pt-4">
+                              <button onClick={() => { setFormData({ person_name: l.person_name, loan_category: l.loan_category, action: 'Add', date: today, amount: '', note: '' }); setModalMode('addLoanTxn'); }} className="flex-1 bg-slate-100 text-slate-900 py-2 rounded text-xs font-bold hover:bg-slate-200 flex justify-center items-center gap-1">
+                                  <TrendingUp size={14}/> Add Amount
+                              </button>
+                              <button onClick={() => { setFormData({ person_name: l.person_name, loan_category: l.loan_category, action: 'Repay', date: today, amount: '', note: '' }); setModalMode('addLoanTxn'); }} className="flex-1 bg-slate-100 text-slate-900 py-2 rounded text-xs font-bold hover:bg-slate-200 flex justify-center items-center gap-1">
+                                  <CheckCircle size={14}/> Repay / Adjust
+                              </button>
+                              <button onClick={() => { setSelectedCase(l); setModalMode('viewLoanHistory'); }} className="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100" title="History">
+                                  <History size={18}/>
+                              </button>
+                          </div>
+                      </div>
+                  ))}
+                  {currentLoans.length === 0 && <p className="text-slate-500 italic p-4 col-span-full">No records found in this category.</p>}
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
 
@@ -1587,6 +1688,85 @@ const handleSaveDoc = async () => {
                </div>
             </div>
          </div>
+      )}
+
+      {/* --- NEW: LOAN ADD / EDIT MODAL --- */}
+      {modalMode === 'addLoanTxn' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
+            <div className="bg-slate-900 p-4 text-white flex justify-between">
+              <h3 className="font-bold flex items-center gap-2"><Landmark/> Add Loan / Debt Record</h3>
+              <button onClick={() => setModalMode(null)}><X/></button>
+            </div>
+            <div className="p-6 space-y-4">
+                <div>
+                    <label className="text-xs font-bold text-slate-700">Person / Organization Name</label>
+                    <input value={formData.person_name} onChange={e => setFormData({...formData, person_name: e.target.value})} placeholder="e.g. Rahim, Bank, etc." className="w-full border p-3 rounded text-slate-900" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-xs font-bold text-slate-700">Category</label>
+                        <select value={formData.loan_category} onChange={e => setFormData({...formData, loan_category: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
+                            <option value="Taken">I Borrowed (আমি ঋণী)</option>
+                            <option value="Given">I Lent (আমি ধার দিয়েছি)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-slate-700">Action Type</label>
+                        <select value={formData.action} onChange={e => setFormData({...formData, action: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
+                            <option value="Add">Add / Increase Loan</option>
+                            <option value="Repay">Repayment / Adjusted</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label className="text-xs font-bold text-slate-700">Date</label>
+                    <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border p-3 rounded text-slate-900" />
+                </div>
+                <div>
+                    <label className="text-xs font-bold text-slate-700">Amount</label>
+                    <input type="number" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} placeholder="0.00" className="w-full border p-3 rounded text-slate-900 font-bold text-lg" />
+                </div>
+                <div>
+                    <label className="text-xs font-bold text-slate-700">Note / Description (Optional)</label>
+                    <input value={formData.note} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="Reason or method..." className="w-full border p-3 rounded text-slate-900" />
+                </div>
+                <button onClick={handleSaveLoanTxn} className="w-full bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">SAVE RECORD</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- NEW: LOAN HISTORY MODAL --- */}
+      {modalMode === 'viewLoanHistory' && selectedCase && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
+            <div className="bg-slate-900 p-4 text-white flex justify-between">
+              <h3 className="font-bold">Transaction History: {selectedCase.person_name}</h3>
+              <button onClick={() => setModalMode(null)}><X/></button>
+            </div>
+            <div className="p-4 bg-slate-50 border-b flex justify-between items-center">
+                <span className="font-bold text-slate-700">Total Balance:</span>
+                <span className={`text-xl font-bold ${selectedCase.loan_category === 'Taken' ? 'text-red-600' : 'text-green-600'}`}>৳{selectedCase.balance}</span>
+            </div>
+            <div className="p-4 max-h-[60vh] overflow-y-auto space-y-3">
+                {selectedCase.history.sort((a,b) => new Date(b.date) - new Date(a.date)).map((h, i) => (
+                    <div key={i} className="flex justify-between items-center p-3 border rounded bg-white shadow-sm">
+                        <div>
+                            <p className="font-bold text-sm text-slate-900">{h.date}</p>
+                            <p className="text-xs text-slate-500">{h.note || (h.action === 'Add' ? 'Loan Increased' : 'Repayment')}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className={`font-bold ${h.action === 'Add' ? 'text-red-600' : 'text-green-600'}`}>
+                                {h.action === 'Add' ? '+' : '-'} ৳{h.amount}
+                            </span>
+                            <button onClick={() => handleDeleteLoanTxn(h.id)} className="text-red-400 hover:text-red-600"><Trash2 size={16}/></button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
