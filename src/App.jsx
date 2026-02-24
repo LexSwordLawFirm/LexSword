@@ -993,6 +993,40 @@ const AdminDashboard = ({ session, onLogout }) => {
           setRefresh(r => r+1);
       }
   };
+  
+    // --- UPDATED: handleUpdateStatus Function ---
+  const handleUpdateStatus = async () => {
+    try {
+        const { data: oldCase } = await supabase.from('cases').select('*').eq('id', formData.id).single();
+        
+        if (oldCase) {
+            await supabase.from('case_history').insert([{
+                case_id: oldCase.id,
+                prev_date: oldCase.next_date,
+                prev_step: oldCase.current_step,
+                note: oldCase.note || '' 
+            }]);
+        }
+
+        const { error } = await supabase.from('cases').update({
+            next_date: formData.next_date,
+            current_step: formData.current_step,
+            note: formData.note
+        }).eq('id', formData.id);
+
+        if(error) {
+            alert(error.message);
+        } else {
+            alert("Status Updated!"); 
+            setModalMode(null); 
+            setRefresh(r => r+1); 
+        }
+    } catch (err) {
+        alert("আপডেট করার সময় একটি ত্রুটি হয়েছে!");
+        console.error(err);
+    }
+  };
+
 
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
@@ -1392,7 +1426,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                       My Debts (আমি ঋণী)
                   </button>
                   <button onClick={() => setLoanTab('Given')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Given' ? 'border-b-4 border-green-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      Loans Given (আমি ধার দিয়েছি)
+                      Loans Given (আমি ধার দিয়েছি)
                   </button>
               </div>
 
@@ -1502,6 +1536,7 @@ const AdminDashboard = ({ session, onLogout }) => {
         </div>
       )}
 
+      {/* --- UPDATED: Update Status Modal with Fallback Values --- */}
       {modalMode === 'updateStatus' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
@@ -1512,20 +1547,20 @@ const AdminDashboard = ({ session, onLogout }) => {
             <div className="p-6 space-y-4">
                <div className="bg-slate-100 p-3 rounded mb-4">
                   <p className="text-xs font-bold text-slate-500">CASE NO</p>
-                  <p className="text-xl font-bold text-slate-900">{formData.case_no}</p>
+                  <p className="text-xl font-bold text-slate-900">{formData.case_no || 'N/A'}</p>
                </div>
                <div>
                   <label className="block text-xs font-bold text-red-700 mb-1">New Date</label>
-                  <input type="date" value={formData.next_date} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white font-bold"/>
+                  <input type="date" value={formData.next_date || ''} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white font-bold"/>
                </div>
                <div>
                   <label className="block text-xs font-bold text-red-700 mb-1">New Step</label>
-                  <input value={formData.current_step} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white font-bold"/>
+                  <input value={formData.current_step || ''} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white font-bold"/>
                </div>
-              <div>
-   <label className="block text-xs font-bold text-red-700 mb-1">Update Note / Order</label>
-   <textarea rows="3" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নতুন নোট লিখুন..." className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white"></textarea>
-</div>
+               <div>
+                  <label className="block text-xs font-bold text-red-700 mb-1">Update Note / Order</label>
+                  <textarea rows="3" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নতুন নোট লিখুন..." className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white"></textarea>
+               </div>
                <button onClick={handleUpdateStatus} className="w-full bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">CONFIRM UPDATE</button>
             </div>
           </div>
@@ -1559,9 +1594,9 @@ const AdminDashboard = ({ session, onLogout }) => {
                <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Case No</label>
                <input value={formData.case_no} onChange={e => setFormData({...formData, case_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
                <div className="space-y-1"><label className="text-xs font-bold text-slate-700">File No (ফাইল নম্বর)</label>
-<input value={formData.file_no || ''} onChange={e => setFormData({...formData, file_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+               <input value={formData.file_no || ''} onChange={e => setFormData({...formData, file_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
               
-              <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Section</label>
+               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Section</label>
                <input value={formData.section} onChange={e => setFormData({...formData, section: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
                <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Party Name</label>
                <input value={formData.party_name} onChange={e => setFormData({...formData, party_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
@@ -1571,16 +1606,16 @@ const AdminDashboard = ({ session, onLogout }) => {
                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white">
                  <option>Ongoing</option><option>Disposed</option>
                </select></div>
-              <div className="space-y-1">
-   <label className="text-xs font-bold text-slate-700">Case Note / Order Summary</label>
-   <textarea rows="1" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নোট লিখুন..." className="w-full border p-2 rounded bg-white text-slate-900"></textarea>
-</div>
+               <div className="space-y-1">
+                   <label className="text-xs font-bold text-slate-700">Case Note / Order Summary</label>
+                   <textarea rows="1" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নোট লিখুন..." className="w-full border p-2 rounded bg-white text-slate-900"></textarea>
+                </div>
                <div className="col-span-2 grid grid-cols-2 gap-4 bg-yellow-50 p-4 rounded border border-yellow-200">
                   <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Date</label>
                   <input type="date" value={formData.next_date} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
                   <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Step</label>
                   <input value={formData.current_step} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
-                                </div>
+                                                </div>
             </div>
             <div className="p-4 border-t flex justify-end gap-3">
                <button onClick={() => setModalMode(null)} className="px-4 py-2 border rounded text-slate-700">Cancel</button>
@@ -1681,16 +1716,16 @@ const AdminDashboard = ({ session, onLogout }) => {
                   {historyLog.map((h, i) => (
                      <div key={i} className="flex gap-4 border-l-2 border-slate-300 pl-4 pb-6 relative">
                         <div className="absolute -left-[9px] top-0 w-4 h-4 bg-slate-300 rounded-full"></div>
-                       <div className="w-full">
-   <p className="font-bold text-slate-900">{h.prev_date}</p>
-   <p className="text-sm text-slate-800 font-semibold">{h.prev_step}</p>
-   {h.note && (
-      <p className="text-sm text-slate-600 italic bg-slate-100 p-2 mt-2 rounded border-l-2 border-[#c5a059]">
-         {h.note}
-      </p>
-   )}
-   <p className="text-[10px] text-slate-400 mt-2">Recorded: {new Date(h.recorded_at).toLocaleDateString()}</p>
-</div>
+                        <div className="w-full">
+                           <p className="font-bold text-slate-900">{h.prev_date}</p>
+                           <p className="text-sm text-slate-800 font-semibold">{h.prev_step}</p>
+                           {h.note && (
+                              <p className="text-sm text-slate-600 italic bg-slate-100 p-2 mt-2 rounded border-l-2 border-[#c5a059]">
+                                 {h.note}
+                              </p>
+                           )}
+                           <p className="text-[10px] text-slate-400 mt-2">Recorded: {new Date(h.recorded_at).toLocaleDateString()}</p>
+                        </div>
                      </div>
                   ))}
                </div>
@@ -1716,7 +1751,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                         <label className="text-xs font-bold text-slate-700">Category</label>
                         <select value={formData.loan_category} onChange={e => setFormData({...formData, loan_category: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
                             <option value="Taken">I Borrowed (আমি ঋণী)</option>
-                            <option value="Given">I Lent (আমি ধার দিয়েছি)</option>
+                            <option value="Given">I Lent (আমি ধার দিয়েছি)</option>
                         </select>
                     </div>
                     <div>
