@@ -1423,10 +1423,10 @@ const AdminDashboard = ({ session, onLogout }) => {
 
               <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
                   <button onClick={() => setLoanTab('Taken')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Taken' ? 'border-b-4 border-red-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      My Debts (আমি ঋণী)
+                      My Debts
                   </button>
                   <button onClick={() => setLoanTab('Given')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Given' ? 'border-b-4 border-green-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      Loans Given (আমি ধার দিয়েছি)
+                      Loans Given
                   </button>
               </div>
 
