@@ -1571,16 +1571,16 @@ const AdminDashboard = ({ session, onLogout }) => {
                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white">
                  <option>Ongoing</option><option>Disposed</option>
                </select></div>
+              <div className="space-y-1">
+   <label className="text-xs font-bold text-slate-700">Case Note / Order Summary</label>
+   <textarea rows="1" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নোট লিখুন..." className="w-full border p-2 rounded bg-white text-slate-900"></textarea>
+</div>
                <div className="col-span-2 grid grid-cols-2 gap-4 bg-yellow-50 p-4 rounded border border-yellow-200">
                   <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Date</label>
                   <input type="date" value={formData.next_date} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
                   <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Step</label>
                   <input value={formData.current_step} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
-                 <div className="col-span-2 space-y-1 mt-2">
-   <label className="text-xs font-bold text-red-700">Case Note / Order Summary</label>
-   <textarea rows="2" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আজকের ধার্য্য তারিখে কী হলো বা পরবর্তী নির্দেশ..." className="w-full border p-2 rounded bg-white text-slate-900"></textarea>
-</div>
-               </div>
+                                </div>
             </div>
             <div className="p-4 border-t flex justify-end gap-3">
                <button onClick={() => setModalMode(null)} className="px-4 py-2 border rounded text-slate-700">Cancel</button>
