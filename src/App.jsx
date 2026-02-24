@@ -1441,7 +1441,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                           <div className="flex justify-between items-start mb-4">
                               <div>
                                   <h3 className="text-xl font-bold text-slate-900">{l.person_name}</h3>
-                                  <p className="text-xs font-bold text-slate-500 uppercase">{l.loan_category === 'Taken' ? 'Lender (পাওনাদার)' : 'Borrower (ঋণ গ্রহীতা)'}</p>
+                                  <p className="text-xs font-bold text-slate-500 uppercase">{l.loan_category === 'Taken' ? 'Lender' : 'Borrower'}</p>
                               </div>
                               <div className="text-right">
                                   <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Current Balance</p>
@@ -1750,8 +1750,8 @@ const AdminDashboard = ({ session, onLogout }) => {
                     <div>
                         <label className="text-xs font-bold text-slate-700">Category</label>
                         <select value={formData.loan_category} onChange={e => setFormData({...formData, loan_category: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
-                            <option value="Taken">I Borrowed (আমি ঋণী)</option>
-                            <option value="Given">I Lent (আমি ধার দিয়েছি)</option>
+                            <option value="Taken">I Borrowed</option>
+                            <option value="Given">I Lent</option>
                         </select>
                     </div>
                     <div>
