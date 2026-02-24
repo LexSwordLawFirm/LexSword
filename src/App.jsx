@@ -1057,7 +1057,7 @@ const AdminDashboard = ({ session, onLogout }) => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Case Dashboard</h2>
                 <div className="flex gap-2 w-full md:w-auto">
-                    <button onClick={() => { setFormData({ court_type: 'Judge Court', case_nature: 'Civil Suit', status: 'Ongoing' }); setModalMode('addCase'); }} className="flex-1 items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold flex justify-center">
+                  <button onClick={() => { setFormData({ file_no: '', court_type: 'Judge Court', case_nature: 'Civil Suit', status: 'Ongoing' }); setModalMode('addCase'); }} className="flex-1 items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold flex justify-center">
                     <Plus size={18}/> NEW CASE
                     </button>
                 </div>
@@ -1563,7 +1563,10 @@ const AdminDashboard = ({ session, onLogout }) => {
                <input value={formData.court_name} onChange={e => setFormData({...formData, court_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
                <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Case No</label>
                <input value={formData.case_no} onChange={e => setFormData({...formData, case_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Section</label>
+               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">File No (ফাইল নম্বর)</label>
+<input value={formData.file_no || ''} onChange={e => setFormData({...formData, file_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+              
+              <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Section</label>
                <input value={formData.section} onChange={e => setFormData({...formData, section: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
                <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Party Name</label>
                <input value={formData.party_name} onChange={e => setFormData({...formData, party_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
