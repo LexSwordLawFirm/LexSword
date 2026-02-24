@@ -1627,10 +1627,10 @@ const AdminDashboard = ({ session, onLogout }) => {
 
               <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
                   <button onClick={() => setLoanTab('Taken')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Taken' ? 'border-b-4 border-red-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      My Debts (আমি ঋণী)
+                      My Debts
                   </button>
                   <button onClick={() => setLoanTab('Given')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Given' ? 'border-b-4 border-green-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      Loans Given (আমি ধার দিয়েছি)
+                      Loans Given
                   </button>
               </div>
 
@@ -1645,7 +1645,7 @@ const AdminDashboard = ({ session, onLogout }) => {
                           <div className="flex justify-between items-start mb-4">
                               <div>
                                   <h3 className="text-xl font-bold text-slate-900">{l.person_name}</h3>
-                                  <p className="text-xs font-bold text-slate-500 uppercase">{l.loan_category === 'Taken' ? 'Lender (পাওনাদার)' : 'Borrower (ঋণ গ্রহীতা)'}</p>
+                                  <p className="text-xs font-bold text-slate-500 uppercase">{l.loan_category === 'Taken' ? 'Lender' : 'Borrower'}</p>
                               </div>
                               <div className="text-right">
                                   <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Current Balance</p>
