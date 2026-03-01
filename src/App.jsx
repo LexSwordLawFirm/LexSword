@@ -1208,22 +1208,21 @@ const AdminDashboard = ({ session, onLogout }) => {
   const handleUpdateStatus = async () => {
     try {
         const { data: oldCase } = await supabase.from('cases').select('*').eq('id', formData.id).single();
-        
         if (oldCase) {
             await supabase.from('case_history').insert([{
                 case_id: oldCase.id,
                 prev_date: oldCase.next_date,
                 prev_step: oldCase.current_step,
-                note: oldCase.note || '' 
+                note: formData.note || '' // পরিবর্তন ১: এখানে newly typed নোটটি হিস্ট্রিতে পাঠানো হলো
             }]);
         }
 
         const { error } = await supabase.from('cases').update({
             next_date: formData.next_date,
             current_step: formData.current_step,
-            note: formData.note
+            note: '' // পরিবর্তন ২: আগামী তারিখের জন্য মূল ফাইলের নোটটি ক্লিয়ার করে দেওয়া হলো
         }).eq('id', formData.id);
-
+      
         if(error) {
             alert(error.message);
         } else {
