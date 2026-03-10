@@ -919,7 +919,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [selectedCase, setSelectedCase] = useState(null);
   const [formData, setFormData] = useState({});
   const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null });
-  
+  const [isUpdating, setIsUpdating] = useState(false);
   useEffect(() => { fetchAllData(); }, [refresh]);
 
   const fetchAllData = async () => {
@@ -1164,6 +1164,11 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
   
   const handleUpdateStatus = async () => {
+    // যদি ইতোমধ্যে আপডেট চলতে থাকে, তবে ফাংশনটি এখানেই থেমে যাবে (ডাবল এন্ট্রি রোধ করবে)
+    if (isUpdating) return; 
+    
+    setIsUpdating(true); // আপডেট শুরু হলে বাটন ডিসেবল করার জন্য
+
     try {
         const { data: oldCase } = await supabase.from('cases').select('*').eq('id', formData.id).single();
         if (oldCase) {
@@ -1179,6 +1184,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
             current_step: formData.current_step,
             note: '' 
         }).eq('id', formData.id);
+        
         if(error) {
             alert(error.message);
         } else {
@@ -1189,6 +1195,9 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     } catch (err) {
         alert("আপডেট করার সময় একটি ত্রুটি হয়েছে!");
         console.error(err);
+    } finally {
+        // আপডেট শেষ হলে (সফল বা ব্যর্থ যাই হোক) বাটন আবার সচল করে দেবে
+        setIsUpdating(false); 
     }
   };
 
@@ -1725,7 +1734,13 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                   <label className="block text-xs font-bold text-red-700 mb-1">Update Note / Order</label>
                   <textarea rows="3" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নতুন নোট লিখুন..." className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white"></textarea>
                </div>
-               <button onClick={handleUpdateStatus} className="w-full bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">CONFIRM UPDATE</button>
+               <button 
+  onClick={handleUpdateStatus} 
+  disabled={isUpdating}
+  className={`w-full py-3 rounded font-bold transition duration-300 text-white ${isUpdating ? 'bg-gray-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-[#c5a059]'}`}
+>
+  {isUpdating ? 'UPDATING...' : 'CONFIRM UPDATE'}
+</button>
             </div>
           </div>
         </div>
