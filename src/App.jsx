@@ -40,16 +40,42 @@ const PublicHome = ({ onLoginClick, loading }) => {
   const [scrolled, setScrolled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
   const establishedYear = 2016;
   const currentYear = new Date().getFullYear();
   const yearsOfService = currentYear - establishedYear;
 
   useScrollAnimation();
-  useEffect(() => {
+ useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
+    
+    // Disclaimer Logic
+    const isAgreed = sessionStorage.getItem('lexswordDisclaimerAgreed');
+    if(isAgreed) {
+        setShowDisclaimer(false);
+        document.body.style.overflow = 'auto';
+    } else {
+        document.body.style.overflow = 'hidden';
+    }
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleAgreeDisclaimer = () => {
+      sessionStorage.setItem('lexswordDisclaimerAgreed', 'true');
+      setShowDisclaimer(false);
+      document.body.style.overflow = 'auto';
+  };
+
+  const handleDisagreeDisclaimer = () => {
+      document.body.innerHTML = `
+        <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#f8fafc; text-align:center; padding:20px;">
+            <h2 style="margin-bottom:10px; font-size: 24px; font-weight: bold; color: #ef4444;">অ্যাক্সেস প্রত্যাখ্যান করা হয়েছে</h2>
+            <p style="max-width:450px; line-height:1.6; color: #475569;">ওয়েবসাইটের শর্তাবলী ও ঘোষণাপত্রে সম্মত না হওয়ায় আইনি সুরক্ষার স্বার্থে আপনাকে এই পেজটি প্রদর্শন করা যাচ্ছে না।</p>
+            <button onclick="location.reload()" style="margin-top:20px; padding:10px 25px; background:#1e293b; color:white; border-radius:5px;">পুনরায় চেষ্টা করুন</button>
+        </div>
+    `;
+  };
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     setIsSubmitting(true);
@@ -125,7 +151,22 @@ const PublicHome = ({ onLoginClick, loading }) => {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #94a3b8; }
       `}</style>
-
+{/* --- PROFESSIONAL DISCLAIMER MODAL --- */}
+      {showDisclaimer && (
+          <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[999999] flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl p-8 max-w-xl w-full text-center shadow-2xl">
+                  <ScaleIcon size={48} className="text-slate-800 mx-auto mb-4" />
+                  <h2 className="text-2xl font-serif font-bold text-slate-900 mb-4">ঘোষণা ও শর্তাবলী (Disclaimer)</h2>
+                  <p className="text-slate-600 text-sm leading-relaxed mb-8 text-justify">
+                      বাংলাদেশ বার কাউন্সিলের বিধিমালা অনুযায়ী আইনজীবীদের জন্য কোনো ধরনের বিজ্ঞাপন বা প্রচারণামূলক কর্মকাণ্ড পরিচালনা করা নিষিদ্ধ। এই ওয়েবসাইটের মূল উদ্দেশ্য কোনো মক্কেল সংগ্রহ বা প্রচারণা নয়, বরং আইনি তথ্যের লভ্যতা এবং পেশাগত তথ্য প্রদানের একটি ডিজিটাল মাধ্যম হিসেবে কাজ করা।
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <button onClick={handleAgreeDisclaimer} className="bg-slate-900 text-white px-8 py-3 rounded-md font-bold w-full">সম্মত আছি</button>
+                      <button onClick={handleDisagreeDisclaimer} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-md font-bold border border-slate-300 w-full">সম্মত নই</button>
+                  </div>
+              </div>
+          </div>
+      )}
       {/* Header / Navbar */}
       <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-lg py-2' : 'bg-transparent py-4 md:py-6'}`}>
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
@@ -282,34 +323,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* 5. FUN FACTS */}
-      <section className="py-24 bg-fixed bg-cover bg-center relative" style={{backgroundImage: "url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgdM8KQNidY8DjlEryVvsguYsHW8fUBWUIA-C-RnnEwkIQJ-U1Eud7VtI7NklAslk-WjwoV9OuzzwClwEkF4qM0WbibbYq5mWY62y7G0E3jmsmMevh1VvXvGRnz0zLruF6JbGk1M9JWluRrXLwj4HFFDpwToJcDg3Td7kTfQ3Bg6OzZNeUdZfUqdxxf85LD/s1600/2334.jpg')"}}>
-         <div className="absolute inset-0 bg-soft-blue-solid/90"></div>
-         <div className="max-w-7xl mx-auto px-6 relative z-10">
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center text-white reveal-modern">
-                 <div className="space-y-3">
-                    <div className="text-[#c5a059] font-serif text-5xl font-bold flex justify-center"><Users size={48} className="mb-2"/></div>
-                    <div className="text-4xl font-bold">850+</div>
-                    <p className="uppercase tracking-widest text-xs font-bold text-gray-300">Clients Served</p>
-                 </div>
-                 <div className="space-y-3">
-                    <div className="text-[#c5a059] font-serif text-5xl font-bold flex justify-center"><CheckSquare size={48} className="mb-2"/></div>
-                    <div className="text-4xl font-bold">1200+</div>
-                    <p className="uppercase tracking-widest text-xs font-bold text-gray-300">Cases Solved</p>
-                 </div>
-                 <div className="space-y-3">
-                    <div className="text-[#c5a059] font-serif text-5xl font-bold flex justify-center"><Award size={48} className="mb-2"/></div>
-                    <div className="text-4xl font-bold">96%</div>
-                    <p className="uppercase tracking-widest text-xs font-bold text-gray-300">Success Rate</p>
-                 </div>
-                 <div className="space-y-3">
-                    <div className="text-[#c5a059] font-serif text-5xl font-bold flex justify-center"><CalIcon size={48} className="mb-2"/></div>
-                    <div className="text-4xl font-bold">{yearsOfService}+</div>
-                    <p className="uppercase tracking-widest text-xs font-bold text-gray-300">Years of Service</p>
-                </div>
-             </div>
-         </div>
-      </section>
+     
 
       {/* 6. TEAM SECTION */}
       <section id="team" className="py-24 bg-white">
@@ -362,55 +376,7 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
-      {/* 7. EXPERIENCE BANNER */}
-      <section className="bg-soft-blue-gradient py-20 px-6 relative overflow-hidden">
-         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 reveal-modern relative z-10">
-            <div className="relative shrink-0">
-                <div className="border-4 border-[#c5a059] p-8 text-center rounded-full w-48 h-48 flex flex-col justify-center items-center text-white bg-soft-blue-solid shadow-2xl">
-                   <span className="text-5xl font-bold">{yearsOfService}</span>
-                   <span className="text-xs uppercase font-bold mt-1">Years of<br/>Experience</span>
-                </div>
-            </div>
-            <div className="flex-1 text-center md:text-left">
-               <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-6 leading-tight">
-                  LexSword Chambers: Your Trusted Partner for <span className="text-[#c5a059]">Legal Solutions</span> in Bangladesh.
-               </h2>
-               <p className="text-gray-300 max-w-2xl text-lg">
-                  Since {establishedYear}, we have been dedicated to providing strategic, result-oriented legal counsel. We take pride in our track record of success and our commitment to client satisfaction.
-               </p>
-            </div>
-         </div>
-      </section>
-
-      {/* 8. TESTIMONIALS */}
-      <section className="py-24 bg-gray-50">
-         <div className="max-w-7xl mx-auto px-6 text-center mb-12 reveal-modern">
-             <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-2">Testimonials</h4>
-             <h2 className="text-4xl font-serif font-bold text-slate-900">What Clients Say</h2>
-             <div className="w-16 h-1 bg-[#c5a059] mx-auto mt-4"></div>
-         </div>
-         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8 reveal-modern delay-100">
-             {[
-               { title: "Strategic & Effective", text: "Advocate Rahman's strategic approach in my complex land dispute in the High Court was impressive. Highly recommended for civil matters." },
-               { title: "Professional Bail Support", text: "The team provided excellent support during a critical criminal matter. Their swift action secured bail when it seemed difficult." },
-               { title: "Trusted Corporate Advisor", text: "LexSword handles our company's legal vetting and contracts with utmost professionalism. A reliable partner for businesses." }
-             ].map((item, i) => (
-                <div key={i} className="bg-white p-10 shadow-xl border-b-4 border-[#c5a059] relative rounded-sm hover:-translate-y-2 transition duration-300">
-                   <div className="absolute top-6 right-6 text-gray-200"><Quote size={40}/></div>
-                   <h3 className="text-xl font-bold text-slate-900 mb-4">{item.title}</h3>
-                   <p className="text-gray-600 italic leading-relaxed">"{item.text}"</p>
-                   <div className="mt-6 flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-400"><User/></div>
-                      <div>
-                         <p className="font-bold text-sm text-slate-900">Verified Client</p>
-                         <p className="text-xs text-[#c5a059] font-bold">Bangladesh</p>
-                      </div>
-                   </div>
-                 </div>
-             ))}
-         </div>
-      </section>
+    
 
        {/* Contact / Consultation Form */}
        <section id="contact" className="py-24 bg-white relative">
