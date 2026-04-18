@@ -67,12 +67,13 @@ const PublicHome = ({ onLoginClick, loading }) => {
       document.body.style.overflow = 'auto';
   };
 
-  const handleDisagreeDisclaimer = () => {
+const handleDisagreeDisclaimer = () => {
       document.body.innerHTML = `
-        <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#f8fafc; text-align:center; padding:20px;">
-            <h2 style="margin-bottom:10px; font-size: 24px; font-weight: bold; color: #ef4444;">অ্যাক্সেস প্রত্যাখ্যান করা হয়েছে</h2>
-            <p style="max-width:450px; line-height:1.6; color: #475569;">ওয়েবসাইটের শর্তাবলী ও ঘোষণাপত্রে সম্মত না হওয়ায় আইনি সুরক্ষার স্বার্থে আপনাকে এই পেজটি প্রদর্শন করা যাচ্ছে না।</p>
-            <button onclick="location.reload()" style="margin-top:20px; padding:10px 25px; background:#1e293b; color:white; border-radius:5px;">পুনরায় চেষ্টা করুন</button>
+        <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#f8fafc; color:#475569; font-family:sans-serif; text-align:center; padding:20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:20px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <h2 style="margin-bottom:10px; font-size: 24px; font-weight: bold; color: #1e293b;">Access Denied</h2>
+            <p style="max-width:450px; line-height:1.6; color: #475569;">As you have declined the terms and disclaimer, we are unable to display this website to ensure legal compliance.</p>
+            <button onclick="location.reload()" style="margin-top:20px; padding:10px 25px; background:#1e293b; color:white; border:none; border-radius:5px; cursor:pointer; font-weight: bold;">Try Again</button>
         </div>
     `;
   };
@@ -154,15 +155,19 @@ const PublicHome = ({ onLoginClick, loading }) => {
 {/* --- PROFESSIONAL DISCLAIMER MODAL --- */}
       {showDisclaimer && (
           <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[999999] flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl p-8 max-w-xl w-full text-center shadow-2xl">
-                  <ScaleIcon size={48} className="text-slate-800 mx-auto mb-4" />
-                  <h2 className="text-2xl font-serif font-bold text-slate-900 mb-4">ঘোষণা ও শর্তাবলী (Disclaimer)</h2>
+              <div className="bg-white rounded-2xl p-8 max-w-xl w-full text-center shadow-2xl border border-slate-200">
+                  <ScaleIcon size={48} className="text-[#c5a059] mx-auto mb-4" />
+                  <h2 className="text-2xl font-serif font-bold text-slate-900 mb-4">Disclaimer & Terms of Use</h2>
                   <p className="text-slate-600 text-sm leading-relaxed mb-8 text-justify">
-                      বাংলাদেশ বার কাউন্সিলের বিধিমালা অনুযায়ী আইনজীবীদের জন্য কোনো ধরনের বিজ্ঞাপন বা প্রচারণামূলক কর্মকাণ্ড পরিচালনা করা নিষিদ্ধ। এই ওয়েবসাইটের মূল উদ্দেশ্য কোনো মক্কেল সংগ্রহ বা প্রচারণা নয়, বরং আইনি তথ্যের লভ্যতা এবং পেশাগত তথ্য প্রদানের একটি ডিজিটাল মাধ্যম হিসেবে কাজ করা।
+                      As per the <strong>Canons of Professional Conduct and Etiquette</strong> formulated by the Bangladesh Bar Council, lawyers are strictly prohibited from engaging in any form of advertising or solicitation. The primary objective of this website is solely to serve as a digital platform for providing access to general legal information and sharing professional credentials. By clicking "I Agree", you acknowledge that no lawyer-client relationship is created by merely accessing this website.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <button onClick={handleAgreeDisclaimer} className="bg-slate-900 text-white px-8 py-3 rounded-md font-bold w-full">সম্মত আছি</button>
-                      <button onClick={handleDisagreeDisclaimer} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-md font-bold border border-slate-300 w-full">সম্মত নই</button>
+                      <button onClick={handleAgreeDisclaimer} className="bg-slate-900 text-white px-8 py-3 rounded-md font-bold hover:bg-[#c5a059] transition flex items-center justify-center gap-2 flex-1">
+                          <Check size={20}/> I Agree
+                      </button>
+                      <button onClick={handleDisagreeDisclaimer} className="bg-slate-50 text-slate-500 px-8 py-3 rounded-md font-bold border border-slate-200 hover:bg-slate-100 hover:text-red-500 transition flex items-center justify-center gap-2 flex-1">
+                          <X size={20}/> I Decline
+                      </button>
                   </div>
               </div>
           </div>
