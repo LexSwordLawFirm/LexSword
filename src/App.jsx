@@ -287,7 +287,7 @@ const handleDisagreeDisclaimer = () => {
                  <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm">About LexSword</h4>
                  <h2 className="text-4xl md:text-5xl font-serif font-bold text-slate-900 leading-tight">Integrity, Strategy, <br/> & Results.</h2>
                  <p className="text-gray-600 text-lg leading-relaxed">Founded in {establishedYear}, LexSword Chambers is led by Advocate Azadur Rahman of the Supreme Court of Bangladesh. We combine deep legal knowledge with a modern, client-focused approach.</p>
-                 <p className="text-gray-500 leading-relaxed text-sm">Whether facing complex civil litigation, criminal charges, or corporate legal challenges, our team ensures your voice is heard and your rights are protected under Bangladeshi law.</p>
+                 <p className="text-gray-500 leading-relaxed text-sm">Whether facing complex civil litigation, criminal charges, or corporate legal challenges, your voice should be heard and your rights should be protected under Bangladeshi law.</p>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                     <ul className="space-y-3">
                         {['Supreme Court Practice', 'Strategic Defense', 'Transparent Process'].map((item,i) => (
