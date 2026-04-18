@@ -376,6 +376,47 @@ const PublicHome = ({ onLoginClick, loading }) => {
          </div>
       </section>
 
+      {/* 8. LEGAL PUBLICATIONS & INSIGHTS (Replaces Testimonials) */}
+      <section className="py-24 bg-gray-50">
+         <div className="max-w-7xl mx-auto px-6 text-center mb-12 reveal-modern">
+             <h4 className="text-[#c5a059] font-bold uppercase tracking-[0.2em] text-sm mb-2">Legal Resources</h4>
+             <h2 className="text-4xl font-serif font-bold text-slate-900">Publications & Books</h2>
+             <div className="w-16 h-1 bg-[#c5a059] mx-auto mt-4"></div>
+         </div>
+         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8 reveal-modern delay-100">
+             
+             {/* Book 1 */}
+             <div className="bg-white p-8 shadow-xl border-t-4 border-[#c5a059] rounded-sm hover:-translate-y-2 transition duration-300 flex flex-col items-center text-center">
+                <div className="text-[#c5a059] mb-6 bg-orange-50 p-4 rounded-full"><BookOpen size={40}/></div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Judge Court Practice Manual</h3>
+                <p className="text-gray-600 text-sm mb-6 leading-relaxed">A comprehensive and practical guide covering civil and criminal practice procedures in the subordinate courts.</p>
+                <div className="mt-auto pt-4 border-t border-gray-100 w-full">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Author: Adv. Azadur Rahman</span>
+                </div>
+             </div>
+             
+             {/* Book 2 */}
+             <div className="bg-white p-8 shadow-xl border-t-4 border-slate-800 rounded-sm hover:-translate-y-2 transition duration-300 flex flex-col items-center text-center">
+                <div className="text-slate-800 mb-6 bg-slate-100 p-4 rounded-full"><ScaleIcon size={40}/></div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">High Court Practice Manual</h3>
+                <p className="text-gray-600 text-sm mb-6 leading-relaxed">Detailed insights and procedures regarding writ petitions, revisions, and appellate jurisdictions in the High Court Division.</p>
+                <div className="mt-auto pt-4 border-t border-gray-100 w-full">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Author: Adv. Azadur Rahman</span>
+                </div>
+             </div>
+             
+             {/* Book 3 */}
+             <div className="bg-white p-8 shadow-xl border-t-4 border-[#c5a059] rounded-sm hover:-translate-y-2 transition duration-300 flex flex-col items-center text-center">
+                <div className="text-[#c5a059] mb-6 bg-orange-50 p-4 rounded-full"><FileText size={40}/></div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Cheque Dishonour Manual</h3>
+                <p className="text-gray-600 text-sm mb-6 leading-relaxed">An analytical review of the NI Act, focusing on Section 138 proceedings and relevant landmark judgments.</p>
+                <div className="mt-auto pt-4 border-t border-gray-100 w-full">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Author: Adv. Azadur Rahman</span>
+                </div>
+             </div>
+
+         </div>
+      </section>
     
 
        {/* Contact / Consultation Form */}
