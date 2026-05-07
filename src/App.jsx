@@ -2314,7 +2314,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 </div>
               </div>
 
-            {/* Right Column: Editable AI Outputs & Chat */}
+          {/* Right Column: Editable AI Outputs & Chat */}
               <div className="flex-1 bg-slate-50 flex flex-col overflow-hidden">
                 <div className="flex justify-between items-center p-2 border-b border-slate-200 bg-white shrink-0">
                     <div className="flex gap-1 overflow-x-auto custom-scrollbar">
@@ -2331,7 +2331,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 <div className="p-4 md:p-6 flex-1 overflow-y-auto relative bg-slate-50">
                    
                    {aiActiveTab === 'chat' ? (
-                       {/* AI Chat Interface */}
                        <div className="flex flex-col h-full bg-white rounded-lg border shadow-sm">
                            <div className="flex-1 p-4 overflow-y-auto space-y-4">
                                <div className="flex gap-3">
@@ -2355,14 +2354,12 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                            </div>
                        </div>
                    ) : (
-                       // --- INSIGHTS INTERFACE (Summary, Timeline, Questions) ---
                        isAiLoading ? (
                           <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
                               <span className="w-12 h-12 md:w-16 md:h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></span>
                               <p className="text-purple-600 font-bold animate-pulse">AI নথিপত্র বিশ্লেষণ করছে...</p>
                           </div>
-                       ) : (!aiResults.summary && !selectedCase.ai_summary) ? (
-                          // *** CENTERED GENERATE BUTTON ***
+                       ) : (!aiResults.summary && !selectedCase?.ai_summary) ? (
                           <div className="h-full flex flex-col items-center justify-center text-center">
                               <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200 max-w-lg w-full flex flex-col items-center">
                                   <Sparkles size={64} className="text-purple-600 mb-4"/>
@@ -2376,9 +2373,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                               </div>
                           </div>
                        ) : (
-                          // --- GENERATED TEXTAREAS ---
                           <div className="h-full flex flex-col relative">
-                             {/* Regenerate Button at Top Right when text exists */}
                              <div className="absolute top-4 right-4 z-10 opacity-50 hover:opacity-100 transition">
                                 <button onClick={handleGenerateAI} disabled={!selectedAiDoc || isAiLoading} className="bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:bg-purple-200 flex items-center gap-1">
                                    <RefreshCw size={12}/> Regenerate
