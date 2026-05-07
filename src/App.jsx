@@ -2356,6 +2356,16 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Sparkles size={16} className="text-purple-600"/></div>
                                    <div className="bg-purple-50 p-3 rounded-lg rounded-tl-none text-sm text-slate-700">হ্যালো! আমি লেক্সসোর্ড এআই। এই মামলার তথ্যের ওপর ভিত্তি করে আপনার যেকোনো প্রশ্নের উত্তর দিতে আমি প্রস্তুত।</div>
                                </div>
+                             {isAiChatLoading && (
+                                   <div className="flex gap-3">
+                                       <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Sparkles size={16} className="text-purple-600"/></div>
+                                       <div className="bg-purple-50 p-3 rounded-lg rounded-tl-none text-sm text-slate-700 flex items-center gap-2">
+                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></span>
+                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
+                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                                       </div>
+                                   </div>
+                               )}
                                {aiChatLog.map((msg, i) => (
                                    <div key={i} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.sender === 'user' ? 'bg-slate-800 text-white' : 'bg-purple-100 text-purple-600'}`}>
