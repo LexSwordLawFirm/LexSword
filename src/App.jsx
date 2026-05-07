@@ -2046,62 +2046,62 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         </div>
      )}
 
-      {/* =========================================================================
-          NEW AI RESEARCH MODAL (Phase 1: UI Structure)
+     {/* =========================================================================
+          NEW AI RESEARCH MODAL (Phase 1.1: Mobile Friendly UI)
           ========================================================================= */}
       {modalMode === 'aiAnalysis' && selectedCase && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 no-print">
-          <div className="bg-slate-50 w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden h-[90vh] flex flex-col border border-slate-700">
+        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[99999] flex items-center justify-center p-2 md:p-4 no-print">
+          <div className="bg-slate-50 w-full max-w-6xl rounded-xl md:rounded-2xl shadow-2xl overflow-hidden h-[95vh] md:h-[90vh] flex flex-col border border-slate-700">
             
-            {/* AI Header */}
-            <div className="bg-slate-900 p-5 text-white flex justify-between items-center border-b-4 border-purple-500 shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <Sparkles size={24} className="text-purple-400" />
+            {/* AI Header - Mobile Optimized */}
+            <div className="bg-slate-900 p-3 md:p-5 text-white flex justify-between items-center border-b-4 border-purple-500 shrink-0">
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="p-1.5 md:p-2 bg-purple-500/20 rounded-lg">
+                  <Sparkles size={20} className="text-purple-400 md:w-6 md:h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-xl flex items-center gap-2">LexSword AI Command Center</h3>
-                  <p className="text-xs text-purple-300 tracking-wider uppercase font-bold">Case No: {selectedCase.case_no} | {selectedCase.party_name}</p>
+                  <h3 className="font-bold text-sm md:text-xl flex items-center gap-1 md:gap-2 leading-tight">AI Command Center</h3>
+                  <p className="text-[10px] md:text-xs text-purple-300 tracking-wider uppercase font-bold truncate max-w-[200px] md:max-w-none">Case: {selectedCase.case_no}</p>
                 </div>
               </div>
-              <button onClick={() => setModalMode(null)} className="hover:bg-red-500 hover:text-white p-2 rounded transition"><X size={24}/></button>
+              <button onClick={() => setModalMode(null)} className="hover:bg-red-500 hover:text-white p-1.5 md:p-2 rounded transition"><X size={20} className="md:w-6 md:h-6"/></button>
             </div>
 
-            {/* AI Body Layout */}
-            <div className="flex-1 flex overflow-hidden">
+            {/* AI Body Layout - Stack on mobile, side-by-side on desktop */}
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
               
-              {/* Left Column: Documents & File Upload */}
-              <div className="w-1/3 border-r border-slate-200 bg-white p-6 overflow-y-auto flex flex-col gap-6">
+              {/* Top/Left Column: Documents & File Upload */}
+              <div className="w-full md:w-1/3 md:max-w-sm border-b md:border-b-0 md:border-r border-slate-200 bg-white p-4 md:p-6 overflow-y-auto flex flex-col gap-4 md:gap-6 shrink-0 h-1/3 md:h-full">
                 
-                <div className="bg-purple-50 border border-purple-200 p-6 rounded-xl text-center">
-                  <FolderOpen size={48} className="text-purple-400 mx-auto mb-3"/>
-                  <h4 className="font-bold text-slate-900 mb-2">Upload Case File</h4>
-                  <p className="text-xs text-slate-500 mb-4">Upload PDF for AI to read and analyze.</p>
-                  <button className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition shadow-lg flex justify-center items-center gap-2">
-                    <Plus size={18}/> Select File
+                <div className="bg-purple-50 border border-purple-200 p-4 md:p-6 rounded-xl text-center shadow-inner">
+                  <FolderOpen size={32} className="text-purple-400 mx-auto mb-2 md:mb-3 md:w-12 md:h-12"/>
+                  <h4 className="font-bold text-slate-900 text-sm md:text-base mb-1 md:mb-2">Upload Case File</h4>
+                  <p className="text-[10px] md:text-xs text-slate-500 mb-3 md:mb-4 hidden md:block">Upload PDF for AI to read and analyze.</p>
+                  <button className="w-full bg-purple-600 text-white py-2 md:py-3 rounded-lg text-sm md:text-base font-bold hover:bg-purple-700 transition shadow-md flex justify-center items-center gap-2">
+                    <Plus size={16}/> Select File
                   </button>
                 </div>
 
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900 uppercase mb-3 flex items-center gap-2 border-b pb-2"><FileText size={16} className="text-slate-500"/> Scanned Documents</h4>
-                  {/* We will map uploaded files here later */}
-                  <p className="text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded border border-dashed">No documents uploaded for AI reading yet.</p>
+                <div className="flex-1 overflow-y-auto hidden md:block">
+                  <h4 className="font-bold text-xs md:text-sm text-slate-900 uppercase mb-2 md:mb-3 flex items-center gap-2 border-b pb-2"><FileText size={14} className="text-slate-500"/> Scanned Documents</h4>
+                  <p className="text-[10px] md:text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded border border-dashed">No documents uploaded yet.</p>
                 </div>
               </div>
 
-              {/* Right Column: AI Outputs (Tabs) */}
-              <div className="flex-1 bg-slate-50 flex flex-col">
-                <div className="flex gap-2 p-4 bg-white border-b border-slate-200 shrink-0">
-                  <button className="px-6 py-2 bg-purple-100 text-purple-800 font-bold rounded-lg border border-purple-200">Fact Summary</button>
-                  <button className="px-6 py-2 bg-white text-slate-600 font-bold rounded-lg hover:bg-slate-100 border border-slate-200">Timeline</button>
-                  <button className="px-6 py-2 bg-white text-slate-600 font-bold rounded-lg hover:bg-slate-100 border border-slate-200">Cross-Exam Questions</button>
+              {/* Bottom/Right Column: AI Outputs (Tabs) */}
+              <div className="flex-1 bg-slate-50 flex flex-col h-2/3 md:h-full">
+                {/* Scrollable Tabs for Mobile */}
+                <div className="flex gap-2 p-3 md:p-4 bg-white border-b border-slate-200 shrink-0 overflow-x-auto custom-scrollbar">
+                  <button className="px-4 md:px-6 py-1.5 md:py-2 bg-purple-100 text-purple-800 text-xs md:text-base font-bold rounded-lg border border-purple-200 whitespace-nowrap">Fact Summary</button>
+                  <button className="px-4 md:px-6 py-1.5 md:py-2 bg-white text-slate-600 text-xs md:text-base font-bold rounded-lg hover:bg-slate-100 border border-slate-200 whitespace-nowrap">Timeline</button>
+                  <button className="px-4 md:px-6 py-1.5 md:py-2 bg-white text-slate-600 text-xs md:text-base font-bold rounded-lg hover:bg-slate-100 border border-slate-200 whitespace-nowrap">Cross-Exam Questions</button>
                 </div>
                 
-                <div className="p-8 flex-1 overflow-y-auto">
-                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-50">
-                      <Sparkles size={64} className="text-purple-300"/>
-                      <h2 className="text-2xl font-bold text-slate-400">Ready for Analysis</h2>
-                      <p className="text-slate-500 max-w-sm">Upload a document on the left and command AI to generate insights, timeline, and questions.</p>
+                <div className="p-4 md:p-8 flex-1 overflow-y-auto">
+                   <div className="h-full flex flex-col items-center justify-center text-center space-y-3 md:space-y-4 opacity-50">
+                      <Sparkles size={48} className="text-purple-300 md:w-16 md:h-16"/>
+                      <h2 className="text-xl md:text-2xl font-bold text-slate-400">Ready for Analysis</h2>
+                      <p className="text-xs md:text-sm text-slate-500 max-w-xs md:max-w-sm px-4">Upload a document to generate AI insights.</p>
                    </div>
                 </div>
               </div>
