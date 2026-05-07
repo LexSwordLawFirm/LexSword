@@ -964,6 +964,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [formData, setFormData] = useState({});
   const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null });
   const [isUpdating, setIsUpdating] = useState(false);
+  // --- AI Logic States ---
+  const [aiActiveTab, setAiActiveTab] = useState('summary');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiResults, setAiResults] = useState({ summary: '', timeline: '', questions: '' });
 // --- AI & Cloudinary States ---
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
@@ -1291,6 +1295,24 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           setIsUploading(false);
           setTimeout(() => setUploadProgress(0), 1500); // Reset progress bar
       }
+  };
+
+  // =========================================================================
+  // AI ANALYSIS HANDLER (Phase 2)
+  // =========================================================================
+  const handleGenerateAI = async () => {
+      if (!uploadedFileUrl) return alert("Please upload a file first!");
+      setIsAiLoading(true);
+      
+      // এটি আপাতত ডেমো রেজাল্ট দেখাবে, পরে আমরা আসল AI API বসাবো
+      setTimeout(() => {
+          setAiResults({
+              summary: "এই মামলাটি একটি দেওয়ানি মকদ্দমা (Civil Suit)। বাদী দাবি করেছেন যে তফসিলভুক্ত জমিটি তিনি পৈতৃক সূত্রে পেয়েছেন, কিন্তু বিবাদী জোরপূর্বক তা দখল করার চেষ্টা করছে।\n\nমূল আইনি পয়েন্ট (Points of Law):\n- নালিশী জমির স্বত্ব (Title)\n- দখলের ধারাবাহিকতা (Possession)\n- তামাদি আইনের প্রয়োগ।",
+              timeline: "১. ১০ জানুয়ারি ২০০৭: আরজি (Plaint) দাখিল।\n২. ১৫ ফেব্রুয়ারি ২০০৭: বিবাদীর জবাব (Written Statement) দাখিল।\n৩. ২০ মার্চ ২০০৭: প্রথম শুনানি।\n৪. ১২ মে ২০০৭: অস্থায়ী নিষেধাজ্ঞার আবেদন।",
+              questions: "জেরার জন্য সম্ভাব্য প্রশ্ন (Cross-Examination):\n১. আপনি কি দাবি করছেন যে নালিশী জমিটি আপনি ক্রয় করেছেন?\n২. যদি ক্রয় করে থাকেন, তবে চুক্তিনামায় কি আপনার স্বাক্ষর আছে?\n৩. আপনি কি জানেন যে এই জমির পূর্ববর্তী মালিক কে ছিলেন?"
+          });
+          setIsAiLoading(false);
+      }, 3000); 
   };
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
@@ -2163,29 +2185,39 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 </div>
               </div>
 
-              {/* Bottom/Right Column: AI Outputs (Tabs) */}
+             {/* Bottom/Right Column: AI Outputs (Tabs) */}
               <div className="flex-1 bg-slate-50 flex flex-col h-2/3 md:h-full">
                 {/* Scrollable Tabs for Mobile */}
                 <div className="flex gap-2 p-3 md:p-4 bg-white border-b border-slate-200 shrink-0 overflow-x-auto custom-scrollbar">
-                  <button className="px-4 md:px-6 py-1.5 md:py-2 bg-purple-100 text-purple-800 text-xs md:text-base font-bold rounded-lg border border-purple-200 whitespace-nowrap">Fact Summary</button>
-                  <button className="px-4 md:px-6 py-1.5 md:py-2 bg-white text-slate-600 text-xs md:text-base font-bold rounded-lg hover:bg-slate-100 border border-slate-200 whitespace-nowrap">Timeline</button>
-                  <button className="px-4 md:px-6 py-1.5 md:py-2 bg-white text-slate-600 text-xs md:text-base font-bold rounded-lg hover:bg-slate-100 border border-slate-200 whitespace-nowrap">Cross-Exam Questions</button>
+                  <button onClick={() => setAiActiveTab('summary')} className={`px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-base font-bold rounded-lg whitespace-nowrap transition ${aiActiveTab === 'summary' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>Fact Summary</button>
+                  <button onClick={() => setAiActiveTab('timeline')} className={`px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-base font-bold rounded-lg whitespace-nowrap transition ${aiActiveTab === 'timeline' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>Timeline</button>
+                  <button onClick={() => setAiActiveTab('questions')} className={`px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-base font-bold rounded-lg whitespace-nowrap transition ${aiActiveTab === 'questions' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>Cross-Exam Questions</button>
                 </div>
                 
-                <div className="p-4 md:p-8 flex-1 overflow-y-auto">
-                   <div className="h-full flex flex-col items-center justify-center text-center space-y-3 md:space-y-4 opacity-50">
-                      <Sparkles size={48} className="text-purple-300 md:w-16 md:h-16"/>
-                      <h2 className="text-xl md:text-2xl font-bold text-slate-400">Ready for Analysis</h2>
-                      <p className="text-xs md:text-sm text-slate-500 max-w-xs md:max-w-sm px-4">Upload a document to generate AI insights.</p>
-                   </div>
+                <div className="p-4 md:p-6 flex-1 overflow-y-auto">
+                   {isAiLoading ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
+                          <span className="w-12 h-12 md:w-16 md:h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></span>
+                          <p className="text-purple-600 font-bold animate-pulse">AI নথিপত্র বিশ্লেষণ করছে...</p>
+                      </div>
+                   ) : !aiResults.summary ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center space-y-3 md:space-y-4 opacity-70">
+                          <Sparkles size={48} className="text-purple-400 md:w-16 md:h-16"/>
+                          <h2 className="text-xl md:text-2xl font-bold text-slate-500">অ্যানালাইসিসের জন্য প্রস্তুত</h2>
+                          <p className="text-xs md:text-sm text-slate-500 max-w-xs md:max-w-sm px-4">ডকুমেন্ট আপলোড করার পর নিচের বাটনে ক্লিক করে AI রিপোর্ট জেনারেট করুন।</p>
+                          <button onClick={handleGenerateAI} disabled={!uploadedFileUrl} className={`mt-4 px-6 py-3 rounded-lg font-bold shadow-md flex items-center gap-2 transition ${uploadedFileUrl ? 'bg-purple-600 text-white hover:bg-purple-700 hover:scale-105' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
+                             <Sparkles size={18}/> Generate AI Report
+                          </button>
+                      </div>
+                   ) : (
+                      <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-200 text-slate-800 text-sm md:text-base whitespace-pre-wrap leading-relaxed">
+                          {aiActiveTab === 'summary' && aiResults.summary}
+                          {aiActiveTab === 'timeline' && aiResults.timeline}
+                          {aiActiveTab === 'questions' && aiResults.questions}
+                      </div>
+                   )}
                 </div>
               </div>
-
-            </div>
-          </div>
-        </div>
-      )}
-      {/* ======================= AI RESEARCH MODAL END ========================= */}
 
     </div>
   );
