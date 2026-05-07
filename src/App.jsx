@@ -1297,22 +1297,94 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
       }
   };
 
-  // =========================================================================
-  // AI ANALYSIS HANDLER (Phase 2)
+// =========================================================================
+  // AI ANALYSIS HANDLER (Phase 3 - Real Gemini 1.5 Flash API Integration)
   // =========================================================================
   const handleGenerateAI = async () => {
       if (!uploadedFileUrl) return alert("Please upload a file first!");
       setIsAiLoading(true);
-      
-      // এটি আপাতত ডেমো রেজাল্ট দেখাবে, পরে আমরা আসল AI API বসাবো
-      setTimeout(() => {
-          setAiResults({
-              summary: "এই মামলাটি একটি দেওয়ানি মকদ্দমা (Civil Suit)। বাদী দাবি করেছেন যে তফসিলভুক্ত জমিটি তিনি পৈতৃক সূত্রে পেয়েছেন, কিন্তু বিবাদী জোরপূর্বক তা দখল করার চেষ্টা করছে।\n\nমূল আইনি পয়েন্ট (Points of Law):\n- নালিশী জমির স্বত্ব (Title)\n- দখলের ধারাবাহিকতা (Possession)\n- তামাদি আইনের প্রয়োগ।",
-              timeline: "১. ১০ জানুয়ারি ২০০৭: আরজি (Plaint) দাখিল।\n২. ১৫ ফেব্রুয়ারি ২০০৭: বিবাদীর জবাব (Written Statement) দাখিল।\n৩. ২০ মার্চ ২০০৭: প্রথম শুনানি।\n৪. ১২ মে ২০০৭: অস্থায়ী নিষেধাজ্ঞার আবেদন।",
-              questions: "জেরার জন্য সম্ভাব্য প্রশ্ন (Cross-Examination):\n১. আপনি কি দাবি করছেন যে নালিশী জমিটি আপনি ক্রয় করেছেন?\n২. যদি ক্রয় করে থাকেন, তবে চুক্তিনামায় কি আপনার স্বাক্ষর আছে?\n৩. আপনি কি জানেন যে এই জমির পূর্ববর্তী মালিক কে ছিলেন?"
+
+      try {
+          // 1. Cloudinary থেকে ফাইলটি Fetch করে Base64 এ কনভার্ট করা (AI কে পড়ানোর জন্য)
+          const fileRes = await fetch(uploadedFileUrl);
+          const blob = await fileRes.blob();
+          
+          const blobToBase64 = (b) => new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.readAsDataURL(b);
+              reader.onloadend = () => resolve(reader.result.split(',')[1]);
+              reader.onerror = (error) => reject(error);
           });
+
+          const base64data = await blobToBase64(blob);
+          
+          let mimeType = blob.type;
+          if (!mimeType || mimeType === 'application/octet-stream') {
+              mimeType = uploadedFileUrl.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
+          }
+
+          // 2. Gemini 1.5 Flash API কল করা
+          const API_KEY = "AIzaSyAzZMS9UAdhHzQMcPhp4-IOxbVdyvKhT5c";
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
+          const promptText = `আপনি বাংলাদেশের সুপ্রিম কোর্টের একজন অত্যন্ত দক্ষ আইনজীবী। 
+          আমি আপনাকে একটি মামলার নথিপত্র (পিডিএফ বা ছবি) দিচ্ছি। এটি ভালোভাবে পড়ে বিশ্লেষণ করুন। 
+          আপনার উত্তরটি অবশ্যই একটি JSON (Valid JSON) অবজেক্ট হতে হবে। 
+          
+          JSON এর কাঠামো হবে ঠিক এরকম:
+          {
+            "summary": "মামলার বিস্তারিত ফ্যাক্টস, সারসংক্ষেপ এবং আইনি পয়েন্ট...",
+            "timeline": "১. [তারিখ]: [ঘটনা]\n২. [তারিখ]: [ঘটনা] (এভাবে ক্রমানুসারে)",
+            "questions": "বিপক্ষকে জেরার জন্য ধারালো কয়েকটি প্রশ্ন..."
+          }`;
+
+          const requestBody = {
+              contents: [{
+                  parts: [
+                      { text: promptText },
+                      {
+                          inline_data: {
+                              mime_type: mimeType,
+                              data: base64data
+                          }
+                      }
+                  ]
+              }],
+              generationConfig: {
+                  response_mime_type: "application/json" // এআইকে শুধু JSON ফরম্যাটে উত্তর দিতে বাধ্য করা
+              }
+          };
+
+          const aiResponse = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestBody)
+          });
+
+          const aiData = await aiResponse.json();
+          
+          if (aiData.error) {
+              alert("AI Error: " + aiData.error.message);
+              setIsAiLoading(false);
+              return;
+          }
+
+          // 3. AI এর উত্তর ড্যাশবোর্ডে সেট করা
+          const responseText = aiData.candidates[0].content.parts[0].text;
+          const parsedResults = JSON.parse(responseText);
+          
+          setAiResults({
+              summary: parsedResults.summary || "কোনো তথ্য পাওয়া যায়নি।",
+              timeline: parsedResults.timeline || "কোনো তথ্য পাওয়া যায়নি।",
+              questions: parsedResults.questions || "কোনো তথ্য পাওয়া যায়নি।"
+          });
+          
+      } catch (error) {
+          console.error("Error processing AI:", error);
+          alert("এআই অ্যানালাইসিস করতে সমস্যা হচ্ছে। ফাইলটি কি অনেক বড়? অথবা ইন্টারনেট কানেকশন চেক করুন।");
+      } finally {
           setIsAiLoading(false);
-      }, 3000); 
+      }
   };
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
