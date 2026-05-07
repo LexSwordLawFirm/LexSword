@@ -972,6 +972,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [selectedAiDoc, setSelectedAiDoc] = useState(null); // যে ফাইলটি AI পড়বে
   const [aiChatLog, setAiChatLog] = useState([]); // চ্যাটিং এর জন্য
   const [aiChatInput, setAiChatInput] = useState('');
+  const [isAiChatLoading, setIsAiChatLoading] = useState(false);
 // --- AI & Cloudinary States ---
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
@@ -1406,31 +1407,51 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
 
   // ৩. AI Chat Function
+  // ৩. AI Chat Function (Smart & Contextual)
   const handleAiChat = async () => {
-      if(!aiChatInput) return;
-      const userMsg = { sender: 'user', text: aiChatInput };
-      setAiChatLog([...aiChatLog, userMsg]);
+      if(!aiChatInput.trim()) return;
+      
+      const userText = aiChatInput;
+      const newChatLog = [...aiChatLog, { sender: 'user', text: userText }];
+      setAiChatLog(newChatLog);
       setAiChatInput('');
+      setIsAiChatLoading(true);
       
       try {
           const API_KEY = "AIzaSyAzZMS9UAdhHzQMcPhp4-IOxbVdyvKhT5c";
           const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
           
-          // Contextual Prompt for Chat
-          const chatContext = `আপনি একজন দক্ষ আইনজীবী। আপনি '${aiParty}' এর পক্ষে আছেন। 
-          মামলার সারসংক্ষেপ: ${aiResults.summary}। 
-          এই তথ্যের উপর ভিত্তি করে ইউজারের প্রশ্নের উত্তর দিন। ইউজার প্রশ্ন: ${userMsg.text}`;
+          // হিস্ট্রি এবং কনটেক্সট তৈরি করা
+          const historyText = newChatLog.map(m => `${m.sender === 'user' ? 'Client' : 'AI'}: ${m.text}`).join('\n');
+          
+          const chatContext = `আপনি বাংলাদেশের সুপ্রিম কোর্টের একজন অত্যন্ত দক্ষ আইনজীবী। আপনি '${aiParty}' এর পক্ষে লড়ছেন। 
+          মামলার ফ্যাক্টস: ${aiResults.summary || 'এখনো ফ্যাক্টস জেনারেট করা হয়নি'}
+          টাইমলাইন: ${aiResults.timeline || 'এখনো টাইমলাইন জেনারেট করা হয়নি'}
+          
+          নিচে আপনার এবং ইউজারের কথোপকথনের ইতিহাস দেওয়া হলো:
+          ${historyText}
+          
+          নির্দেশনা: 
+          ১. উপরের তথ্যের ভিত্তিতে ইউজারের শেষ প্রশ্নের উত্তর দিন। 
+          ২. অত্যন্ত প্রফেশনাল এবং আইনি ভাষায় বাংলায় উত্তর দেবেন। 
+          ৩. কোনো মার্কডাউন চিহ্ন যেমন ** বা * ব্যবহার করবেন না। শুধু সুন্দর প্যারাগ্রাফ ব্যবহার করবেন।`;
 
           const response = await fetch(url, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ contents: [{ parts: [{ text: chatContext }] }] })
           });
+          
           const data = await response.json();
+          if(data.error) throw new Error(data.error.message);
+          
           const botMsg = { sender: 'ai', text: data.candidates[0].content.parts[0].text };
           setAiChatLog(prev => [...prev, botMsg]);
       } catch(e) {
           console.error(e);
+          setAiChatLog(prev => [...prev, { sender: 'ai', text: "দুঃখিত, আমি এই মুহূর্তে উত্তর দিতে পারছি না। আবার চেষ্টা করুন।" }]);
+      } finally {
+          setIsAiChatLoading(false);
       }
   }
   return (
@@ -1548,48 +1569,46 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 )}
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid gap-4 overflow-hidden">
                 {getFilteredCases().length === 0 && <p className="text-slate-500 italic">No cases found.</p>}
                 {getFilteredCases().map(c => (
-                  <div key={c.id} className="bg-white p-4 md:p-5 rounded-lg shadow border-l-4 border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 transition">
-                    <div className="flex-1">
-                      <div className="flex gap-2 mb-1">
-                         <span className="text-xs font-bold bg-blue-100 text-blue-900 px-2 rounded">{c.court_type}</span>
-                        {c.court_type === 'High Court' && <span className="text-xs font-bold bg-yellow-100 text-yellow-900 px-2 rounded">{c.case_nature}</span>}
-                        <span className="text-xs font-bold bg-gray-200 text-slate-800 px-2 rounded truncate max-w-[150px]">{c.court_name}</span>
+                  <div key={c.id} className="bg-white p-4 md:p-5 rounded-lg shadow border-l-4 border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 transition w-full overflow-hidden">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex gap-2 mb-1 overflow-x-auto custom-scrollbar pb-1">
+                         <span className="text-xs font-bold bg-blue-100 text-blue-900 px-2 rounded whitespace-nowrap shrink-0">{c.court_type}</span>
+                        {c.court_type === 'High Court' && <span className="text-xs font-bold bg-yellow-100 text-yellow-900 px-2 rounded whitespace-nowrap shrink-0">{c.case_nature}</span>}
+                        <span className="text-xs font-bold bg-gray-200 text-slate-800 px-2 rounded truncate max-w-[150px] shrink-0">{c.court_name}</span>
                       </div>
-                      <h3 className="text-xl font-bold text-slate-900">{c.case_no}</h3>
-                      <p className="text-slate-700 font-medium">{c.party_name}</p>
-                      <p className="text-xs text-slate-500">Section: {c.section}</p>
+                      <h3 className="text-xl font-bold text-slate-900 truncate">{c.case_no}</h3>
+                      <p className="text-slate-700 font-medium truncate">{c.party_name}</p>
+                      <p className="text-xs text-slate-500 truncate">Section: {c.section}</p>
                     </div>
                     
-                    <div className="text-left md:text-right w-full md:w-auto">
+                    <div className="text-left md:text-right w-full md:w-auto shrink-0">
                       <p className="text-xs text-slate-600">Next Date</p>
                       <p className="text-lg font-bold text-red-600">{c.next_date}</p>
-                      <p className="text-xs font-bold text-[#c5a059] uppercase">{c.current_step}</p>
+                      <p className="text-xs font-bold text-[#c5a059] uppercase truncate max-w-[200px]">{c.current_step}</p>
                     </div>
 
-                    <div className="flex gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
-                      {/* ------ নতুন AI বাটন শুরু ------ */}
-  <button onClick={() => { setSelectedCase(c); setModalMode('aiAnalysis'); }} className="p-2 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 font-bold flex items-center gap-1 border border-purple-300 shadow-sm" title="AI Case Analysis">
-    <Sparkles size={16} className="text-purple-600"/> AI Research
-  </button>
-  {/* ------ নতুন AI বাটন শেষ ------ */}
-                      <button onClick={() => { setFormData(c); setModalMode('updateStatus'); }} className="p-2 bg-slate-900 text-white rounded hover:bg-[#c5a059] font-bold flex items-center gap-1" title="Update">
+                    <div className="flex gap-2 w-full md:w-auto justify-start md:justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
+                      <button onClick={() => { setSelectedCase(c); fetchDocuments(c.id); setModalMode('aiAnalysis'); }} className="p-2 shrink-0 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 font-bold flex items-center gap-1 border border-purple-300 shadow-sm" title="AI Case Analysis">
+                        <Sparkles size={16} className="text-purple-600"/> AI Research
+                      </button>
+                      <button onClick={() => { setFormData(c); setModalMode('updateStatus'); }} className="p-2 shrink-0 bg-slate-900 text-white rounded hover:bg-[#c5a059] font-bold flex items-center gap-1" title="Update">
                         <RefreshCw size={16}/> Update
                       </button>
-                      <button onClick={() => { setSelectedCase(c); setModalMode('viewCase'); }} className="p-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"><Eye size={18}/></button>
+                      <button onClick={() => { setSelectedCase(c); fetchDocuments(c.id); fetchHistory(c.id); setModalMode('viewCase'); }} className="p-2 shrink-0 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"><Eye size={18}/></button>
                       
                       {isAdmin && (
                         <>
-                          <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"><Edit3 size={18}/></button>
-                          <button onClick={() => handleDeleteCase(c.id)} className="p-2 bg-red-100 text-red-800 rounded hover:bg-red-200"><Trash2 size={18}/></button>
+                          <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 shrink-0 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"><Edit3 size={18}/></button>
+                          <button onClick={() => handleDeleteCase(c.id)} className="p-2 shrink-0 bg-red-100 text-red-800 rounded hover:bg-red-200"><Trash2 size={18}/></button>
                         </>
                       )}
                       
-                      <button onClick={() => handleWhatsApp(c)} className="p-2 bg-green-100 text-green-800 rounded hover:bg-green-200"><MessageCircle size={18}/></button>
+                      <button onClick={() => handleWhatsApp(c)} className="p-2 shrink-0 bg-green-100 text-green-800 rounded hover:bg-green-200"><MessageCircle size={18}/></button>
                     </div>
-                   </div>
+                  </div>
                 ))}
               </div>
             </div>
