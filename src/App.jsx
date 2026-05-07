@@ -1357,7 +1357,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               mimeType = selectedAiDoc.drive_link.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
           }
 
-          const API_KEY = "AIzaSyAzZMS9UAdhHzQMcPhp4-IOxbVdyvKhT5c";
+          const API_KEY = "AIzaSyBxF0NYbmiSZIp7QR2i3VaSM7uzL59xIJU";
           const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
           // Advanced Prompt Engineering
