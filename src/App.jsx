@@ -1357,7 +1357,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           }
 
           const API_KEY = "AIzaSyAzZMS9UAdhHzQMcPhp4-IOxbVdyvKhT5c";
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
           // Advanced Prompt Engineering
         const promptText = `আপনি বাংলাদেশের সুপ্রিম কোর্টের ও ঢাকা জজ কোর্ট এর একজন অত্যন্ত দক্ষ এবং সিনিয়র আইনজীবী। 
