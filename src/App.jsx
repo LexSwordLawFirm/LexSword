@@ -1261,10 +1261,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     }
   };
 
+ // =========================================================================
+  // CLOUDINARY + SUPABASE FILE UPLOAD HANDLER
   // =========================================================================
-  // CLOUDINARY FILE UPLOAD HANDLER
-  // =========================================================================
-  const handleFileUpload = async (event) => {
+  const handleFileUpload = async (event, caseId) => {
       const file = event.target.files[0];
       if (!file) return;
 
@@ -1273,22 +1273,36 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
 
       const data = new FormData();
       data.append('file', file);
-      data.append('upload_preset', 'LexSword'); // Your preset name
-      data.append('cloud_name', 'dcjykxffd'); // Your cloud name
+      data.append('upload_preset', 'LexSword'); 
+      data.append('cloud_name', 'dcjykxffd'); 
 
       try {
           setUploadProgress(60);
-          // API Call to Cloudinary (using /auto/upload to support PDF, Doc, Images)
           const response = await fetch('https://api.cloudinary.com/v1_1/dcjykxffd/auto/upload', {
               method: 'POST',
               body: data
           });
           
           const result = await response.json();
-          setUploadProgress(100);
+          setUploadProgress(90);
           
           if (result.secure_url) {
-              setUploadedFileUrl(result.secure_url); // Save URL for AI
+              setUploadedFileUrl(result.secure_url); 
+              
+              // Cloudinary থেকে লিংক পাওয়ার পর সাথে সাথে ডাটাবেসে সেভ করা হচ্ছে
+              const { data: insertedDoc, error } = await supabase.from('documents').insert([{ 
+                  case_id: caseId, 
+                  folder_type: 'AI Uploaded', 
+                  doc_name: file.name || 'Case_Document', 
+                  drive_link: result.secure_url 
+              }]).select().single();
+
+              if (!error) {
+                  fetchDocuments(caseId); // লিস্ট সাথে সাথে আপডেট হবে
+                  setSelectedAiDoc(insertedDoc || { drive_link: result.secure_url }); // ফাইলটি অটোমেটিক AI এর জন্য সিলেক্ট হয়ে যাবে
+              } else {
+                  console.error("DB Save Error:", error);
+              }
           } else {
               alert("আপলোড ফেইল হয়েছে! আবার চেষ্টা করুন।");
           }
@@ -1296,11 +1310,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           console.error("Upload Error:", error);
           alert("ইন্টারনেট কানেকশন চেক করুন!");
       } finally {
-          setIsUploading(false);
-          setTimeout(() => setUploadProgress(0), 1500); // Reset progress bar
+          setUploadProgress(100);
+          setTimeout(() => { setIsUploading(false); setUploadProgress(0); }, 1500);
       }
   };
-
 // =========================================================================
   // ADVANCED AI ANALYSIS & SAVE HANDLER
   // =========================================================================
@@ -1347,20 +1360,22 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
           // Advanced Prompt Engineering
-          const promptText = `আপনি বাংলাদেশের সুপ্রিম কোর্টের একজন অত্যন্ত দক্ষ এবং সিনিয়র আইনজীবী। 
+        const promptText = `আপনি বাংলাদেশের সুপ্রিম কোর্টের ও ঢাকা জজ কোর্ট এর একজন অত্যন্ত দক্ষ এবং সিনিয়র আইনজীবী। 
           আপনি এই মামলায় '${aiParty}' এর পক্ষের আইনজীবী হিসেবে লড়ছেন। 
           আমি আপনাকে এই মামলার একটি নথিপত্র দিচ্ছি।
           
           আপনার জন্য কঠোর নির্দেশনা (Strict Instructions):
-          ১. কোনো কাল্পনিক তথ্য (Hallucination) দেবেন না। শুধুমাত্র ফাইলের তথ্যের উপর ভিত্তি করে ফ্যাক্টস দেবেন।
-          ২. কিন্তু আইনি যুক্তি (Arguments) ও জেরা (Cross-examination) তৈরির সময় আপনার সর্বোচ্চ আইনি মেধা ও বুদ্ধিমত্তা খাটাবেন।
-          ৩. কোনো দায়সারা বা ছোট উত্তর দেবেন না। প্রতিটি বিষয় অত্যন্ত বিস্তারিত, প্রফেশনাল ও আইনি ভাষায় বিশ্লেষণ করবেন।
+          ১. কোনো মার্কডাউন (Markdown) চিহ্ন যেমন ** বা * বা # ব্যবহার করবেন না। এটি সম্পূর্ণ নিষিদ্ধ।
+          ২. হেডিং বা শিরোনামগুলো বোঝানোর জন্য [ ] ব্র্যাকেট ব্যবহার করুন বা বড় অক্ষরে লিখুন। 
+          ৩. প্রতিটি প্যারাগ্রাফের মাঝে ডাবল এন্টার (Double Line break) দিয়ে পর্যাপ্ত ফাঁকা জায়গা রাখবেন যেন পড়তে বইয়ের মতো লাগে।
+          ৪. কোনো কাল্পনিক তথ্য (Hallucination) দেবেন না। শুধুমাত্র ফাইলের তথ্যের উপর ভিত্তি করে ফ্যাক্টস দেবেন।
+          ৫. আইনি যুক্তি (Arguments) ও জেরা (Cross-examination) তৈরির সময় আপনার সর্বোচ্চ আইনি মেধা খাটাবেন।
           
-          আপনার উত্তরটি অবশ্যই একটি JSON (Valid JSON) অবজেক্ট হতে হবে। কাঠামো:
+          আপনার উত্তরটি অবশ্যই একটি JSON অবজেক্ট হতে হবে। কাঠামো:
           {
-            "summary": "মামলার বিস্তারিত ফ্যাক্টস, সারসংক্ষেপ এবং আইনি পয়েন্টের গভীর বিশ্লেষণ...",
-            "timeline": "১. [তারিখ]: [ঘটনা বিস্তারিত]\n২. [তারিখ]: [ঘটনা বিস্তারিত] (এভাবে ক্রমানুসারে)",
-            "questions": "বিপক্ষকে জেরার জন্য ধারালো এবং কৌশলগত অন্তত ১০-১৫ টি বিস্তারিত প্রশ্ন..."
+            "summary": "[ফ্যাক্টস ও আইনি বিশ্লেষণ]\n\nবিস্তারিত বিবরণ...",
+            "timeline": "১. [তারিখ]: [ঘটনা বিস্তারিত]\n\n২. [তারিখ]: [ঘটনা বিস্তারিত]",
+            "questions": "[জেরার প্রশ্নসমূহ]\n\n১. [প্রশ্ন]\n\n২. [প্রশ্ন]"
           }`;
 
           const requestBody = {
@@ -2251,43 +2266,50 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
 
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
               
-              {/* Left Column: Persistent File Archive */}
-              <div className="w-full md:w-1/3 border-r border-slate-200 bg-white p-4 md:p-6 overflow-y-auto flex flex-col gap-6 shrink-0">
-                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center relative">
-                   {uploadProgress > 0 && <div className="absolute top-0 left-0 h-1 bg-purple-600 transition-all" style={{ width: `${uploadProgress}%` }}></div>}
-                   <h4 className="font-bold text-slate-900 text-sm mb-2">Upload New Document</h4>
-                   <input type="file" id="ai-file-upload" className="hidden" onChange={(e) => {
-                       // এখানে আপনার পুরনো handleFileUpload কল করা হবে যা documents টেবিলে সেভ করবে
-                       handleFileUpload(e);
-                       setTimeout(() => fetchDocuments(selectedCase.id), 3000); // রিফ্রেশ করার জন্য
-                   }}/>
-                   <label htmlFor="ai-file-upload" className="w-full bg-slate-900 text-white py-2 rounded-lg text-sm font-bold cursor-pointer hover:bg-slate-800 flex justify-center items-center gap-2">
-                     {isUploading ? "Uploading..." : <><Plus size={16}/> Upload to Archive</>}
-                   </label>
+             {/* Left Column: Persistent File Archive */}
+              <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 bg-white p-4 md:p-6 overflow-y-auto flex flex-col gap-6 shrink-0 h-[40%] md:h-full">
+                
+                {/* Previous Beautiful Purple Design */}
+                <div className="bg-purple-50 border border-purple-200 p-4 md:p-6 rounded-xl text-center shadow-inner relative overflow-hidden shrink-0">
+                  {uploadProgress > 0 && <div className="absolute top-0 left-0 h-1.5 bg-purple-600 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>}
+                  
+                  <FolderOpen size={32} className="text-purple-400 mx-auto mb-2 md:mb-3 md:w-12 md:h-12"/>
+                  <h4 className="font-bold text-slate-900 text-sm md:text-base mb-1 md:mb-2">Upload Case File</h4>
+                  <p className="text-[10px] md:text-xs text-slate-500 mb-3 md:mb-4 hidden md:block">Upload PDF or Images for AI analysis.</p>
+                  
+                  <input type="file" id="ai-file-upload" className="hidden" onChange={(e) => handleFileUpload(e, selectedCase.id)} />
+                  <label htmlFor="ai-file-upload" className={`w-full py-2 md:py-3 rounded-lg text-sm md:text-base font-bold transition shadow-md flex justify-center items-center gap-2 cursor-pointer ${isUploading ? 'bg-purple-400 text-white cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-700'}`}>
+                    {isUploading ? <span className="animate-pulse">Uploading {uploadProgress}%</span> : <><Plus size={16}/> Select File</>}
+                  </label>
                 </div>
 
-                <div className="flex-1 overflow-y-auto border-t pt-4">
-                  <h4 className="font-bold text-xs text-slate-900 uppercase mb-3 flex items-center gap-2"><FolderOpen size={16} className="text-[#c5a059]"/> Digital Archive (Select for AI)</h4>
+                {/* Archive List with Edit/Delete */}
+                <div className="flex-1 overflow-y-auto mt-2">
+                  <h4 className="font-bold text-xs text-slate-900 uppercase mb-3 flex items-center gap-2 border-b pb-2"><FileText size={14} className="text-slate-500"/> Uploaded Documents</h4>
                   <div className="space-y-2">
                      {documents.map(d => (
-                         <div key={d.id} className={`p-3 rounded-lg border flex flex-col gap-2 transition ${selectedAiDoc?.id === d.id ? 'bg-purple-50 border-purple-400 shadow-md' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+                         <div key={d.id} className={`p-3 rounded-lg border flex flex-col gap-2 transition ${selectedAiDoc?.id === d.id ? 'bg-green-50 border-green-400 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
                              <div className="flex justify-between items-start">
-                                 <div>
-                                     <p className="font-bold text-sm text-slate-900">{d.folder_type}</p>
-                                     <p className="text-xs text-slate-500 truncate max-w-[150px]">{d.doc_name || 'Document'}</p>
-                                     <p className="text-[9px] text-slate-400 mt-1">{new Date(d.created_at).toLocaleDateString()}</p>
+                                 <div className="flex items-center gap-2 overflow-hidden">
+                                     {selectedAiDoc?.id === d.id ? <CheckCircle size={16} className="text-green-600 shrink-0"/> : <Folder size={16} className="text-[#c5a059] shrink-0"/>}
+                                     <p className="text-xs font-bold text-slate-700 truncate">{d.doc_name || d.folder_type}</p>
                                  </div>
-                                 <div className="flex gap-1">
-                                     <a href={d.drive_link} target="_blank" className="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100"><Eye size={14}/></a>
-                                     <button onClick={() => handleDeleteDoc(d.id)} className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100"><Trash2 size={14}/></button>
+                                 <div className="flex gap-1 shrink-0">
+                                     <a href={d.drive_link} target="_blank" className="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100"><Eye size={12}/></a>
+                                     <button onClick={() => handleDeleteDoc(d.id)} className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100"><Trash2 size={12}/></button>
                                  </div>
                              </div>
-                             <button onClick={() => setSelectedAiDoc(d)} className={`w-full py-1.5 text-xs font-bold rounded flex justify-center items-center gap-1 ${selectedAiDoc?.id === d.id ? 'bg-purple-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
-                                 {selectedAiDoc?.id === d.id ? <><CheckCircle size={14}/> AI Selected</> : "Select for AI"}
-                             </button>
+                             {selectedAiDoc?.id !== d.id && (
+                                <button onClick={() => setSelectedAiDoc(d)} className="w-full py-1.5 text-[10px] font-bold rounded bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+                                   Select for AI
+                                </button>
+                             )}
+                             {selectedAiDoc?.id === d.id && (
+                                <span className="text-[10px] font-bold text-green-700 text-center block mt-1">✓ Ready for AI Analysis</span>
+                             )}
                          </div>
                      ))}
-                     {documents.length === 0 && <p className="text-xs text-slate-400 italic text-center py-4">No files uploaded yet.</p>}
+                     {documents.length === 0 && <p className="text-xs text-slate-400 italic text-center py-4 bg-slate-50 border border-dashed rounded">No files uploaded yet.</p>}
                   </div>
                 </div>
               </div>
