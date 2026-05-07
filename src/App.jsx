@@ -964,6 +964,14 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [formData, setFormData] = useState({});
   const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null });
   const [isUpdating, setIsUpdating] = useState(false);
+// --- AI & Cloudinary States ---
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+
+
+  
   useEffect(() => { fetchAllData(); }, [refresh]);
 
   const fetchAllData = async () => {
@@ -1245,6 +1253,45 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     }
   };
 
+  // =========================================================================
+  // CLOUDINARY FILE UPLOAD HANDLER
+  // =========================================================================
+  const handleFileUpload = async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      setIsUploading(true);
+      setUploadProgress(20);
+
+      const data = new FormData();
+      data.append('file', file);
+      data.append('upload_preset', 'LexSword'); // Your preset name
+      data.append('cloud_name', 'dcjykxffd'); // Your cloud name
+
+      try {
+          setUploadProgress(60);
+          // API Call to Cloudinary (using /auto/upload to support PDF, Doc, Images)
+          const response = await fetch('https://api.cloudinary.com/v1_1/dcjykxffd/auto/upload', {
+              method: 'POST',
+              body: data
+          });
+          
+          const result = await response.json();
+          setUploadProgress(100);
+          
+          if (result.secure_url) {
+              setUploadedFileUrl(result.secure_url); // Save URL for AI
+          } else {
+              alert("আপলোড ফেইল হয়েছে! আবার চেষ্টা করুন।");
+          }
+      } catch (error) {
+          console.error("Upload Error:", error);
+          alert("ইন্টারনেট কানেকশন চেক করুন!");
+      } finally {
+          setIsUploading(false);
+          setTimeout(() => setUploadProgress(0), 1500); // Reset progress bar
+      }
+  };
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
       
@@ -2073,18 +2120,46 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               {/* Top/Left Column: Documents & File Upload */}
               <div className="w-full md:w-1/3 md:max-w-sm border-b md:border-b-0 md:border-r border-slate-200 bg-white p-4 md:p-6 overflow-y-auto flex flex-col gap-4 md:gap-6 shrink-0 h-1/3 md:h-full">
                 
-                <div className="bg-purple-50 border border-purple-200 p-4 md:p-6 rounded-xl text-center shadow-inner">
+                <div className="bg-purple-50 border border-purple-200 p-4 md:p-6 rounded-xl text-center shadow-inner relative overflow-hidden">
+                  {/* Progress Bar */}
+                  {uploadProgress > 0 && (
+                    <div className="absolute top-0 left-0 h-1.5 bg-purple-600 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
+                  )}
+                  
                   <FolderOpen size={32} className="text-purple-400 mx-auto mb-2 md:mb-3 md:w-12 md:h-12"/>
                   <h4 className="font-bold text-slate-900 text-sm md:text-base mb-1 md:mb-2">Upload Case File</h4>
-                  <p className="text-[10px] md:text-xs text-slate-500 mb-3 md:mb-4 hidden md:block">Upload PDF for AI to read and analyze.</p>
-                  <button className="w-full bg-purple-600 text-white py-2 md:py-3 rounded-lg text-sm md:text-base font-bold hover:bg-purple-700 transition shadow-md flex justify-center items-center gap-2">
-                    <Plus size={16}/> Select File
-                  </button>
+                  <p className="text-[10px] md:text-xs text-slate-500 mb-3 md:mb-4 hidden md:block">Upload PDF or Images for AI analysis.</p>
+                  
+                  {/* Hidden Input File */}
+                  <input 
+                    type="file" 
+                    id="ai-file-upload" 
+                    className="hidden" 
+                    onChange={handleFileUpload}
+                  />
+                  
+                  <label 
+                    htmlFor="ai-file-upload" 
+                    className={`w-full py-2 md:py-3 rounded-lg text-sm md:text-base font-bold transition shadow-md flex justify-center items-center gap-2 cursor-pointer ${isUploading ? 'bg-purple-400 text-white cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
+                  >
+                    {isUploading ? <span className="animate-pulse">Uploading {uploadProgress}%</span> : <><Plus size={16}/> Select File</>}
+                  </label>
                 </div>
 
-                <div className="flex-1 overflow-y-auto hidden md:block">
-                  <h4 className="font-bold text-xs md:text-sm text-slate-900 uppercase mb-2 md:mb-3 flex items-center gap-2 border-b pb-2"><FileText size={14} className="text-slate-500"/> Scanned Documents</h4>
-                  <p className="text-[10px] md:text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded border border-dashed">No documents uploaded yet.</p>
+                <div className="flex-1 overflow-y-auto hidden md:block mt-4 md:mt-0">
+                  <h4 className="font-bold text-xs md:text-sm text-slate-900 uppercase mb-2 md:mb-3 flex items-center gap-2 border-b pb-2"><FileText size={14} className="text-slate-500"/> Uploaded File</h4>
+                  
+                  {uploadedFileUrl ? (
+                     <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-2 truncate">
+                           <CheckCircle size={16} className="text-green-600 shrink-0"/>
+                           <span className="text-xs font-bold text-green-800 truncate">File is ready for AI</span>
+                        </div>
+                        <a href={uploadedFileUrl} target="_blank" rel="noreferrer" className="text-[10px] font-bold bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transition">View</a>
+                     </div>
+                  ) : (
+                     <p className="text-[10px] md:text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded border border-dashed">No documents uploaded yet.</p>
+                  )}
                 </div>
               </div>
 
