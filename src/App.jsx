@@ -964,10 +964,14 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [formData, setFormData] = useState({});
   const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null });
   const [isUpdating, setIsUpdating] = useState(false);
-  // --- AI Logic States ---
+ // --- AI Logic States & Persistent Data ---
   const [aiActiveTab, setAiActiveTab] = useState('summary');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResults, setAiResults] = useState({ summary: '', timeline: '', questions: '' });
+  const [aiParty, setAiParty] = useState('Plaintiff/Petitioner (বাদী/আবেদনকারী)');
+  const [selectedAiDoc, setSelectedAiDoc] = useState(null); // যে ফাইলটি AI পড়বে
+  const [aiChatLog, setAiChatLog] = useState([]); // চ্যাটিং এর জন্য
+  const [aiChatInput, setAiChatInput] = useState('');
 // --- AI & Cloudinary States ---
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
@@ -1298,15 +1302,32 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
 
 // =========================================================================
-  // AI ANALYSIS HANDLER (Phase 3 - Real Gemini 1.5 Flash API Integration)
+  // ADVANCED AI ANALYSIS & SAVE HANDLER
   // =========================================================================
+  
+  // ১. AI ডাটা ডাটাবেসে চিরস্থায়ী সেভ করার ফাংশন
+  const handleSaveAiData = async () => {
+      const { error } = await supabase.from('cases').update({
+          ai_party: aiParty,
+          ai_summary: aiResults.summary,
+          ai_timeline: aiResults.timeline,
+          ai_questions: aiResults.questions
+      }).eq('id', selectedCase.id);
+      
+      if(error) alert(error.message);
+      else {
+          alert("AI ডেটা সফলভাবে ডাটাবেসে সেভ হয়েছে!");
+          setRefresh(r => r+1);
+      }
+  };
+
+  // ২. নির্দিষ্ট ফাইল থেকে AI জেনারেট করার ফাংশন
   const handleGenerateAI = async () => {
-      if (!uploadedFileUrl) return alert("Please upload a file first!");
+      if (!selectedAiDoc) return alert("বাম পাশ থেকে আগে একটি ফাইল 'Select for AI' করুন!");
       setIsAiLoading(true);
 
       try {
-          // 1. Cloudinary থেকে ফাইলটি Fetch করে Base64 এ কনভার্ট করা (AI কে পড়ানোর জন্য)
-          const fileRes = await fetch(uploadedFileUrl);
+          const fileRes = await fetch(selectedAiDoc.drive_link);
           const blob = await fileRes.blob();
           
           const blobToBase64 = (b) => new Promise((resolve, reject) => {
@@ -1317,75 +1338,86 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           });
 
           const base64data = await blobToBase64(blob);
-          
           let mimeType = blob.type;
           if (!mimeType || mimeType === 'application/octet-stream') {
-              mimeType = uploadedFileUrl.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
+              mimeType = selectedAiDoc.drive_link.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
           }
 
-          // 2. Gemini 1.5 Flash API কল করা
           const API_KEY = "AIzaSyAzZMS9UAdhHzQMcPhp4-IOxbVdyvKhT5c";
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-          const promptText = `আপনি বাংলাদেশের সুপ্রিম কোর্টের একজন অত্যন্ত দক্ষ আইনজীবী। 
-          আমি আপনাকে একটি মামলার নথিপত্র (পিডিএফ বা ছবি) দিচ্ছি। এটি ভালোভাবে পড়ে বিশ্লেষণ করুন। 
-          আপনার উত্তরটি অবশ্যই একটি JSON (Valid JSON) অবজেক্ট হতে হবে। 
+          // Advanced Prompt Engineering
+          const promptText = `আপনি বাংলাদেশের সুপ্রিম কোর্টের একজন অত্যন্ত দক্ষ এবং সিনিয়র আইনজীবী। 
+          আপনি এই মামলায় '${aiParty}' এর পক্ষের আইনজীবী হিসেবে লড়ছেন। 
+          আমি আপনাকে এই মামলার একটি নথিপত্র দিচ্ছি।
           
-          JSON এর কাঠামো হবে ঠিক এরকম:
+          আপনার জন্য কঠোর নির্দেশনা (Strict Instructions):
+          ১. কোনো কাল্পনিক তথ্য (Hallucination) দেবেন না। শুধুমাত্র ফাইলের তথ্যের উপর ভিত্তি করে ফ্যাক্টস দেবেন।
+          ২. কিন্তু আইনি যুক্তি (Arguments) ও জেরা (Cross-examination) তৈরির সময় আপনার সর্বোচ্চ আইনি মেধা ও বুদ্ধিমত্তা খাটাবেন।
+          ৩. কোনো দায়সারা বা ছোট উত্তর দেবেন না। প্রতিটি বিষয় অত্যন্ত বিস্তারিত, প্রফেশনাল ও আইনি ভাষায় বিশ্লেষণ করবেন।
+          
+          আপনার উত্তরটি অবশ্যই একটি JSON (Valid JSON) অবজেক্ট হতে হবে। কাঠামো:
           {
-            "summary": "মামলার বিস্তারিত ফ্যাক্টস, সারসংক্ষেপ এবং আইনি পয়েন্ট...",
-            "timeline": "১. [তারিখ]: [ঘটনা]\n২. [তারিখ]: [ঘটনা] (এভাবে ক্রমানুসারে)",
-            "questions": "বিপক্ষকে জেরার জন্য ধারালো কয়েকটি প্রশ্ন..."
+            "summary": "মামলার বিস্তারিত ফ্যাক্টস, সারসংক্ষেপ এবং আইনি পয়েন্টের গভীর বিশ্লেষণ...",
+            "timeline": "১. [তারিখ]: [ঘটনা বিস্তারিত]\n২. [তারিখ]: [ঘটনা বিস্তারিত] (এভাবে ক্রমানুসারে)",
+            "questions": "বিপক্ষকে জেরার জন্য ধারালো এবং কৌশলগত অন্তত ১০-১৫ টি বিস্তারিত প্রশ্ন..."
           }`;
 
           const requestBody = {
-              contents: [{
-                  parts: [
-                      { text: promptText },
-                      {
-                          inline_data: {
-                              mime_type: mimeType,
-                              data: base64data
-                          }
-                      }
-                  ]
-              }],
-              generationConfig: {
-                  response_mime_type: "application/json" // এআইকে শুধু JSON ফরম্যাটে উত্তর দিতে বাধ্য করা
-              }
+              contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: mimeType, data: base64data } }] }],
+              generationConfig: { response_mime_type: "application/json" }
           };
 
-          const aiResponse = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(requestBody)
-          });
-
+          const aiResponse = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
           const aiData = await aiResponse.json();
           
-          if (aiData.error) {
-              alert("AI Error: " + aiData.error.message);
-              setIsAiLoading(false);
-              return;
-          }
+          if (aiData.error) { alert("AI Error: " + aiData.error.message); setIsAiLoading(false); return; }
 
-          // 3. AI এর উত্তর ড্যাশবোর্ডে সেট করা
           const responseText = aiData.candidates[0].content.parts[0].text;
           const parsedResults = JSON.parse(responseText);
           
           setAiResults({
-              summary: parsedResults.summary || "কোনো তথ্য পাওয়া যায়নি।",
-              timeline: parsedResults.timeline || "কোনো তথ্য পাওয়া যায়নি।",
-              questions: parsedResults.questions || "কোনো তথ্য পাওয়া যায়নি।"
+              summary: parsedResults.summary || "",
+              timeline: parsedResults.timeline || "",
+              questions: parsedResults.questions || ""
           });
           
       } catch (error) {
           console.error("Error processing AI:", error);
-          alert("এআই অ্যানালাইসিস করতে সমস্যা হচ্ছে। ফাইলটি কি অনেক বড়? অথবা ইন্টারনেট কানেকশন চেক করুন।");
+          alert("এআই অ্যানালাইসিস করতে সমস্যা হচ্ছে। ফাইল সাইজ চেক করুন।");
       } finally {
           setIsAiLoading(false);
       }
   };
+
+  // ৩. AI Chat Function
+  const handleAiChat = async () => {
+      if(!aiChatInput) return;
+      const userMsg = { sender: 'user', text: aiChatInput };
+      setAiChatLog([...aiChatLog, userMsg]);
+      setAiChatInput('');
+      
+      try {
+          const API_KEY = "AIzaSyAzZMS9UAdhHzQMcPhp4-IOxbVdyvKhT5c";
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+          
+          // Contextual Prompt for Chat
+          const chatContext = `আপনি একজন দক্ষ আইনজীবী। আপনি '${aiParty}' এর পক্ষে আছেন। 
+          মামলার সারসংক্ষেপ: ${aiResults.summary}। 
+          এই তথ্যের উপর ভিত্তি করে ইউজারের প্রশ্নের উত্তর দিন। ইউজার প্রশ্ন: ${userMsg.text}`;
+
+          const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: [{ parts: [{ text: chatContext }] }] })
+          });
+          const data = await response.json();
+          const botMsg = { sender: 'ai', text: data.candidates[0].content.parts[0].text };
+          setAiChatLog(prev => [...prev, botMsg]);
+      } catch(e) {
+          console.error(e);
+      }
+  }
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
       
@@ -2187,106 +2219,138 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         </div>
      )}
 
-     {/* =========================================================================
-          NEW AI RESEARCH MODAL (Phase 1.1: Mobile Friendly UI)
+   {/* =========================================================================
+          NEW AI RESEARCH MODAL (Phase 3: Persistent, Specific File & Chat)
           ========================================================================= */}
       {modalMode === 'aiAnalysis' && selectedCase && (
         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[99999] flex items-center justify-center p-2 md:p-4 no-print">
-          <div className="bg-slate-50 w-full max-w-6xl rounded-xl md:rounded-2xl shadow-2xl overflow-hidden h-[95vh] md:h-[90vh] flex flex-col border border-slate-700">
+          <div className="bg-slate-50 w-full max-w-7xl rounded-xl md:rounded-2xl shadow-2xl overflow-hidden h-[95vh] flex flex-col border border-slate-700">
             
-            {/* AI Header - Mobile Optimized */}
+            {/* AI Header */}
             <div className="bg-slate-900 p-3 md:p-5 text-white flex justify-between items-center border-b-4 border-purple-500 shrink-0">
-              <div className="flex items-center gap-2 md:gap-3">
-                <div className="p-1.5 md:p-2 bg-purple-500/20 rounded-lg">
-                  <Sparkles size={20} className="text-purple-400 md:w-6 md:h-6" />
-                </div>
+              <div className="flex items-center gap-2 md:gap-4">
+                <div className="p-1.5 md:p-2 bg-purple-500/20 rounded-lg"><Sparkles size={24} className="text-purple-400" /></div>
                 <div>
-                  <h3 className="font-bold text-sm md:text-xl flex items-center gap-1 md:gap-2 leading-tight">AI Command Center</h3>
-                  <p className="text-[10px] md:text-xs text-purple-300 tracking-wider uppercase font-bold truncate max-w-[200px] md:max-w-none">Case: {selectedCase.case_no}</p>
+                  <h3 className="font-bold text-sm md:text-xl flex items-center gap-2">AI Command Center <span className="bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full">PRO</span></h3>
+                  <p className="text-[10px] md:text-xs text-purple-300 tracking-wider font-bold">Case: {selectedCase.case_no} | {selectedCase.party_name}</p>
                 </div>
               </div>
-              <button onClick={() => setModalMode(null)} className="hover:bg-red-500 hover:text-white p-1.5 md:p-2 rounded transition"><X size={20} className="md:w-6 md:h-6"/></button>
+              <div className="flex items-center gap-4">
+                 <div className="hidden md:flex items-center gap-2 bg-slate-800 p-2 rounded">
+                    <label className="text-xs text-slate-400 font-bold">Representing:</label>
+                    <select value={aiParty} onChange={(e) => setAiParty(e.target.value)} className="bg-slate-700 text-white text-xs p-1 rounded border-none outline-none font-bold">
+                       <option>Plaintiff/Petitioner (বাদী/আবেদনকারী)</option>
+                       <option>Defendant/Opposite Party (বিবাদী/প্রতিপক্ষ)</option>
+                       <option>Appellant (আপিলকারী)</option>
+                       <option>Respondent (রেসপনডেন্ট)</option>
+                    </select>
+                 </div>
+                 <button onClick={() => setModalMode(null)} className="hover:bg-red-500 p-2 rounded transition"><X size={24}/></button>
+              </div>
             </div>
 
-            {/* AI Body Layout - Stack on mobile, side-by-side on desktop */}
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
               
-              {/* Top/Left Column: Documents & File Upload */}
-              <div className="w-full md:w-1/3 md:max-w-sm border-b md:border-b-0 md:border-r border-slate-200 bg-white p-4 md:p-6 overflow-y-auto flex flex-col gap-4 md:gap-6 shrink-0 h-1/3 md:h-full">
-                
-                <div className="bg-purple-50 border border-purple-200 p-4 md:p-6 rounded-xl text-center shadow-inner relative overflow-hidden">
-                  {/* Progress Bar */}
-                  {uploadProgress > 0 && (
-                    <div className="absolute top-0 left-0 h-1.5 bg-purple-600 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
-                  )}
-                  
-                  <FolderOpen size={32} className="text-purple-400 mx-auto mb-2 md:mb-3 md:w-12 md:h-12"/>
-                  <h4 className="font-bold text-slate-900 text-sm md:text-base mb-1 md:mb-2">Upload Case File</h4>
-                  <p className="text-[10px] md:text-xs text-slate-500 mb-3 md:mb-4 hidden md:block">Upload PDF or Images for AI analysis.</p>
-                  
-                  {/* Hidden Input File */}
-                  <input 
-                    type="file" 
-                    id="ai-file-upload" 
-                    className="hidden" 
-                    onChange={handleFileUpload}
-                  />
-                  
-                  <label 
-                    htmlFor="ai-file-upload" 
-                    className={`w-full py-2 md:py-3 rounded-lg text-sm md:text-base font-bold transition shadow-md flex justify-center items-center gap-2 cursor-pointer ${isUploading ? 'bg-purple-400 text-white cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
-                  >
-                    {isUploading ? <span className="animate-pulse">Uploading {uploadProgress}%</span> : <><Plus size={16}/> Select File</>}
-                  </label>
+              {/* Left Column: Persistent File Archive */}
+              <div className="w-full md:w-1/3 border-r border-slate-200 bg-white p-4 md:p-6 overflow-y-auto flex flex-col gap-6 shrink-0">
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center relative">
+                   {uploadProgress > 0 && <div className="absolute top-0 left-0 h-1 bg-purple-600 transition-all" style={{ width: `${uploadProgress}%` }}></div>}
+                   <h4 className="font-bold text-slate-900 text-sm mb-2">Upload New Document</h4>
+                   <input type="file" id="ai-file-upload" className="hidden" onChange={(e) => {
+                       // এখানে আপনার পুরনো handleFileUpload কল করা হবে যা documents টেবিলে সেভ করবে
+                       handleFileUpload(e);
+                       setTimeout(() => fetchDocuments(selectedCase.id), 3000); // রিফ্রেশ করার জন্য
+                   }}/>
+                   <label htmlFor="ai-file-upload" className="w-full bg-slate-900 text-white py-2 rounded-lg text-sm font-bold cursor-pointer hover:bg-slate-800 flex justify-center items-center gap-2">
+                     {isUploading ? "Uploading..." : <><Plus size={16}/> Upload to Archive</>}
+                   </label>
                 </div>
 
-                <div className="flex-1 overflow-y-auto hidden md:block mt-4 md:mt-0">
-                  <h4 className="font-bold text-xs md:text-sm text-slate-900 uppercase mb-2 md:mb-3 flex items-center gap-2 border-b pb-2"><FileText size={14} className="text-slate-500"/> Uploaded File</h4>
-                  
-                  {uploadedFileUrl ? (
-                     <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between shadow-sm">
-                        <div className="flex items-center gap-2 truncate">
-                           <CheckCircle size={16} className="text-green-600 shrink-0"/>
-                           <span className="text-xs font-bold text-green-800 truncate">File is ready for AI</span>
-                        </div>
-                        <a href={uploadedFileUrl} target="_blank" rel="noreferrer" className="text-[10px] font-bold bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transition">View</a>
-                     </div>
-                  ) : (
-                     <p className="text-[10px] md:text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded border border-dashed">No documents uploaded yet.</p>
-                  )}
+                <div className="flex-1 overflow-y-auto border-t pt-4">
+                  <h4 className="font-bold text-xs text-slate-900 uppercase mb-3 flex items-center gap-2"><FolderOpen size={16} className="text-[#c5a059]"/> Digital Archive (Select for AI)</h4>
+                  <div className="space-y-2">
+                     {documents.map(d => (
+                         <div key={d.id} className={`p-3 rounded-lg border flex flex-col gap-2 transition ${selectedAiDoc?.id === d.id ? 'bg-purple-50 border-purple-400 shadow-md' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+                             <div className="flex justify-between items-start">
+                                 <div>
+                                     <p className="font-bold text-sm text-slate-900">{d.folder_type}</p>
+                                     <p className="text-xs text-slate-500 truncate max-w-[150px]">{d.doc_name || 'Document'}</p>
+                                     <p className="text-[9px] text-slate-400 mt-1">{new Date(d.created_at).toLocaleDateString()}</p>
+                                 </div>
+                                 <div className="flex gap-1">
+                                     <a href={d.drive_link} target="_blank" className="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100"><Eye size={14}/></a>
+                                     <button onClick={() => handleDeleteDoc(d.id)} className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100"><Trash2 size={14}/></button>
+                                 </div>
+                             </div>
+                             <button onClick={() => setSelectedAiDoc(d)} className={`w-full py-1.5 text-xs font-bold rounded flex justify-center items-center gap-1 ${selectedAiDoc?.id === d.id ? 'bg-purple-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
+                                 {selectedAiDoc?.id === d.id ? <><CheckCircle size={14}/> AI Selected</> : "Select for AI"}
+                             </button>
+                         </div>
+                     ))}
+                     {documents.length === 0 && <p className="text-xs text-slate-400 italic text-center py-4">No files uploaded yet.</p>}
+                  </div>
                 </div>
               </div>
 
-            {/* Bottom/Right Column: AI Outputs (Tabs) */}
-              <div className="flex-1 bg-slate-50 flex flex-col h-2/3 md:h-full">
-                {/* Scrollable Tabs for Mobile */}
-                <div className="flex gap-2 p-3 md:p-4 bg-white border-b border-slate-200 shrink-0 overflow-x-auto custom-scrollbar">
-                  <button onClick={() => setAiActiveTab('summary')} className={`px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-base font-bold rounded-lg whitespace-nowrap transition ${aiActiveTab === 'summary' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>Fact Summary</button>
-                  <button onClick={() => setAiActiveTab('timeline')} className={`px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-base font-bold rounded-lg whitespace-nowrap transition ${aiActiveTab === 'timeline' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>Timeline</button>
-                  <button onClick={() => setAiActiveTab('questions')} className={`px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-base font-bold rounded-lg whitespace-nowrap transition ${aiActiveTab === 'questions' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>Cross-Exam Questions</button>
+              {/* Right Column: Editable AI Outputs & Chat */}
+              <div className="flex-1 bg-slate-50 flex flex-col overflow-hidden">
+                <div className="flex justify-between items-center p-2 border-b border-slate-200 bg-white shrink-0">
+                    <div className="flex gap-1 overflow-x-auto custom-scrollbar">
+                      <button onClick={() => setAiActiveTab('summary')} className={`px-4 py-2 text-sm font-bold rounded-t-lg transition ${aiActiveTab === 'summary' ? 'bg-purple-100 text-purple-800 border-b-2 border-purple-600' : 'text-slate-500 hover:bg-slate-100'}`}>Fact Summary</button>
+                      <button onClick={() => setAiActiveTab('timeline')} className={`px-4 py-2 text-sm font-bold rounded-t-lg transition ${aiActiveTab === 'timeline' ? 'bg-purple-100 text-purple-800 border-b-2 border-purple-600' : 'text-slate-500 hover:bg-slate-100'}`}>Timeline</button>
+                      <button onClick={() => setAiActiveTab('questions')} className={`px-4 py-2 text-sm font-bold rounded-t-lg transition ${aiActiveTab === 'questions' ? 'bg-purple-100 text-purple-800 border-b-2 border-purple-600' : 'text-slate-500 hover:bg-slate-100'}`}>Questions</button>
+                      <button onClick={() => setAiActiveTab('chat')} className={`px-4 py-2 text-sm font-bold rounded-t-lg transition flex items-center gap-1 ${aiActiveTab === 'chat' ? 'bg-blue-100 text-blue-800 border-b-2 border-blue-600' : 'text-slate-500 hover:bg-slate-100'}`}><MessageCircle size={14}/> AI Chat</button>
+                    </div>
+                    <button onClick={handleSaveAiData} className="hidden md:flex bg-green-600 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-green-700 items-center gap-1 shadow-sm">
+                        <Save size={14}/> Save Text
+                    </button>
                 </div>
                 
-                <div className="p-4 md:p-6 flex-1 overflow-y-auto">
-                   {isAiLoading ? (
-                      <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
-                          <span className="w-12 h-12 md:w-16 md:h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></span>
-                          <p className="text-purple-600 font-bold animate-pulse">AI নথিপত্র বিশ্লেষণ করছে...</p>
-                      </div>
-                   ) : !aiResults.summary ? (
-                      <div className="h-full flex flex-col items-center justify-center text-center space-y-3 md:space-y-4 opacity-70">
-                          <Sparkles size={48} className="text-purple-400 md:w-16 md:h-16"/>
-                          <h2 className="text-xl md:text-2xl font-bold text-slate-500">অ্যানালাইসিসের জন্য প্রস্তুত</h2>
-                          <p className="text-xs md:text-sm text-slate-500 max-w-xs md:max-w-sm px-4">ডকুমেন্ট আপলোড করার পর নিচের বাটনে ক্লিক করে AI রিপোর্ট জেনারেট করুন।</p>
-                          <button onClick={handleGenerateAI} disabled={!uploadedFileUrl} className={`mt-4 px-6 py-3 rounded-lg font-bold shadow-md flex items-center gap-2 transition ${uploadedFileUrl ? 'bg-purple-600 text-white hover:bg-purple-700 hover:scale-105' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
-                             <Sparkles size={18}/> Generate AI Report
-                          </button>
-                      </div>
-                   ) : (
-                      <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-200 text-slate-800 text-sm md:text-base whitespace-pre-wrap leading-relaxed">
-                          {aiActiveTab === 'summary' && aiResults.summary}
-                          {aiActiveTab === 'timeline' && aiResults.timeline}
-                          {aiActiveTab === 'questions' && aiResults.questions}
-                      </div>
+                <div className="p-4 flex-1 overflow-y-auto relative">
+                   {/* Generate Button Overlay */}
+                   {aiActiveTab !== 'chat' && (
+                     <div className="absolute top-4 right-4 z-10">
+                        <button onClick={handleGenerateAI} disabled={!selectedAiDoc || isAiLoading} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg hover:bg-purple-700 disabled:bg-gray-400 flex items-center gap-2">
+                           {isAiLoading ? <span className="animate-spin"><RefreshCw size={16}/></span> : <Sparkles size={16}/>} 
+                           {isAiLoading ? "Analyzing..." : "Generate Insights"}
+                        </button>
+                     </div>
+                   )}
+
+                   {aiActiveTab === 'summary' && (
+                       <textarea value={aiResults.summary || selectedCase.ai_summary || ''} onChange={e => setAiResults({...aiResults, summary: e.target.value})} className="w-full h-full p-4 border border-slate-200 rounded-lg shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400" placeholder="AI will generate highly detailed summary here. You can edit and save it permanently..."></textarea>
+                   )}
+                   {aiActiveTab === 'timeline' && (
+                       <textarea value={aiResults.timeline || selectedCase.ai_timeline || ''} onChange={e => setAiResults({...aiResults, timeline: e.target.value})} className="w-full h-full p-4 border border-slate-200 rounded-lg shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400" placeholder="Chronological timeline will appear here..."></textarea>
+                   )}
+                   {aiActiveTab === 'questions' && (
+                       <textarea value={aiResults.questions || selectedCase.ai_questions || ''} onChange={e => setAiResults({...aiResults, questions: e.target.value})} className="w-full h-full p-4 border border-slate-200 rounded-lg shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400" placeholder="Strategic cross-examination questions will appear here..."></textarea>
+                   )}
+                   
+                   {/* AI Chat Interface */}
+                   {aiActiveTab === 'chat' && (
+                       <div className="flex flex-col h-full bg-white rounded-lg border shadow-sm">
+                           <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                               <div className="flex gap-3">
+                                   <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Sparkles size={16} className="text-purple-600"/></div>
+                                   <div className="bg-purple-50 p-3 rounded-lg rounded-tl-none text-sm text-slate-700">হ্যালো! আমি লেক্সসোর্ড এআই। এই মামলার তথ্যের ওপর ভিত্তি করে আপনার যেকোনো প্রশ্নের উত্তর দিতে আমি প্রস্তুত।</div>
+                               </div>
+                               {aiChatLog.map((msg, i) => (
+                                   <div key={i} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                                       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.sender === 'user' ? 'bg-slate-800 text-white' : 'bg-purple-100 text-purple-600'}`}>
+                                           {msg.sender === 'user' ? <User size={16}/> : <Sparkles size={16}/>}
+                                       </div>
+                                       <div className={`p-3 rounded-lg text-sm max-w-[80%] ${msg.sender === 'user' ? 'bg-slate-100 text-slate-800 rounded-tr-none' : 'bg-purple-50 text-slate-700 rounded-tl-none whitespace-pre-wrap'}`}>
+                                           {msg.text}
+                                       </div>
+                                   </div>
+                               ))}
+                           </div>
+                           <div className="p-3 border-t bg-slate-50 flex gap-2">
+                               <input value={aiChatInput} onChange={e => setAiChatInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleAiChat()} placeholder="Ask a question about this case..." className="flex-1 p-2 rounded border outline-none text-sm"/>
+                               <button onClick={handleAiChat} className="bg-purple-600 text-white px-4 rounded font-bold hover:bg-purple-700"><ArrowRight size={18}/></button>
+                           </div>
+                       </div>
                    )}
                 </div>
               </div>
