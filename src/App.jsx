@@ -2314,7 +2314,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 </div>
               </div>
 
-              {/* Right Column: Editable AI Outputs & Chat */}
+            {/* Right Column: Editable AI Outputs & Chat */}
               <div className="flex-1 bg-slate-50 flex flex-col overflow-hidden">
                 <div className="flex justify-between items-center p-2 border-b border-slate-200 bg-white shrink-0">
                     <div className="flex gap-1 overflow-x-auto custom-scrollbar">
@@ -2328,29 +2328,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                     </button>
                 </div>
                 
-                <div className="p-4 flex-1 overflow-y-auto relative">
-                   {/* Generate Button Overlay */}
-                   {aiActiveTab !== 'chat' && (
-                     <div className="absolute top-4 right-4 z-10">
-                        <button onClick={handleGenerateAI} disabled={!selectedAiDoc || isAiLoading} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg hover:bg-purple-700 disabled:bg-gray-400 flex items-center gap-2">
-                           {isAiLoading ? <span className="animate-spin"><RefreshCw size={16}/></span> : <Sparkles size={16}/>} 
-                           {isAiLoading ? "Analyzing..." : "Generate Insights"}
-                        </button>
-                     </div>
-                   )}
-
-                   {aiActiveTab === 'summary' && (
-                       <textarea value={aiResults.summary || selectedCase.ai_summary || ''} onChange={e => setAiResults({...aiResults, summary: e.target.value})} className="w-full h-full p-4 border border-slate-200 rounded-lg shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400" placeholder="AI will generate highly detailed summary here. You can edit and save it permanently..."></textarea>
-                   )}
-                   {aiActiveTab === 'timeline' && (
-                       <textarea value={aiResults.timeline || selectedCase.ai_timeline || ''} onChange={e => setAiResults({...aiResults, timeline: e.target.value})} className="w-full h-full p-4 border border-slate-200 rounded-lg shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400" placeholder="Chronological timeline will appear here..."></textarea>
-                   )}
-                   {aiActiveTab === 'questions' && (
-                       <textarea value={aiResults.questions || selectedCase.ai_questions || ''} onChange={e => setAiResults({...aiResults, questions: e.target.value})} className="w-full h-full p-4 border border-slate-200 rounded-lg shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400" placeholder="Strategic cross-examination questions will appear here..."></textarea>
-                   )}
+                <div className="p-4 md:p-6 flex-1 overflow-y-auto relative bg-slate-50">
                    
-                   {/* AI Chat Interface */}
-                   {aiActiveTab === 'chat' && (
+                   {aiActiveTab === 'chat' ? (
+                       {/* AI Chat Interface */}
                        <div className="flex flex-col h-full bg-white rounded-lg border shadow-sm">
                            <div className="flex-1 p-4 overflow-y-auto space-y-4">
                                <div className="flex gap-3">
@@ -2373,6 +2354,48 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                                <button onClick={handleAiChat} className="bg-purple-600 text-white px-4 rounded font-bold hover:bg-purple-700"><ArrowRight size={18}/></button>
                            </div>
                        </div>
+                   ) : (
+                       // --- INSIGHTS INTERFACE (Summary, Timeline, Questions) ---
+                       isAiLoading ? (
+                          <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
+                              <span className="w-12 h-12 md:w-16 md:h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></span>
+                              <p className="text-purple-600 font-bold animate-pulse">AI নথিপত্র বিশ্লেষণ করছে...</p>
+                          </div>
+                       ) : (!aiResults.summary && !selectedCase.ai_summary) ? (
+                          // *** CENTERED GENERATE BUTTON ***
+                          <div className="h-full flex flex-col items-center justify-center text-center">
+                              <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200 max-w-lg w-full flex flex-col items-center">
+                                  <Sparkles size={64} className="text-purple-600 mb-4"/>
+                                  <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Ready for Insights</h2>
+                                  <p className="text-sm text-slate-600 mb-8 whitespace-pre-wrap">
+                                    {selectedAiDoc ? `File: ${selectedAiDoc.doc_name || 'Document'} is selected and ready.\nClick below to generate LexSword insights.` : "বাম পাশ থেকে একটি ডকুমেন্ট 'Select for AI' করুন।"}
+                                  </p>
+                                  <button onClick={handleGenerateAI} disabled={!selectedAiDoc} className={`w-full py-3 md:py-4 rounded-xl text-base md:text-lg font-bold shadow-lg flex justify-center items-center gap-2 transition ${selectedAiDoc ? 'bg-purple-600 text-white hover:bg-purple-700 hover:-translate-y-1' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
+                                     <Sparkles size={20}/> Generate Insights
+                                  </button>
+                              </div>
+                          </div>
+                       ) : (
+                          // --- GENERATED TEXTAREAS ---
+                          <div className="h-full flex flex-col relative">
+                             {/* Regenerate Button at Top Right when text exists */}
+                             <div className="absolute top-4 right-4 z-10 opacity-50 hover:opacity-100 transition">
+                                <button onClick={handleGenerateAI} disabled={!selectedAiDoc || isAiLoading} className="bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:bg-purple-200 flex items-center gap-1">
+                                   <RefreshCw size={12}/> Regenerate
+                                </button>
+                             </div>
+
+                             {aiActiveTab === 'summary' && (
+                                 <textarea value={aiResults.summary || selectedCase.ai_summary || ''} onChange={e => setAiResults({...aiResults, summary: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="AI will generate highly detailed summary here. You can edit and save it permanently..."></textarea>
+                             )}
+                             {aiActiveTab === 'timeline' && (
+                                 <textarea value={aiResults.timeline || selectedCase.ai_timeline || ''} onChange={e => setAiResults({...aiResults, timeline: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="Chronological timeline will appear here..."></textarea>
+                             )}
+                             {aiActiveTab === 'questions' && (
+                                 <textarea value={aiResults.questions || selectedCase.ai_questions || ''} onChange={e => setAiResults({...aiResults, questions: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="Strategic cross-examination questions will appear here..."></textarea>
+                             )}
+                          </div>
+                       )
                    )}
                 </div>
               </div>
