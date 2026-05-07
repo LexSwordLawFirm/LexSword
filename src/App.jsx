@@ -8,7 +8,7 @@ import {
   Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, 
   ArrowRight, Menu, RefreshCw, CheckCircle, Search, ClipboardList, 
   AlertTriangle, Clock, CheckSquare, Printer, PieChart, TrendingUp, TrendingDown,
-  Quote, Shield, Users, Award, BookOpen, Briefcase, Landmark, HardHat, HeartPulse, Gem, FileText, Scale as ScaleIcon, ShieldCheck, MessageSquare
+  Quote, Shield, Users, Award, BookOpen, Briefcase, Landmark, HardHat, HeartPulse, Gem, FileText, Scale as ScaleIcon, ShieldCheck, Sparkles, MessageSquare
 } from 'lucide-react';
 
 // ==============================================================================
@@ -1382,6 +1382,11 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                     </div>
 
                     <div className="flex gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
+                      {/* ------ নতুন AI বাটন শুরু ------ */}
+  <button onClick={() => { setSelectedCase(c); setModalMode('aiAnalysis'); }} className="p-2 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 font-bold flex items-center gap-1 border border-purple-300 shadow-sm" title="AI Case Analysis">
+    <Sparkles size={16} className="text-purple-600"/> AI Research
+  </button>
+  {/* ------ নতুন AI বাটন শেষ ------ */}
                       <button onClick={() => { setFormData(c); setModalMode('updateStatus'); }} className="p-2 bg-slate-900 text-white rounded hover:bg-[#c5a059] font-bold flex items-center gap-1" title="Update">
                         <RefreshCw size={16}/> Update
                       </button>
@@ -2039,12 +2044,77 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
             </div>
           </div>
         </div>
+     )}
+
+      {/* =========================================================================
+          NEW AI RESEARCH MODAL (Phase 1: UI Structure)
+          ========================================================================= */}
+      {modalMode === 'aiAnalysis' && selectedCase && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[99999] flex items-center justify-center p-4 no-print">
+          <div className="bg-slate-50 w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden h-[90vh] flex flex-col border border-slate-700">
+            
+            {/* AI Header */}
+            <div className="bg-slate-900 p-5 text-white flex justify-between items-center border-b-4 border-purple-500 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <Sparkles size={24} className="text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-xl flex items-center gap-2">LexSword AI Command Center</h3>
+                  <p className="text-xs text-purple-300 tracking-wider uppercase font-bold">Case No: {selectedCase.case_no} | {selectedCase.party_name}</p>
+                </div>
+              </div>
+              <button onClick={() => setModalMode(null)} className="hover:bg-red-500 hover:text-white p-2 rounded transition"><X size={24}/></button>
+            </div>
+
+            {/* AI Body Layout */}
+            <div className="flex-1 flex overflow-hidden">
+              
+              {/* Left Column: Documents & File Upload */}
+              <div className="w-1/3 border-r border-slate-200 bg-white p-6 overflow-y-auto flex flex-col gap-6">
+                
+                <div className="bg-purple-50 border border-purple-200 p-6 rounded-xl text-center">
+                  <FolderOpen size={48} className="text-purple-400 mx-auto mb-3"/>
+                  <h4 className="font-bold text-slate-900 mb-2">Upload Case File</h4>
+                  <p className="text-xs text-slate-500 mb-4">Upload PDF for AI to read and analyze.</p>
+                  <button className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition shadow-lg flex justify-center items-center gap-2">
+                    <Plus size={18}/> Select File
+                  </button>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900 uppercase mb-3 flex items-center gap-2 border-b pb-2"><FileText size={16} className="text-slate-500"/> Scanned Documents</h4>
+                  {/* We will map uploaded files here later */}
+                  <p className="text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded border border-dashed">No documents uploaded for AI reading yet.</p>
+                </div>
+              </div>
+
+              {/* Right Column: AI Outputs (Tabs) */}
+              <div className="flex-1 bg-slate-50 flex flex-col">
+                <div className="flex gap-2 p-4 bg-white border-b border-slate-200 shrink-0">
+                  <button className="px-6 py-2 bg-purple-100 text-purple-800 font-bold rounded-lg border border-purple-200">Fact Summary</button>
+                  <button className="px-6 py-2 bg-white text-slate-600 font-bold rounded-lg hover:bg-slate-100 border border-slate-200">Timeline</button>
+                  <button className="px-6 py-2 bg-white text-slate-600 font-bold rounded-lg hover:bg-slate-100 border border-slate-200">Cross-Exam Questions</button>
+                </div>
+                
+                <div className="p-8 flex-1 overflow-y-auto">
+                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-50">
+                      <Sparkles size={64} className="text-purple-300"/>
+                      <h2 className="text-2xl font-bold text-slate-400">Ready for Analysis</h2>
+                      <p className="text-slate-500 max-w-sm">Upload a document on the left and command AI to generate insights, timeline, and questions.</p>
+                   </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
       )}
+      {/* ======================= AI RESEARCH MODAL END ========================= */}
 
     </div>
   );
 };
-
 // ==============================================================================
 // 3. MAIN APP CONTROLLER
 // ==============================================================================
