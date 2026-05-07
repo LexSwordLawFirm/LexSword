@@ -2185,7 +2185,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 </div>
               </div>
 
-             {/* Bottom/Right Column: AI Outputs (Tabs) */}
+            {/* Bottom/Right Column: AI Outputs (Tabs) */}
               <div className="flex-1 bg-slate-50 flex flex-col h-2/3 md:h-full">
                 {/* Scrollable Tabs for Mobile */}
                 <div className="flex gap-2 p-3 md:p-4 bg-white border-b border-slate-200 shrink-0 overflow-x-auto custom-scrollbar">
@@ -2218,6 +2218,11 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                    )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ======================= AI RESEARCH MODAL END ========================= */}
 
     </div>
   );
