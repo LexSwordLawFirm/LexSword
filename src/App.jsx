@@ -1319,22 +1319,23 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   // ADVANCED AI ANALYSIS & SAVE HANDLER
   // =========================================================================
   
-  // ১. AI ডাটা ডাটাবেসে চিরস্থায়ী সেভ করার ফাংশন
+  // ১. AI ডাটা প্রতিটি নির্দিষ্ট ডকুমেন্টের সাথে চিরস্থায়ী সেভ করার ফাংশন
   const handleSaveAiData = async () => {
-      const { error } = await supabase.from('cases').update({
+      if (!selectedAiDoc) return alert("আগে একটি ডকুমেন্ট সিলেক্ট করুন!");
+      
+      const { error } = await supabase.from('documents').update({
           ai_party: aiParty,
           ai_summary: aiResults.summary,
           ai_timeline: aiResults.timeline,
           ai_questions: aiResults.questions
-      }).eq('id', selectedCase.id);
+      }).eq('id', selectedAiDoc.id); // এখন এটি নির্দিষ্ট ফাইলের সাথে সেভ হবে
       
       if(error) alert(error.message);
       else {
-          alert("AI ডেটা সফলভাবে ডাটাবেসে সেভ হয়েছে!");
-          setRefresh(r => r+1);
+          alert("AI ডেটা সফলভাবে এই ডকুমেন্টের সাথে সেভ হয়েছে!");
+          fetchDocuments(selectedCase.id); // রিফ্রেশ করার জন্য
       }
   };
-
   // ২. নির্দিষ্ট ফাইল থেকে AI জেনারেট করার ফাংশন
   const handleGenerateAI = async () => {
       if (!selectedAiDoc) return alert("বাম পাশ থেকে আগে একটি ফাইল 'Select for AI' করুন!");
@@ -2319,7 +2320,12 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                                  </div>
                              </div>
                              {selectedAiDoc?.id !== d.id && (
-                                <button onClick={() => setSelectedAiDoc(d)} className="w-full py-1.5 text-[10px] font-bold rounded bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+                                <button onClick={() => { 
+                                    setSelectedAiDoc(d);
+                                    setAiParty(d.ai_party || 'Plaintiff/Petitioner (বাদী/আবেদনকারী)');
+                                    setAiResults({ summary: d.ai_summary || '', timeline: d.ai_timeline || '', questions: d.ai_questions || '' });
+                                    setAiChatLog([]); // নতুন ফাইল সিলেক্ট করলে চ্যাট ক্লিয়ার হবে
+                                }} className="w-full py-1.5 text-[10px] font-bold rounded bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
                                    Select for AI
                                 </button>
                              )}
@@ -2333,7 +2339,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 </div>
               </div>
 
-          {/* Right Column: Editable AI Outputs & Chat */}
+              {/* Right Column: Editable AI Outputs & Chat */}
               <div className="flex-1 bg-slate-50 flex flex-col overflow-hidden">
                 <div className="flex justify-between items-center p-2 border-b border-slate-200 bg-white shrink-0">
                     <div className="flex gap-1 overflow-x-auto custom-scrollbar">
@@ -2356,16 +2362,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Sparkles size={16} className="text-purple-600"/></div>
                                    <div className="bg-purple-50 p-3 rounded-lg rounded-tl-none text-sm text-slate-700">হ্যালো! আমি লেক্সসোর্ড এআই। এই মামলার তথ্যের ওপর ভিত্তি করে আপনার যেকোনো প্রশ্নের উত্তর দিতে আমি প্রস্তুত।</div>
                                </div>
-                             {isAiChatLoading && (
-                                   <div className="flex gap-3">
-                                       <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Sparkles size={16} className="text-purple-600"/></div>
-                                       <div className="bg-purple-50 p-3 rounded-lg rounded-tl-none text-sm text-slate-700 flex items-center gap-2">
-                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></span>
-                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
-                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                                       </div>
-                                   </div>
-                               )}
                                {aiChatLog.map((msg, i) => (
                                    <div key={i} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.sender === 'user' ? 'bg-slate-800 text-white' : 'bg-purple-100 text-purple-600'}`}>
@@ -2376,6 +2372,16 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                                        </div>
                                    </div>
                                ))}
+                               {isAiChatLoading && (
+                                   <div className="flex gap-3">
+                                       <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Sparkles size={16} className="text-purple-600"/></div>
+                                       <div className="bg-purple-50 p-3 rounded-lg rounded-tl-none text-sm text-slate-700 flex items-center gap-2">
+                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></span>
+                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
+                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                                       </div>
+                                   </div>
+                               )}
                            </div>
                            <div className="p-3 border-t bg-slate-50 flex gap-2">
                                <input value={aiChatInput} onChange={e => setAiChatInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleAiChat()} placeholder="Ask a question about this case..." className="flex-1 p-2 rounded border outline-none text-sm"/>
@@ -2388,7 +2394,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                               <span className="w-12 h-12 md:w-16 md:h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></span>
                               <p className="text-purple-600 font-bold animate-pulse">AI নথিপত্র বিশ্লেষণ করছে...</p>
                           </div>
-                       ) : (!aiResults.summary && !selectedCase?.ai_summary) ? (
+                       ) : (!aiResults.summary) ? (
                           <div className="h-full flex flex-col items-center justify-center text-center">
                               <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200 max-w-lg w-full flex flex-col items-center">
                                   <Sparkles size={64} className="text-purple-600 mb-4"/>
@@ -2410,13 +2416,13 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                              </div>
 
                              {aiActiveTab === 'summary' && (
-                                 <textarea value={aiResults.summary || selectedCase.ai_summary || ''} onChange={e => setAiResults({...aiResults, summary: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="AI will generate highly detailed summary here. You can edit and save it permanently..."></textarea>
+                                 <textarea value={aiResults.summary} onChange={e => setAiResults({...aiResults, summary: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="AI will generate highly detailed summary here. You can edit and save it permanently..."></textarea>
                              )}
                              {aiActiveTab === 'timeline' && (
-                                 <textarea value={aiResults.timeline || selectedCase.ai_timeline || ''} onChange={e => setAiResults({...aiResults, timeline: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="Chronological timeline will appear here..."></textarea>
+                                 <textarea value={aiResults.timeline} onChange={e => setAiResults({...aiResults, timeline: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="Chronological timeline will appear here..."></textarea>
                              )}
                              {aiActiveTab === 'questions' && (
-                                 <textarea value={aiResults.questions || selectedCase.ai_questions || ''} onChange={e => setAiResults({...aiResults, questions: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="Strategic cross-examination questions will appear here..."></textarea>
+                                 <textarea value={aiResults.questions} onChange={e => setAiResults({...aiResults, questions: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="Strategic cross-examination questions will appear here..."></textarea>
                              )}
                           </div>
                        )
