@@ -1357,7 +1357,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               mimeType = selectedAiDoc.drive_link.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
           }
 
-          const API_KEY = "AIzaSyBxF0NYbmiSZIp7QR2i3VaSM7uzL59xIJU";
+          const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
           const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
           // Advanced Prompt Engineering
@@ -1418,7 +1418,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
       setIsAiChatLoading(true);
       
       try {
-          const API_KEY = "AIzaSyAzZMS9UAdhHzQMcPhp4-IOxbVdyvKhT5c";
+          const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
           const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
           
           // হিস্ট্রি এবং কনটেক্সট তৈরি করা
