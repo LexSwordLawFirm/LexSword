@@ -851,27 +851,43 @@ const ClientDashboard = ({ session, onLogout }) => {
              </div>
              <div className="p-6 space-y-6">
                 <div className="grid grid-cols-2 gap-6 text-sm bg-slate-50 p-4 rounded border">
-                   <div>
-                      <p className="text-slate-500 font-bold uppercase text-xs">Court Info</p>
-                      <p className="font-bold text-lg text-slate-900">{selectedCase.court_name}</p>
-                      <p className="text-slate-700">{selectedCase.court_type} - {selectedCase.case_nature}</p>
-                   </div>
-                   <div>
-                      <p className="text-slate-500 font-bold uppercase text-xs">Parties</p>
-                      <p className="font-bold text-lg text-slate-900">{selectedCase.party_name}</p>
-                   </div>
-                   <div>
-                      <p className="text-slate-500 font-bold uppercase text-xs">Status</p>
-                      <p className="text-lg font-bold text-red-600">{selectedCase.next_date}</p>
-                      <p className="text-slate-900">{selectedCase.current_step}</p>
-                      {selectedCase.note && <p className="text-sm text-slate-700 mt-3 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">{selectedCase.note}</p>}
-                   </div>
-                   <div className="flex items-end">
-                      <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold hover:bg-[#c5a059] transition">
-                         <History size={16}/> VIEW HISTORY
-                      </button>
-                   </div>
-                </div>
+                       <div>
+                          <p className="text-slate-500 font-bold uppercase text-xs">Court Info</p>
+                          <p className="font-bold text-lg text-slate-900">{selectedCase.court_name}</p>
+                          <p className="text-slate-700">{selectedCase.court_type} - {selectedCase.case_nature}</p>
+                          
+                          {/* --- High Court Fields --- */}
+                          {selectedCase.court_type === 'High Court' && (
+                             <div className="mt-2 pt-2 border-t border-slate-200">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase">District</p>
+                                <p className="font-semibold text-slate-800">{selectedCase.district_name || 'N/A'}</p>
+                             </div>
+                          )}
+                       </div>
+                       <div>
+                          <p className="text-slate-500 font-bold uppercase text-xs">Parties</p>
+                          <p className="font-bold text-lg text-slate-900">{selectedCase.party_name}</p>
+
+                          {/* --- High Court Fields --- */}
+                          {selectedCase.court_type === 'High Court' && (
+                             <div className="mt-2 pt-2 border-t border-slate-200">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase">On Behalf Of</p>
+                                <p className="font-semibold text-slate-800">{selectedCase.on_behalf_of || 'N/A'}</p>
+                             </div>
+                          )}
+                       </div>
+                       <div>
+                          <p className="text-slate-500 font-bold uppercase text-xs">Status</p>
+                          <p className="text-lg font-bold text-red-600">{selectedCase.next_date}</p>
+                          <p className="text-slate-900">{selectedCase.current_step}</p>
+                       {selectedCase.note && <p className="text-sm text-slate-700 mt-3 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">{selectedCase.note}</p>}
+                       </div>
+                       <div className="flex items-end">
+                          <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold hover:bg-[#c5a059] transition">
+                             <History size={16}/> VIEW HISTORY
+                          </button>
+                       </div>
+                    </div>
                 <div>
                    <div className="flex justify-between items-center mb-4 border-b pb-2">
                      <h4 className="font-bold text-lg flex items-center gap-2 text-slate-900"><FolderOpen className="text-[#c5a059]"/> Digital Archive</h4>
@@ -2121,27 +2137,43 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
              </div>
              <div className="p-6 space-y-6">
                 <div className="grid grid-cols-2 gap-6 text-sm bg-slate-50 p-4 rounded border">
-                   <div>
-                      <p className="text-slate-500 font-bold uppercase text-xs">Court Info</p>
-                      <p className="font-bold text-lg text-slate-900">{selectedCase.court_name}</p>
-                      <p className="text-slate-700">{selectedCase.court_type} - {selectedCase.case_nature}</p>
-                   </div>
-                   <div>
-                      <p className="text-slate-500 font-bold uppercase text-xs">Parties</p>
-                      <p className="font-bold text-lg text-slate-900">{selectedCase.party_name}</p>
-                   </div>
-                   <div>
-                      <p className="text-slate-500 font-bold uppercase text-xs">Status</p>
-                      <p className="text-lg font-bold text-red-600">{selectedCase.next_date}</p>
-                      <p className="text-slate-900">{selectedCase.current_step}</p>
-                   {selectedCase.note && <p className="text-sm text-slate-700 mt-3 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">{selectedCase.note}</p>}
-                   </div>
-                   <div className="flex items-end">
-                      <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold hover:bg-[#c5a059] transition">
-                         <History size={16}/> VIEW HISTORY
-                      </button>
-                   </div>
-                </div>
+                       <div>
+                          <p className="text-slate-500 font-bold uppercase text-xs">Court Info</p>
+                          <p className="font-bold text-lg text-slate-900">{selectedCase.court_name}</p>
+                          <p className="text-slate-700">{selectedCase.court_type} - {selectedCase.case_nature}</p>
+                          
+                          {/* --- High Court Fields --- */}
+                          {selectedCase.court_type === 'High Court' && (
+                             <div className="mt-2 pt-2 border-t border-slate-200">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase">District</p>
+                                <p className="font-semibold text-slate-800">{selectedCase.district_name || 'N/A'}</p>
+                             </div>
+                          )}
+                       </div>
+                       <div>
+                          <p className="text-slate-500 font-bold uppercase text-xs">Parties</p>
+                          <p className="font-bold text-lg text-slate-900">{selectedCase.party_name}</p>
+
+                          {/* --- High Court Fields --- */}
+                          {selectedCase.court_type === 'High Court' && (
+                             <div className="mt-2 pt-2 border-t border-slate-200">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase">On Behalf Of</p>
+                                <p className="font-semibold text-slate-800">{selectedCase.on_behalf_of || 'N/A'}</p>
+                             </div>
+                          )}
+                       </div>
+                       <div>
+                          <p className="text-slate-500 font-bold uppercase text-xs">Status</p>
+                          <p className="text-lg font-bold text-red-600">{selectedCase.next_date}</p>
+                          <p className="text-slate-900">{selectedCase.current_step}</p>
+                       {selectedCase.note && <p className="text-sm text-slate-700 mt-3 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">{selectedCase.note}</p>}
+                       </div>
+                       <div className="flex items-end">
+                          <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold hover:bg-[#c5a059] transition">
+                             <History size={16}/> VIEW HISTORY
+                          </button>
+                       </div>
+                    </div>
   
                 <div>
                    <div className="flex justify-between items-center mb-4 border-b pb-2">
