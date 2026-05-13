@@ -783,7 +783,7 @@ const ClientDashboard = ({ session, onLogout }) => {
                     
                     <div className="text-left md:text-right w-full md:w-auto">
                       <p className="text-xs text-slate-600">Next Date</p>
-                      <p className="text-lg font-bold text-red-600">{c.next_date}</p>
+                      <p className="text-lg font-bold text-red-600">{c.next_date ? c.next_date.split('-').reverse().join('-') : ''}</p>
                       <p className="text-xs font-bold text-[#c5a059] uppercase">{c.current_step}</p>
                     </div>
 
@@ -878,7 +878,7 @@ const ClientDashboard = ({ session, onLogout }) => {
                        </div>
                        <div>
                           <p className="text-slate-500 font-bold uppercase text-xs">Status</p>
-                          <p className="text-lg font-bold text-red-600">{selectedCase.next_date}</p>
+                          <p className="text-lg font-bold text-red-600">{selectedCase.next_date ? selectedCase.next_date.split('-').reverse().join('-') : ''}</p>
                           <p className="text-slate-900">{selectedCase.current_step}</p>
                        {selectedCase.note && <p className="text-sm text-slate-700 mt-3 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">{selectedCase.note}</p>}
                        </div>
@@ -923,14 +923,14 @@ const ClientDashboard = ({ session, onLogout }) => {
                      <div key={i} className="flex gap-4 border-l-2 border-slate-300 pl-4 pb-6 relative">
                         <div className="absolute -left-[9px] top-0 w-4 h-4 bg-slate-300 rounded-full"></div>
                         <div className="w-full">
-                           <p className="font-bold text-slate-900">{h.prev_date}</p>
+                           <p className="font-bold text-slate-900">{h.prev_date ? h.prev_date.split('-').reverse().join('-') : ''}</p>
                            <p className="text-sm text-slate-800 font-semibold">{h.prev_step}</p>
                            {h.note && (
                               <p className="text-sm text-slate-600 italic bg-slate-100 p-2 mt-2 rounded border-l-2 border-[#c5a059]">
                                  {h.note}
                               </p>
                            )}
-                           <p className="text-[10px] text-slate-400 mt-2">Recorded: {new Date(h.recorded_at).toLocaleDateString()}</p>
+                           <p className="text-[10px] text-slate-400 mt-2">Recorded: {new Date(h.recorded_at).toLocaleDateString('en-GB')}</p>
                         </div>
                      </div>
                   ))}
@@ -1829,7 +1829,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                       {filteredTxns.length === 0 && <tr><td colSpan="7" className="p-4 text-center text-slate-500 italic">No records found for this period.</td></tr>}
                       {filteredTxns.map(a => (
                         <tr key={a.id} className="border-b border-slate-100 hover:bg-slate-50">
-                          <td className="p-3 text-sm text-slate-700">{a.date}</td>
+                          <td className="p-3 text-sm text-slate-700">{a.date ? a.date.split('-').reverse().join('-') : ''}</td>
                           <td className="p-3 font-bold text-slate-900 text-sm">{a.client_name || '-'}</td>
                           <td className="p-3 text-sm text-slate-700">{a.description}</td>
                           <td className="p-3"><span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">{a.category}</span></td>
