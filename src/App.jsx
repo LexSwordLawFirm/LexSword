@@ -2003,64 +2003,115 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         </div>
       )}
 
-      {modalMode === 'addCase' && (
+     {modalMode === 'addCase' && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="bg-white w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="bg-slate-900 p-4 text-white flex justify-between">
               <h3 className="font-bold flex items-center gap-2"><Gavel/> {formData.id ? 'Edit Case' : 'New Case Entry'}</h3>
               <button onClick={() => setModalMode(null)}><X/></button>
             </div>
-            <div className="p-6 grid md:grid-cols-2 gap-4">
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Court Type</label>
-               <select value={formData.court_type} onChange={e => setFormData({...formData, court_type: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white">
-                 <option>Judge Court</option><option>High Court</option>
-               </select></div>
-               
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Case Nature / Type</label>
-               <select value={formData.case_nature} onChange={e => setFormData({...formData, case_nature: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white">
-                 <option value="">-- Select Type --</option>
-                 <option>Civil Suit</option><option>Criminal Case</option>
-                 <option>Writ Petition</option><option>Civil Revision</option>
-                 <option>Criminal Revision</option><option>Civil Appeal</option>
-                 <option>Criminal Appeal</option><option>Misc Case</option>
-               </select></div>
+            
+            <div className="p-6">
+               {/* Court Type Selection (Always Visible) */}
+               <div className="mb-6 w-full md:w-1/3">
+                 <label className="text-sm font-bold text-slate-700 block mb-2">Select Court Type First:</label>
+                 <select value={formData.court_type} onChange={e => setFormData({...formData, court_type: e.target.value})} className="w-full border-2 border-[#c5a059] p-2 rounded text-slate-900 bg-yellow-50 font-bold focus:outline-none">
+                   <option>Judge Court</option>
+                   <option>High Court</option>
+                 </select>
+               </div>
 
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Court Name</label>
-               <input value={formData.court_name} onChange={e => setFormData({...formData, court_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Case No</label>
-               <input value={formData.case_no} onChange={e => setFormData({...formData, case_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">File No (ফাইল নম্বর)</label>
-                <input value={formData.file_no || ''} onChange={e => setFormData({...formData, file_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
-              
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Section</label>
-               <input value={formData.section} onChange={e => setFormData({...formData, section: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Party Name</label>
-                <input value={formData.party_name} onChange={e => setFormData({...formData, party_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Client Mobile</label>
-               <input value={formData.client_mobile} onChange={e => setFormData({...formData, client_mobile: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
-               <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Status</label>
-               <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white">
-                 <option>Ongoing</option><option>Disposed</option>
-               </select></div>
-               <div className="space-y-1">
-                   <label className="text-xs font-bold text-slate-700">Case Note / Order Summary</label>
-                   <textarea rows="1" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নোট লিখুন..." className="w-full border p-2 rounded bg-white text-slate-900"></textarea>
-                </div>
-               <div className="col-span-2 grid grid-cols-2 gap-4 bg-yellow-50 p-4 rounded border border-yellow-200">
-                  <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Date</label>
-                  <input type="date" value={formData.next_date} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
-                  <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Step</label>
-                  <input value={formData.current_step} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
-                 </div>
+               {/* ============================================================== */}
+               {/* HIGH COURT FIELDS (Conditional) */}
+               {/* ============================================================== */}
+               {formData.court_type === 'High Court' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 border-t pt-4 border-slate-200">
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">District Name</label>
+                    <input value={formData.district_name || ''} onChange={e => setFormData({...formData, district_name: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white" placeholder="Enter District"/></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">File Name / No.</label>
+                    <input value={formData.file_no || ''} onChange={e => setFormData({...formData, file_no: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white" placeholder="Enter File Name"/></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Court Name</label>
+                    <input value={formData.court_name || ''} onChange={e => setFormData({...formData, court_name: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white" placeholder="High Court Division"/></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Case Number</label>
+                    <input value={formData.case_no || ''} onChange={e => setFormData({...formData, case_no: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white" placeholder="e.g. Writ Petition 123/2026"/></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Party Name</label>
+                    <input value={formData.party_name || ''} onChange={e => setFormData({...formData, party_name: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white" placeholder="Plaintiff vs Defendant"/></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">On Behalf Of</label>
+                    <input value={formData.on_behalf_of || ''} onChange={e => setFormData({...formData, on_behalf_of: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white" placeholder="Petitioner / Respondent"/></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Status</label>
+                    <select value={formData.status || 'Ongoing'} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white">
+                      <option>Ongoing</option><option>Disposed</option>
+                    </select></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Present Status</label>
+                    <input value={formData.present_status || ''} onChange={e => setFormData({...formData, present_status: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white" placeholder="Current Situation"/></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Date</label>
+                    <input type="date" value={formData.next_date || ''} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border border-red-300 p-2 rounded bg-white text-slate-900"/></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-red-700">Step / Next Step</label>
+                    <input value={formData.current_step || ''} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border border-red-300 p-2 rounded bg-white text-slate-900" placeholder="Next Hearing"/></div>
+
+                    <div className="space-y-1 lg:col-span-2"><label className="text-xs font-bold text-slate-700">Order Summary</label>
+                    <textarea rows="2" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="Write order summary here..." className="w-full border p-2 rounded bg-white text-slate-900"></textarea></div>
+                  </div>
+               ) : (
+               /* ============================================================== */
+               /* JUDGE COURT FIELDS (Default/Previous) */
+               /* ============================================================== */
+                  <div className="grid md:grid-cols-2 gap-4 border-t pt-4 border-slate-200">
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Case Nature / Type</label>
+                    <select value={formData.case_nature} onChange={e => setFormData({...formData, case_nature: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white">
+                      <option value="">-- Select Type --</option>
+                      <option>Civil Suit</option><option>Criminal Case</option>
+                      <option>Civil Revision</option><option>Criminal Revision</option>
+                      <option>Civil Appeal</option><option>Criminal Appeal</option><option>Misc Case</option>
+                    </select></div>
+
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Court Name</label>
+                    <input value={formData.court_name} onChange={e => setFormData({...formData, court_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Case No</label>
+                    <input value={formData.case_no} onChange={e => setFormData({...formData, case_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">File No (ফাইল নম্বর)</label>
+                    <input value={formData.file_no || ''} onChange={e => setFormData({...formData, file_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Section</label>
+                    <input value={formData.section} onChange={e => setFormData({...formData, section: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Party Name</label>
+                    <input value={formData.party_name} onChange={e => setFormData({...formData, party_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Client Mobile</label>
+                    <input value={formData.client_mobile} onChange={e => setFormData({...formData, client_mobile: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+                    <div className="space-y-1"><label className="text-xs font-bold text-slate-700">Status</label>
+                    <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white">
+                      <option>Ongoing</option><option>Disposed</option>
+                    </select></div>
+                    <div className="space-y-1 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700">Case Note / Order Summary</label>
+                        <textarea rows="1" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নোট লিখুন..." className="w-full border p-2 rounded bg-white text-slate-900"></textarea>
+                    </div>
+                    <div className="md:col-span-2 grid grid-cols-2 gap-4 bg-yellow-50 p-4 rounded border border-yellow-200">
+                      <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Date</label>
+                      <input type="date" value={formData.next_date} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
+                      <div className="space-y-1"><label className="text-xs font-bold text-red-700">Next Step</label>
+                      <input value={formData.current_step} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border p-2 rounded bg-white text-slate-900"/></div>
+                    </div>
+                  </div>
+               )}
+
             </div>
-            <div className="p-4 border-t flex justify-end gap-3">
-               <button onClick={() => setModalMode(null)} className="px-4 py-2 border rounded text-slate-700">Cancel</button>
-               <button onClick={handleSaveCase} className="px-6 py-2 bg-slate-900 text-white rounded font-bold">SAVE</button>
-             </div>
+            
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+               <button onClick={() => setModalMode(null)} className="px-6 py-2 border border-slate-300 bg-white rounded text-slate-700 font-bold hover:bg-slate-100">Cancel</button>
+               <button onClick={handleSaveCase} className="px-8 py-2 bg-slate-900 text-white rounded font-bold hover:bg-[#c5a059] transition shadow">SAVE DATA</button>
+            </div>
           </div>
         </div>
       )}
-
       {modalMode === 'viewCase' && selectedCase && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto text-slate-900">
