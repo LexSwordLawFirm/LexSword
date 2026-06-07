@@ -244,10 +244,32 @@ const handleDisagreeDisclaimer = () => {
                   </a>
                </div>
             </div>
-            <div className="order-1 md:order-2 reveal-modern delay-200 flex justify-center md:justify-end relative">
-               <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full"></div>
-               <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhrv5fWOLISqAtdKDYvsYoOXFgr22v8F-jFBpRf5dAU-KhjLHalm8MFM6BtG-BBENBq_iOnCag47N5I2fx08NXBZwOdSf8eTbMbsajHIQryrqBb4m88oi5hIBc9ioLUzjG1qNUC6oEulThS-YtRmp83mszAyWjHJiX4nhcPtKXB_fdy7nB4iC7niJG9P3cr/s1600/2332.png" alt="LexSword" className="w-full max-w-md md:max-w-lg animate-float drop-shadow-2xl relative z-10" />
-            </div>
+            <div className="order-1 md:order-2 reveal-modern delay-200 flex justify-center md:justify-end relative py-10 md:py-0">
+   {/* Background Soft Glow */}
+   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px] bg-blue-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+
+   {/* Modern Code-based Law Emblem */}
+   <div className="relative w-[280px] h-[280px] md:w-[450px] md:h-[450px] flex items-center justify-center animate-float z-10">
+       
+       {/* Rotating Decorative Rings */}
+       <div className="absolute inset-4 md:inset-8 border border-[#c5a059]/20 rounded-full animate-[spin_12s_linear_infinite] shadow-[inset_0_0_20px_rgba(197,160,89,0.1)]"></div>
+       <div className="absolute inset-8 md:inset-16 border-2 border-dashed border-[#c5a059]/40 rounded-full animate-[spin_20s_linear_infinite_reverse]"></div>
+       <div className="absolute inset-12 md:inset-24 border border-[#c5a059]/30 rounded-full"></div>
+
+       {/* Core Gold Center */}
+       <div className="relative flex items-center justify-center bg-gradient-to-br from-[#c5a059] to-[#9c7d41] rounded-full shadow-[0_0_60px_rgba(197,160,89,0.3)] p-10 md:p-14 transition-transform duration-500 hover:scale-105">
+           
+           {/* Main Justice Scale Icon */}
+           <ScaleIcon className="text-slate-900 w-[90px] h-[90px] md:w-[150px] md:h-[150px]" strokeWidth={1.2} />
+           
+           {/* Protection Shield Accent */}
+           <div className="absolute -bottom-2 -right-2 md:-bottom-4 md:-right-4 bg-slate-900 p-3 md:p-5 rounded-full border-4 border-[#c5a059] shadow-lg">
+               <ShieldCheck className="text-[#c5a059] w-[24px] h-[24px] md:w-[36px] md:h-[36px]" strokeWidth={2}/>
+           </div>
+           
+       </div>
+   </div>
+</div>
          </div>
       </header>
 
