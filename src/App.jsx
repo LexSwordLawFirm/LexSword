@@ -172,32 +172,28 @@ const handleDisagreeDisclaimer = () => {
               </div>
           </div>
       )}
-      {/* Header / Navbar */}
+   {/* Header / Navbar */}
       <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-lg py-2' : 'bg-transparent py-4 md:py-6'}`}>
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
+          
+          {/* LOGO SECTION */}
           <div className="flex items-center gap-3">
-  <div className={`flex items-center justify-center ${scrolled ? 'text-[#c5a059]' : 'text-[#c5a059]'}`}>
-      {/* Custom LexSword Shield & Sword Logo */}
-      <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 hover:scale-110 drop-shadow-md">
-         {/* উপরের দিকে কাটা শিল্ড (Flat-top Shield) */}
-         <path d="M3.5 3h17v7c0 5.5-4 10-8.5 12C7.5 20 3.5 15.5 3.5 10V3z" />
-         {/* তলোয়ারের হাতল (Sword Handle) */}
-         <line x1="12" y1="5.5" x2="12" y2="9" />
-         {/* তলোয়ারের গার্ড (Sword Guard) */}
-         <line x1="8.5" y1="9" x2="15.5" y2="9" />
-         {/* তলোয়ারের ব্লেড (Sword Blade) */}
-         <line x1="12" y1="9" x2="12" y2="18.5" />
-      </svg>
-  </div>
-  <div>
-    <h1 className={`text-2xl font-serif font-bold tracking-widest ${scrolled ? 'text-slate-900' : 'text-white'}`}>LEXSWORD</h1>
-    <p className={`text-[10px] font-bold tracking-[0.3em] uppercase ${scrolled ? 'text-gray-500' : 'text-gray-300'} mt-1`}>Chambers of Law</p>
-  </div>
-</div>
-              <h1 className={`text-2xl font-serif font-bold tracking-widest ${scrolled ? 'text-slate-900' : 'text-white'}`}>LexSword</h1>
-              <p className={`text-[10px] font-bold tracking-[0.3em] uppercase ${scrolled ? 'text-gray-500' : 'text-gray-300'} mt-1`}>Trusted Law Firm</p>
+            <div className={`flex items-center justify-center ${scrolled ? 'text-[#c5a059]' : 'text-[#c5a059]'}`}>
+                {/* Custom LexSword Shield & Sword Logo */}
+                <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 hover:scale-110 drop-shadow-md">
+                   <path d="M3.5 3h17v7c0 5.5-4 10-8.5 12C7.5 20 3.5 15.5 3.5 10V3z" />
+                   <line x1="12" y1="5.5" x2="12" y2="9" />
+                   <line x1="8.5" y1="9" x2="15.5" y2="9" />
+                   <line x1="12" y1="9" x2="12" y2="18.5" />
+                </svg>
+            </div>
+            <div>
+              <h1 className={`text-2xl font-serif font-bold tracking-widest ${scrolled ? 'text-slate-900' : 'text-white'}`}>LEXSWORD</h1>
+              <p className={`text-[10px] font-bold tracking-[0.3em] uppercase ${scrolled ? 'text-gray-500' : 'text-gray-300'} mt-1`}>Chambers of Law</p>
             </div>
           </div>
+
+          {/* DESKTOP MENU */}
           <div className={`hidden lg:flex items-center gap-8 text-sm font-bold uppercase tracking-wider ${scrolled ? 'text-slate-800' : 'text-white'}`}>
             <a href="#home" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Home</a>
             <a href="#about" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">About</a>
@@ -205,6 +201,8 @@ const handleDisagreeDisclaimer = () => {
             <a href="#team" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Team</a>
             <a href="#contact" className="hover:text-[#c5a059] transition border-b-2 border-transparent hover:border-[#c5a059] pb-1">Contact</a>
           </div>
+          
+          {/* CONTACT & LOGIN BUTTON */}
           <div className="hidden md:flex items-center gap-6">
              <a href="tel:+8801911008518" className="flex items-center gap-3 group">
                 <div className={`text-[#c5a059] group-hover:animate-pulse`}><Phone size={24}/></div>
@@ -217,10 +215,14 @@ const handleDisagreeDisclaimer = () => {
                 {loading ? '...' : 'Login Portal'}
              </button>
           </div>
+          
+          {/* MOBILE MENU TOGGLE BUTTON */}
           <button onClick={() => setMenuOpen(!menuOpen)} className={`lg:hidden ${scrolled ? 'text-slate-900' : 'text-white'}`}>
             {menuOpen ? <X size={28}/> : <Menu size={28}/>}
           </button>
         </div>
+        
+        {/* MOBILE MENU DROPDOWN */}
         {menuOpen && (
           <div className="lg:hidden absolute top-full left-0 w-full bg-soft-blue-solid border-t border-slate-700 p-6 flex flex-col gap-4 font-bold text-center text-gray-300 shadow-xl">
              <a href="#home" onClick={()=>setMenuOpen(false)}>Home</a>
@@ -232,7 +234,6 @@ const handleDisagreeDisclaimer = () => {
           </div>
         )}
       </nav>
-
       {/* 1. HERO SECTION */}
       <header id="home" className="relative min-h-screen flex items-center bg-soft-blue-gradient overflow-hidden pt-32 md:pt-48 pb-48">
          <div className="absolute inset-0 z-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
