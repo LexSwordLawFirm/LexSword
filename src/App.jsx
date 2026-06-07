@@ -176,10 +176,24 @@ const handleDisagreeDisclaimer = () => {
       <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-lg py-2' : 'bg-transparent py-4 md:py-6'}`}>
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-full border-2 ${scrolled ? 'border-[#c5a059] text-[#c5a059]' : 'border-white text-[#c5a059]'}`}>
-              <Scale size={22} />
-            </div>
-            <div>
+  <div className={`flex items-center justify-center ${scrolled ? 'text-[#c5a059]' : 'text-[#c5a059]'}`}>
+      {/* Custom LexSword Shield & Sword Logo */}
+      <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 hover:scale-110 drop-shadow-md">
+         {/* উপরের দিকে কাটা শিল্ড (Flat-top Shield) */}
+         <path d="M3.5 3h17v7c0 5.5-4 10-8.5 12C7.5 20 3.5 15.5 3.5 10V3z" />
+         {/* তলোয়ারের হাতল (Sword Handle) */}
+         <line x1="12" y1="5.5" x2="12" y2="9" />
+         {/* তলোয়ারের গার্ড (Sword Guard) */}
+         <line x1="8.5" y1="9" x2="15.5" y2="9" />
+         {/* তলোয়ারের ব্লেড (Sword Blade) */}
+         <line x1="12" y1="9" x2="12" y2="18.5" />
+      </svg>
+  </div>
+  <div>
+    <h1 className={`text-2xl font-serif font-bold tracking-widest ${scrolled ? 'text-slate-900' : 'text-white'}`}>LEXSWORD</h1>
+    <p className={`text-[10px] font-bold tracking-[0.3em] uppercase ${scrolled ? 'text-gray-500' : 'text-gray-300'} mt-1`}>Chambers of Law</p>
+  </div>
+</div>
               <h1 className={`text-2xl font-serif font-bold tracking-widest ${scrolled ? 'text-slate-900' : 'text-white'}`}>LexSword</h1>
               <p className={`text-[10px] font-bold tracking-[0.3em] uppercase ${scrolled ? 'text-gray-500' : 'text-gray-300'} mt-1`}>Trusted Law Firm</p>
             </div>
@@ -229,8 +243,8 @@ const handleDisagreeDisclaimer = () => {
                   Established {establishedYear}
                </p>
                <h1 className="text-5xl md:text-7xl font-serif font-bold text-white leading-[1.1]">
-                  Defending Your Rights, <br/>
-                  <span className="text-[#c5a059]">Securing Your Future.</span>
+                  Your Justice, <br/>
+                  <span className="text-[#c5a059]">Our Mission.</span>
                </h1>
                <p className="text-gray-300 text-base md:text-lg leading-relaxed max-w-lg border-l-0 md:border-l-2 border-[#c5a059] pl-0 md:pl-6 mx-auto md:mx-0">
                   LexSword Chambers provides expert legal representation in the Supreme Court and all lower courts of Bangladesh with uncompromised integrity.
