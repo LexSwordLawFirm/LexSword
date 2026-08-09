@@ -1203,15 +1203,37 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     });
   };
 
-  const filteredTxns = getFilteredAccounts();
-  const calcTotal = (type, status = 'Paid') => filteredTxns.filter(a => a.txn_type === type && a.payment_status === status).reduce((sum, a) => sum + Number(a.amount), 0);
+ const filteredTxns = getFilteredAccounts();
+  
+  // --- NEW SAVINGS & TODAY'S CALCULATIONS ---
+  // 1. Total Savings Calculation (From all accounts, not just filtered)
+  const globalSavingsDeposit = accounts.filter(a => a.category === 'Savings' && a.txn_type === 'Expense' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount), 0);
+  const globalSavingsWithdrawal = accounts.filter(a => a.category === 'Savings' && a.txn_type === 'Income' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount), 0);
+  const totalSavings = globalSavingsDeposit - globalSavingsWithdrawal;
+
+  // 2. Today's Calculations
+  const todayTxns = accounts.filter(a => a.date === today && a.payment_status === 'Paid');
+  const todayIncome = todayTxns.filter(a => a.txn_type === 'Income' && a.category !== 'Savings').reduce((sum, a) => sum + Number(a.amount), 0);
+  const todayExpense = todayTxns.filter(a => a.txn_type === 'Expense' && a.category !== 'Savings').reduce((sum, a) => sum + Number(a.amount), 0);
+  const todaySavingsDeposit = todayTxns.filter(a => a.category === 'Savings' && a.txn_type === 'Expense').reduce((sum, a) => sum + Number(a.amount), 0);
+  const todaySavingsWithdraw = todayTxns.filter(a => a.category === 'Savings' && a.txn_type === 'Income').reduce((sum, a) => sum + Number(a.amount), 0);
+  const todaySavingsNet = todaySavingsDeposit - todaySavingsWithdraw;
+
+  // 3. Filtered Stats (For the bottom cards)
+  const calcFilteredTotal = (type, excludeSavings = false, status = 'Paid') => 
+      filteredTxns.filter(a => a.txn_type === type && a.payment_status === status && (!excludeSavings || a.category !== 'Savings')).reduce((sum, a) => sum + Number(a.amount), 0);
+
   const accStats = {
-      income: calcTotal('Income'),
-      expense: calcTotal('Expense'),
-      dueIncome: calcTotal('Income', 'Due'),
-      dueExpense: calcTotal('Expense', 'Due'),
+      income: calcFilteredTotal('Income', true), // Regular income (excludes savings withdrawal)
+      expense: calcFilteredTotal('Expense', true), // Regular expense (excludes savings deposit)
+      dueIncome: calcFilteredTotal('Income', false, 'Due'),
+      dueExpense: calcFilteredTotal('Expense', false, 'Due'),
   };
-  const cashInHand = accStats.income - accStats.expense;
+  
+  // Cash in Hand = All Income (including from savings) - All Expense (including to savings)
+  const totalFilteredIncome = filteredTxns.filter(a => a.txn_type === 'Income' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount), 0);
+  const totalFilteredExpense = filteredTxns.filter(a => a.txn_type === 'Expense' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount), 0);
+  const cashInHand = totalFilteredIncome - totalFilteredExpense;
 
   const handlePrint = () => window.print();
   const setMonthFilter = () => {
@@ -1812,6 +1834,29 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                   </div>
               </div>
 
+            {/* --- NEW STATS GRID FOR TODAY & SAVINGS --- */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="bg-white p-4 rounded shadow border-l-4 border-blue-500 flex flex-col justify-between">
+                      <p className="text-xs font-bold text-gray-500 uppercase">Today's Income</p>
+                      <p className="text-2xl font-bold text-slate-900 mt-1">৳{todayIncome}</p>
+                  </div>
+                  <div className="bg-white p-4 rounded shadow border-l-4 border-pink-500 flex flex-col justify-between">
+                      <p className="text-xs font-bold text-gray-500 uppercase">Today's Expense</p>
+                      <p className="text-2xl font-bold text-slate-900 mt-1">৳{todayExpense}</p>
+                  </div>
+                  <div className="bg-white p-4 rounded shadow border-l-4 border-indigo-500 flex flex-col justify-between">
+                      <p className="text-xs font-bold text-gray-500 uppercase">Today's Savings</p>
+                      <p className="text-2xl font-bold text-slate-900 mt-1">
+                          {todaySavingsNet > 0 ? '+' : ''}৳{todaySavingsNet}
+                      </p>
+                  </div>
+                  <div className="bg-slate-900 p-4 rounded shadow text-white flex flex-col justify-between border-l-4 border-[#c5a059]">
+                      <p className="text-xs font-bold text-[#c5a059] uppercase flex items-center gap-2"><PieChart size={14}/> Total Savings</p>
+                      <p className="text-3xl font-bold mt-1">৳{totalSavings}</p>
+                  </div>
+              </div>
+
+              {/* ORIGINAL FILTERED STATS GRID */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded shadow border-l-4 border-green-500 flex flex-col justify-between">
                     <div>
@@ -1829,10 +1874,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                  </div>
                 <div className="bg-slate-900 p-4 rounded shadow text-white flex flex-col justify-between">
                     <div>
-                        <p className="text-xs font-bold text-[#c5a059] uppercase flex items-center gap-2"><PieChart size={14}/> Balance / Profit</p>
+                        <p className="text-xs font-bold text-[#c5a059] uppercase flex items-center gap-2"><PieChart size={14}/> Cash In Hand</p>
                         <p className="text-3xl font-bold mt-1">৳{cashInHand}</p>
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-2">Cash In Hand</p>
+                    <p className="text-[10px] text-gray-400 mt-2">Available Balance</p>
                 </div>
                 <div className="bg-white p-4 rounded shadow border-l-4 border-orange-500 flex flex-col justify-between">
                      <div>
@@ -1970,8 +2015,8 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                   <input placeholder="Client Name" value={formData.client_name} onChange={e => setFormData({...formData, client_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
                   <input placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
                   <div className="flex gap-2">
-                      <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
-                        <option>Office</option><option>Personal</option><option>Client</option><option>Court Fee</option><option>Salary</option><option>Misc</option>
+                     <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
+                        <option>Office</option><option>Personal</option><option>Client</option><option>Court Fee</option><option>Salary</option><option>Savings</option><option>Misc</option>
                       </select>
                       <select value={formData.payment_status} onChange={e => setFormData({...formData, payment_status: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
                         <option>Paid</option><option>Due</option>
