@@ -927,8 +927,8 @@ const ClientDashboard = ({ session, onLogout }) => {
                     </div>
                 <div>
                    <div className="flex justify-between items-center mb-4 border-b pb-2">
-                     <h4 className="font-bold text-lg flex items-center gap-2 text-slate-900"><FolderOpen className="text-[#c5a059]"/> Digital Archive</h4>
-                     <button onClick={() => fetchDocuments(selectedCase.id)} className="text-xs underline text-slate-600">Refresh</button>
+                     <h4 className="font-bold text-lg flex items-center gap-2 text-slate-900"><FolderOpen className="text-[#c5a059]"/> Professional Digital Case File Manager</h4>
+                     <button onClick={() => fetchDocuments(selectedCase.id)} className="text-xs underline text-slate-600">Sync Files</button>
                    </div>
                    <div className="space-y-2 mt-4">
                       {documents.map(d => (
@@ -2016,7 +2016,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                   <input placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
                   <div className="flex gap-2">
                      <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
-                        <option>Office</option><option>Personal</option><option>Client</option><option>Court Fee</option><option>Salary</option><option>Savings</option><option>Misc</option>
+                        <option>Office</option><option>Personal</option><option>Client</option><option>Court Fee</option><option>Salary</option><option>Savings</option><option>Evidence</option><option>Affidavit</option><option>Order Sheet</option><option>Misc</option>
                       </select>
                       <select value={formData.payment_status} onChange={e => setFormData({...formData, payment_status: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
                         <option>Paid</option><option>Due</option>
@@ -2259,8 +2259,8 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   
                 <div>
                    <div className="flex justify-between items-center mb-4 border-b pb-2">
-                     <h4 className="font-bold text-lg flex items-center gap-2 text-slate-900"><FolderOpen className="text-[#c5a059]"/> Digital Archive</h4>
-                     <button onClick={() => fetchDocuments(selectedCase.id)} className="text-xs underline text-slate-600">Refresh</button>
+                     <h4 className="font-bold text-lg flex items-center gap-2 text-slate-900"><FolderOpen className="text-[#c5a059]"/> Professional Digital Case File Manager</h4>
+                     <button onClick={() => fetchDocuments(selectedCase.id)} className="text-xs underline text-slate-600">Sync Files</button>
                    </div>
                    
                    {isAdmin && (
@@ -2269,7 +2269,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                            <label className="text-xs font-bold text-slate-600">Folder</label>
                            <select className="w-full p-2 border rounded text-sm text-slate-900 bg-white" value={newDoc.folder_type} onChange={e => setNewDoc({...newDoc, folder_type: e.target.value})}>
                                <option>Plaint (Arji)</option><option>Written Statement (Jabab)</option>
-                              <option>Complaint (Nalishi)</option><option>Judgment</option><option>Misc</option>
+                              <option>Complaint (Nalishi)</option><option>Judgment</option><option>Evidence</option><option>Affidavit</option><option>Order Sheet</option><option>Misc</option>
                            </select>
                         </div>
                         <div className="flex-1 space-y-1">
@@ -2288,7 +2288,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                    
                    <div className="space-y-2">
                       {documents.map(d => (
-                         <div key={d.id} className="flex justify-between items-center bg-white border p-3 rounded hover:bg-gray-50">
+                         <div key={d.id} className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition">
                            <div className="flex items-center gap-3">
                                <Folder className="text-yellow-500" size={18}/>
                                <div><p className="font-bold text-sm text-slate-900">{d.folder_type}</p><p className="text-xs text-slate-500">{d.doc_name}</p></div>
