@@ -670,8 +670,7 @@ const ClientDashboard = ({ session, onLogout }) => {
   };
 
   const changeMonth = (offset) => {
-    const newDate = new Date(calendarDate.setMonth(calendarDate.getMonth() + offset));
-    setCalendarDate(new Date(newDate));
+    setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + offset, 1));
   };
 
   const getLocalStr = (d) => {
@@ -728,12 +727,12 @@ const ClientDashboard = ({ session, onLogout }) => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
+    <div className="lex-dashboard lex-client-dashboard flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
       
       {/* Mobile Dark Overlay */}
       {mobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)}></div>}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static no-print`}>
+      <aside className={`lex-sidebar fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static no-print`}>
         <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800 tracking-wider flex justify-between items-center">
           CHAMBERS <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(false)}><X size={24}/></button>
         </div>
@@ -749,20 +748,38 @@ const ClientDashboard = ({ session, onLogout }) => {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print">
+        <div className="lex-mobile-topbar md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print">
            <span className="font-bold font-serif text-[#c5a059]">My Case Portal</span>
            <button onClick={() => setMobileMenuOpen(true)}><Menu size={24}/></button>
         </div>
 
-        <main className="flex-1 overflow-y-auto relative p-4 md:p-6 print-container">
+        <main className="lex-main flex-1 overflow-y-auto relative p-4 md:p-6 print-container">
           
           {activeTab === 'dashboard' && (
             <div>
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 className="text-2xl md:text-3xl font-bold text-slate-900">My Case Dashboard</h2>
-              </div>
+              <section className="lex-overview-hero">
+                <div className="lex-overview-copy">
+                  <p className="lex-overview-kicker">LEXSWORD · LEGAL CASE MANAGEMENT</p>
+                  <h2 className="text-2xl md:text-3xl font-bold">My Case Dashboard</h2>
+                  <p>Keep your hearings, case status and important dates in one place.</p>
+                </div>
+                <div className="lex-overview-side">
+                  <div className="lex-overview-total">
+                    <span>Cases listed</span>
+                    <strong>{currentCounts.all}</strong>
+                    <small>{mainCaseTab === 'judge' ? 'Judge Court' : 'High Court'}</small>
+                  </div>
+                </div>
+              </section>
 
-              <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
+              <section className="lex-stat-grid" aria-label="Case summary">
+                <div className="lex-stat-card"><div><span className="lex-stat-label">Total cases</span><strong>{currentCounts.all}</strong><small>Selected court</small></div><Gavel className="lex-stat-icon lex-icon-blue" size={24}/></div>
+                <div className="lex-stat-card"><div><span className="lex-stat-label">Pending cases</span><strong>{currentCounts.pending}</strong><small>Ongoing matters</small></div><Clock className="lex-stat-icon lex-icon-gold" size={24}/></div>
+                <div className="lex-stat-card"><div><span className="lex-stat-label">Hearings today</span><strong>{currentCounts.today}</strong><small>Scheduled for today</small></div><CalIcon className="lex-stat-icon lex-icon-green" size={24}/></div>
+                <div className="lex-stat-card"><div><span className="lex-stat-label">Needs update</span><strong>{currentCounts.update}</strong><small>Past-date ongoing cases</small></div><AlertTriangle className="lex-stat-icon lex-icon-red" size={24}/></div>
+              </section>
+
+              <div className="lex-case-tabs flex gap-0 mb-4 border-b-2 border-slate-300">
                   <button onClick={() => { setMainCaseTab('judge'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'judge' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
                       Judge Court ({getCounts('judge').all})
                   </button>
@@ -771,12 +788,12 @@ const ClientDashboard = ({ session, onLogout }) => {
                   </button>
               </div>
 
-              <div className="mb-4 relative">
+              <div className="lex-case-search mb-4 relative">
                   <Search className="absolute left-3 top-2.5 text-gray-400" size={20}/>
                   <input type="text" placeholder="Search by Case No or Party Name..." className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded focus:border-[#c5a059] outline-none text-slate-900" onChange={(e) => setSearchTerm(e.target.value)}/>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="lex-filter-row flex flex-wrap gap-2 mb-6">
                 {mainCaseTab === 'judge' ? (
                     <>
                         <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
@@ -803,10 +820,10 @@ const ClientDashboard = ({ session, onLogout }) => {
                 )}
               </div>
 
-              <div className="grid gap-4">
+              <div className="lex-case-list grid gap-4">
                 {getFilteredCases().length === 0 && <p className="text-slate-500 italic">No cases found.</p>}
                 {getFilteredCases().map(c => (
-                  <div key={c.id} className="bg-white p-4 md:p-5 rounded-lg shadow border-l-4 border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 transition">
+                  <div key={c.id} className="lex-case-card bg-white p-4 md:p-5 rounded-lg shadow border-l-4 border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 transition">
                     <div className="flex-1">
                       <div className="flex gap-2 mb-1">
                          <span className="text-xs font-bold bg-blue-100 text-blue-900 px-2 rounded">{c.court_type}</span>
@@ -834,20 +851,21 @@ const ClientDashboard = ({ session, onLogout }) => {
           )}
 
           {activeTab === 'calendar' && (
-            <div className="bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900">
-              <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+            <div className="lex-calendar-panel bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900">
+              <div className="lex-calendar-toolbar flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                   <h2 className="text-2xl font-bold">Monthly Schedule</h2>
-                  <div className="flex items-center gap-4 bg-slate-200 p-2 rounded text-slate-900">
-                    <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-slate-300 rounded"><ChevronLeft/></button>
-                    <span className="font-bold text-lg w-32 text-center">{calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => changeMonth(1)} className="p-2 hover:bg-slate-300 rounded"><ChevronRight/></button>
+                  <div className="lex-calendar-controls flex items-center gap-4 bg-slate-200 p-2 rounded text-slate-900">
+                    <button aria-label="Previous month" onClick={() => changeMonth(-1)} className="lex-calendar-arrow p-2 hover:bg-slate-300 rounded"><ChevronLeft/></button>
+                    <button onClick={() => setCalendarDate(new Date())} className="lex-calendar-jump-today">Today</button>
+                    <span className="font-bold text-lg w-36 text-center">{calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                    <button aria-label="Next month" onClick={() => changeMonth(1)} className="lex-calendar-arrow p-2 hover:bg-slate-300 rounded"><ChevronRight/></button>
                   </div>
               </div>
-              <div className="grid grid-cols-7 gap-1 font-bold text-center bg-slate-200 text-slate-900 p-2 rounded mb-2 text-xs md:text-base">
+              <div className="lex-calendar-weekdays grid grid-cols-7 gap-1 font-bold text-center bg-slate-200 text-slate-900 p-2 rounded mb-2 text-xs md:text-base">
                   <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
               </div>
-              <div className="grid grid-cols-7 gap-1 md:gap-2 flex-1">
-                  {[...Array(35)].map((_, i) => {
+              <div className="lex-calendar-grid grid grid-cols-7 gap-1 md:gap-2 flex-1">
+                  {[...Array(42)].map((_, i) => {
                     const year = calendarDate.getFullYear();
                     const month = calendarDate.getMonth();
                     const firstDay = new Date(year, month, 1).getDay();
@@ -856,13 +874,13 @@ const ClientDashboard = ({ session, onLogout }) => {
                     const isCurrentMonth = d.getMonth() === month;
                     const hasCase = myCases.filter(c => c.next_date === dateStr);
                     return (
-                      <div key={i} className={`border p-1 md:p-2 h-24 md:h-32 rounded-lg flex flex-col transition-all ${!isCurrentMonth ? 'bg-slate-50 opacity-50' : hasCase.length > 0 ? 'bg-white border-red-200 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+                      <div key={i} className={`lex-calendar-cell border p-1 md:p-2 h-24 md:h-32 rounded-lg flex flex-col transition-all ${dateStr === today ? 'lex-calendar-today' : ''} ${!isCurrentMonth ? 'bg-slate-50 opacity-50' : hasCase.length > 0 ? 'bg-white border-red-200 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
                         <div className="flex justify-between items-start mb-1.5">
                            <span className={`text-xs md:text-sm font-bold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>{d.getDate()}</span>
                         </div>
                         <div className="flex flex-col gap-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar">
                           {isCurrentMonth && hasCase.map(c => (
-                            <div key={c.id} onClick={(e) => { e.stopPropagation(); setSelectedCase(c); setModalMode('viewCase'); }} className="text-[10px] md:text-xs truncate bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded cursor-pointer hover:bg-red-600 hover:text-white transition-colors font-semibold shadow-sm flex items-center gap-1.5" title={`${c.case_no} - ${c.party_name}`}>
+                            <div key={c.id} onClick={(e) => { e.stopPropagation(); setSelectedCase(c); setModalMode('viewCase'); }} className="lex-calendar-event text-[10px] md:text-xs truncate bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded cursor-pointer hover:bg-red-600 hover:text-white transition-colors font-semibold shadow-sm flex items-center gap-1.5" title={`${c.case_no} - ${c.party_name}`}>
                               <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span> 
                               <span className="truncate">{c.case_no}</span>
                             </div>
@@ -877,6 +895,12 @@ const ClientDashboard = ({ session, onLogout }) => {
 
         </main>
       </div>
+
+      <nav className="lex-bottom-nav no-print" aria-label="Mobile navigation" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+        <button className={activeTab === 'dashboard' ? 'is-active' : ''} onClick={() => setActiveTab('dashboard')}><Gavel size={19}/><span>My Cases</span></button>
+        <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}><CalIcon size={19}/><span>Calendar</span></button>
+        <button onClick={() => setMobileMenuOpen(true)}><Menu size={19}/><span>More</span></button>
+      </nav>
 
       {/* --- CLIENT MODALS --- */}
       {modalMode === 'viewCase' && selectedCase && (
@@ -1058,8 +1082,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
 
   const changeMonth = (offset) => {
-    const newDate = new Date(calendarDate.setMonth(calendarDate.getMonth() + offset));
-    setCalendarDate(new Date(newDate));
+    setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + offset, 1));
   };
 
   const getLocalStr = (d) => {
@@ -1531,7 +1554,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
       }
   }
   return (
-    <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
+    <div className="lex-dashboard lex-admin-dashboard flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
       
       <style>{`
         @media print {
@@ -1549,7 +1572,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
 
       {mobileMenuOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden no-print" onClick={() => setMobileMenuOpen(false)}></div>}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static no-print`}>
+      <aside className={`lex-sidebar fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static no-print`}>
         <div className="p-6 text-2xl font-bold font-serif text-[#c5a059] border-b border-slate-800 tracking-wider flex flex-col">
           <div className="flex justify-between items-center">
             <span>CHAMBERS</span>
@@ -1584,27 +1607,39 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print">
+        <div className="lex-mobile-topbar md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print">
            <span className="font-bold font-serif text-[#c5a059]">LEXSWORD</span>
            <button onClick={() => setMobileMenuOpen(true)}><Menu size={24}/></button>
         </div>
 
-        <main className="flex-1 overflow-y-auto relative p-4 md:p-6 print-container">
+        <main className="lex-main flex-1 overflow-y-auto relative p-4 md:p-6 print-container">
           
           {activeTab === 'dashboard' && (
             <div className="no-print">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Case Dashboard</h2>
-                {isAdmin && (
-                  <div className="flex gap-2 w-full md:w-auto">
-                    <button onClick={() => { setFormData({ file_no: '', court_type: 'Judge Court', case_nature: 'Civil Suit', status: 'Ongoing' }); setModalMode('addCase'); }} className="flex-1 items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold flex justify-center">
-                      <Plus size={18}/> NEW CASE
-                      </button>
+              <section className="lex-overview-hero">
+                <div className="lex-overview-copy">
+                  <p className="lex-overview-kicker">LEXSWORD · CHAMBER WORKSPACE</p>
+                  <h2 className="text-2xl md:text-3xl font-bold">Case Dashboard</h2>
+                  <p>A clear view of your chamber workload, hearings and pending matters.</p>
+                </div>
+                <div className="lex-overview-side">
+                  <div className="lex-overview-total">
+                    <span>Cases listed</span>
+                    <strong>{currentCounts.all}</strong>
+                    <small>{mainCaseTab === 'judge' ? 'Judge Court' : 'High Court'}</small>
                   </div>
-                )}
-              </div>
+                  {isAdmin && <button onClick={() => { setFormData({ file_no: '', court_type: 'Judge Court', case_nature: 'Civil Suit', status: 'Ongoing' }); setModalMode('addCase'); }} className="lex-hero-action"><Plus size={18}/> New case</button>}
+                </div>
+              </section>
 
-              <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
+              <section className="lex-stat-grid" aria-label="Case summary">
+                <div className="lex-stat-card"><div><span className="lex-stat-label">Total cases</span><strong>{currentCounts.all}</strong><small>Selected court</small></div><Gavel className="lex-stat-icon lex-icon-blue" size={24}/></div>
+                <div className="lex-stat-card"><div><span className="lex-stat-label">Pending cases</span><strong>{currentCounts.pending}</strong><small>Ongoing matters</small></div><Clock className="lex-stat-icon lex-icon-gold" size={24}/></div>
+                <div className="lex-stat-card"><div><span className="lex-stat-label">Hearings today</span><strong>{currentCounts.today}</strong><small>Scheduled for today</small></div><CalIcon className="lex-stat-icon lex-icon-green" size={24}/></div>
+                <div className="lex-stat-card"><div><span className="lex-stat-label">Needs update</span><strong>{currentCounts.update}</strong><small>Past-date ongoing cases</small></div><AlertTriangle className="lex-stat-icon lex-icon-red" size={24}/></div>
+              </section>
+
+              <div className="lex-case-tabs flex gap-0 mb-4 border-b-2 border-slate-300">
                   <button onClick={() => { setMainCaseTab('judge'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'judge' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
                       Judge Court ({getCounts('judge').all})
                   </button>
@@ -1613,12 +1648,12 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                   </button>
               </div>
 
-              <div className="mb-4 relative">
+              <div className="lex-case-search mb-4 relative">
                   <Search className="absolute left-3 top-2.5 text-gray-400" size={20}/>
                   <input type="text" placeholder="Search by Case No or Party Name..." className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded focus:border-[#c5a059] outline-none text-slate-900" onChange={(e) => setSearchTerm(e.target.value)}/>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="lex-filter-row flex flex-wrap gap-2 mb-6">
                 {mainCaseTab === 'judge' ? (
                     <>
                         <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
@@ -1645,10 +1680,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 )}
               </div>
 
-              <div className="grid gap-4 overflow-hidden">
+              <div className="lex-case-list grid gap-4 overflow-hidden">
                 {getFilteredCases().length === 0 && <p className="text-slate-500 italic">No cases found.</p>}
                 {getFilteredCases().map(c => (
-                  <div key={c.id} className="bg-white p-4 md:p-5 rounded-lg shadow border-l-4 border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 transition w-full overflow-hidden">
+                  <div key={c.id} className="lex-case-card bg-white p-4 md:p-5 rounded-lg shadow border-l-4 border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 transition w-full overflow-hidden">
                     <div className="flex-1 min-w-0">
                       <div className="flex gap-2 mb-1 overflow-x-auto custom-scrollbar pb-1">
                          <span className="text-xs font-bold bg-blue-100 text-blue-900 px-2 rounded whitespace-nowrap shrink-0">{c.court_type}</span>
@@ -1752,20 +1787,21 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           )}
 
           {activeTab === 'calendar' && (
-            <div className="bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900 no-print">
-              <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+            <div className="lex-calendar-panel bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900 no-print">
+              <div className="lex-calendar-toolbar flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                   <h2 className="text-2xl font-bold">Monthly Schedule</h2>
-                  <div className="flex items-center gap-4 bg-slate-200 p-2 rounded text-slate-900">
-                    <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-slate-300 rounded"><ChevronLeft/></button>
-                    <span className="font-bold text-lg w-32 text-center">{calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => changeMonth(1)} className="p-2 hover:bg-slate-300 rounded"><ChevronRight/></button>
+                  <div className="lex-calendar-controls flex items-center gap-4 bg-slate-200 p-2 rounded text-slate-900">
+                    <button aria-label="Previous month" onClick={() => changeMonth(-1)} className="lex-calendar-arrow p-2 hover:bg-slate-300 rounded"><ChevronLeft/></button>
+                    <button onClick={() => setCalendarDate(new Date())} className="lex-calendar-jump-today">Today</button>
+                    <span className="font-bold text-lg w-36 text-center">{calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+                    <button aria-label="Next month" onClick={() => changeMonth(1)} className="lex-calendar-arrow p-2 hover:bg-slate-300 rounded"><ChevronRight/></button>
                   </div>
               </div>
-              <div className="grid grid-cols-7 gap-1 font-bold text-center bg-slate-200 text-slate-900 p-2 rounded mb-2 text-xs md:text-base">
+              <div className="lex-calendar-weekdays grid grid-cols-7 gap-1 font-bold text-center bg-slate-200 text-slate-900 p-2 rounded mb-2 text-xs md:text-base">
                   <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
               </div>
-              <div className="grid grid-cols-7 gap-1 md:gap-2 flex-1">
-                  {[...Array(35)].map((_, i) => {
+              <div className="lex-calendar-grid grid grid-cols-7 gap-1 md:gap-2 flex-1">
+                  {[...Array(42)].map((_, i) => {
                     const year = calendarDate.getFullYear();
                     const month = calendarDate.getMonth();
                     const firstDay = new Date(year, month, 1).getDay();
@@ -1775,19 +1811,25 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                     const hasCase = cases.filter(c => c.next_date === dateStr);
                     const hasTask = isAdmin ? tasks.filter(t => t.due_date === dateStr && t.status !== 'Done') : [];
                     return (
-                      <div key={i} className={`border p-1 md:p-2 h-24 md:h-32 rounded-lg flex flex-col transition-all ${!isCurrentMonth ? 'bg-slate-50 opacity-50' : hasCase.length > 0 ? 'bg-white border-red-200 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+                      <div key={i} className={`lex-calendar-cell border p-1 md:p-2 h-24 md:h-32 rounded-lg flex flex-col transition-all ${dateStr === today ? 'lex-calendar-today' : ''} ${!isCurrentMonth ? 'bg-slate-50 opacity-50' : hasCase.length > 0 ? 'bg-white border-red-200 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
                         <div className="flex justify-between items-start mb-1.5">
                            <span className={`text-xs md:text-sm font-bold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>{d.getDate()}</span>
                           <div className="flex gap-1">
-                            {isCurrentMonth && hasTask.length > 0 && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                            {isCurrentMonth && hasTask.length > 0 && <span className="lex-task-day-dot w-2 h-2 rounded-full bg-blue-500" title={`${hasTask.length} task${hasTask.length === 1 ? '' : 's'}`}></span>}
                            </div>
                         </div>
                         <div className="flex flex-col gap-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar">
                           {isCurrentMonth && hasCase.map(c => (
-                            <div key={c.id} onClick={(e) => { e.stopPropagation(); setSelectedCase(c); setModalMode('viewCase'); }} className="text-[10px] md:text-xs truncate bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded cursor-pointer hover:bg-red-600 hover:text-white transition-colors font-semibold shadow-sm flex items-center gap-1.5" title={`${c.case_no} - ${c.party_name}`}>
+                            <div key={c.id} onClick={(e) => { e.stopPropagation(); setSelectedCase(c); setModalMode('viewCase'); }} className="lex-calendar-event text-[10px] md:text-xs truncate bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded cursor-pointer hover:bg-red-600 hover:text-white transition-colors font-semibold shadow-sm flex items-center gap-1.5" title={`${c.case_no} - ${c.party_name}`}>
                               <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span> 
                               <span className="truncate">{c.case_no}</span>
                              </div>
+                          ))}
+                          {isCurrentMonth && hasTask.map(t => (
+                            <button key={t.id} type="button" onClick={(e) => { e.stopPropagation(); setActiveTab('tasks'); setTaskFilter('pending'); }} className="lex-calendar-event lex-calendar-event-task" title={t.title}>
+                              <span className="lex-calendar-event-dot"></span>
+                              <span className="truncate">{t.title}</span>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -1998,6 +2040,14 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
 
         </main>
       </div>
+
+      <nav className="lex-bottom-nav no-print" aria-label="Mobile navigation" style={{ gridTemplateColumns: `repeat(${isAdmin ? 5 : 3}, minmax(0, 1fr))` }}>
+        <button className={activeTab === 'dashboard' ? 'is-active' : ''} onClick={() => setActiveTab('dashboard')}><Gavel size={19}/><span>Cases</span></button>
+        <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}><CalIcon size={19}/><span>Calendar</span></button>
+        {isAdmin && <button className={activeTab === 'tasks' ? 'is-active' : ''} onClick={() => setActiveTab('tasks')}><ClipboardList size={19}/><span>Tasks</span></button>}
+        {isAdmin && <button className={activeTab === 'accounts' ? 'is-active' : ''} onClick={() => setActiveTab('accounts')}><DollarSign size={19}/><span>Accounts</span></button>}
+        <button onClick={() => setMobileMenuOpen(true)}><Menu size={19}/><span>More</span></button>
+      </nav>
 
       {modalMode === 'addTxn' && (
          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
