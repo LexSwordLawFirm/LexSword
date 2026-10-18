@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { 
   Scale, Gavel, DollarSign, Bell, 
@@ -796,26 +796,26 @@ const ClientDashboard = ({ session, onLogout }) => {
               <div className="lex-filter-row flex flex-wrap gap-2 mb-6">
                 {mainCaseTab === 'judge' ? (
                     <>
-                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
-                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending ({currentCounts.pending})</button>
-                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed ({currentCounts.disposed})</button>
-                        <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today ({currentCounts.today})</button>
-                        <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow ({currentCounts.tomorrow})</button>
-                        <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week ({currentCounts.week})</button>
-                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>Needs Update ({currentCounts.update})</button>
+                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All <span className="lex-filter-count">{currentCounts.all}</span></button>
+                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending <span className="lex-filter-count">{currentCounts.pending}</span></button>
+                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed <span className="lex-filter-count">{currentCounts.disposed}</span></button>
+                        <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today <span className="lex-filter-count">{currentCounts.today}</span></button>
+                        <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow <span className="lex-filter-count">{currentCounts.tomorrow}</span></button>
+                        <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week <span className="lex-filter-count">{currentCounts.week}</span></button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
                     </>
                 ) : (
                     <>
-                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
-                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending ({currentCounts.pending})</button>
-                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed ({currentCounts.disposed})</button>
-                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>Needs Update ({currentCounts.update})</button>
-                        <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ ({currentCounts.writ})</button>
-                        <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev ({currentCounts.civilRev})</button>
-                        <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev ({currentCounts.crimRev})</button>
-                        <button onClick={() => setCaseFilter('Civil Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Appeal ({currentCounts.civilApp})</button>
-                        <button onClick={() => setCaseFilter('Criminal Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Appeal ({currentCounts.crimApp})</button>
-                        <button onClick={() => setCaseFilter('Misc Case')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Misc Case' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Misc ({currentCounts.misc})</button>
+                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All <span className="lex-filter-count">{currentCounts.all}</span></button>
+                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending <span className="lex-filter-count">{currentCounts.pending}</span></button>
+                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed <span className="lex-filter-count">{currentCounts.disposed}</span></button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
+                        <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ <span className="lex-filter-count">{currentCounts.writ}</span></button>
+                        <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev <span className="lex-filter-count">{currentCounts.civilRev}</span></button>
+                        <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev <span className="lex-filter-count">{currentCounts.crimRev}</span></button>
+                        <button onClick={() => setCaseFilter('Civil Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Appeal <span className="lex-filter-count">{currentCounts.civilApp}</span></button>
+                        <button onClick={() => setCaseFilter('Criminal Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Appeal <span className="lex-filter-count">{currentCounts.crimApp}</span></button>
+                        <button onClick={() => setCaseFilter('Misc Case')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Misc Case' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Misc <span className="lex-filter-count">{currentCounts.misc}</span></button>
                     </>
                 )}
               </div>
@@ -973,27 +973,19 @@ const ClientDashboard = ({ session, onLogout }) => {
       )}
 
       {modalMode === 'history' && (
-         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
-               <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
-                  <h3 className="font-bold">History Log</h3>
-                  <button onClick={() => setModalMode('viewCase')}><ChevronLeft/></button>
-               </div>
-               <div className="p-4 h-96 overflow-y-auto">
+         <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-5 no-print">
+            <div className="lex-history-modal bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+               <div className="lex-history-modal-header"><div><p>LEXSWORD · PROCEEDINGS</p><h3>Case history log</h3><span>{selectedCase?.case_no || 'Case record'}</span></div><button aria-label="Back to case details" onClick={() => setModalMode('viewCase')}><ChevronLeft/></button></div>
+               <div className="lex-history-modal-body custom-scrollbar">
+                  {historyLog.length === 0 && <div className="lex-case-history-empty"><History size={24}/><strong>No history entries</strong><span>নতুন তারিখ ও পদক্ষেপ আপডেট করার সময় আদেশের সারাংশ সংরক্ষণ হবে।</span></div>}
                   {historyLog.map((h, i) => (
-                     <div key={i} className="flex gap-4 border-l-2 border-slate-300 pl-4 pb-6 relative">
-                        <div className="absolute -left-[9px] top-0 w-4 h-4 bg-slate-300 rounded-full"></div>
-                        <div className="w-full">
-                           <p className="font-bold text-slate-900">{h.prev_date ? h.prev_date.split('-').reverse().join('-') : ''}</p>
-                           <p className="text-sm text-slate-800 font-semibold">{h.prev_step}</p>
-                           {h.note && (
-                              <p className="text-sm text-slate-600 italic bg-slate-100 p-2 mt-2 rounded border-l-2 border-[#c5a059]">
-                                 {h.note}
-                              </p>
-                           )}
-                           <p className="text-[10px] text-slate-400 mt-2">Recorded: {new Date(h.recorded_at).toLocaleDateString('en-GB')}</p>
-                        </div>
-                     </div>
+                     <article key={h.id || i} className="lex-history-log-entry">
+                        <div className="lex-history-log-top"><strong>{(h.order_date || h.prev_date) ? (h.order_date || h.prev_date).split('-').reverse().join('-') : 'Date not recorded'}</strong><span>{h.recorded_at ? new Date(h.recorded_at).toLocaleString('en-GB') : 'Recorded date unavailable'}</span></div>
+                        {(h.prev_date || h.prev_step) && <div className="lex-history-transition"><span>Previous listing</span><strong>{h.prev_date ? h.prev_date.split('-').reverse().join('-') : '—'} · {h.prev_step || 'Step not recorded'}</strong></div>}
+                        {(h.new_date || h.new_step) && <div className="lex-history-transition is-new"><span>Next listing</span><strong>{h.new_date ? h.new_date.split('-').reverse().join('-') : '—'} · {h.new_step || 'Step not recorded'}</strong></div>}
+                        {h.note && <p className="lex-history-log-note">{h.note}</p>}
+                        {h.updated_by_email && <small className="lex-history-actor">Updated by {h.updated_by_email}</small>}
+                     </article>
                   ))}
                </div>
             </div>
@@ -1046,6 +1038,14 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [formData, setFormData] = useState({});
   const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isSavingTxn, setIsSavingTxn] = useState(false);
+  const [isSavingCase, setIsSavingCase] = useState(false);
+  const txnSaveLock = useRef(false);
+  const caseSaveLock = useRef(false);
+  const [txnReturnMode, setTxnReturnMode] = useState(null);
+  const [financeReturnMode, setFinanceReturnMode] = useState(null);
+  const [accountAudit, setAccountAudit] = useState([]);
+  const [accountAuditLoading, setAccountAuditLoading] = useState(false);
 
 
 
@@ -1130,6 +1130,11 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const upcomingHearings = cases.filter(c => c.next_date && c.next_date >= today && c.status !== 'Disposed');
   const todaysHearings = cases.filter(c => c.next_date === today);
   const upcomingTasks = tasks.filter(t => t.due_date && t.due_date >= today && t.status !== 'Done');
+  const overdueCaseReminders = cases.filter(c => c.next_date && c.next_date < today && c.status !== 'Disposed').sort((a, b) => a.next_date.localeCompare(b.next_date));
+  const nearTermHearings = cases.filter(c => c.next_date && c.next_date >= today && c.next_date <= addDaysToDateString(today, 3) && c.status !== 'Disposed').sort((a, b) => a.next_date.localeCompare(b.next_date));
+  const overdueTaskReminders = tasks.filter(t => t.due_date && t.due_date < today && t.status !== 'Done').sort((a, b) => a.due_date.localeCompare(b.due_date));
+  const nearTermTaskReminders = tasks.filter(t => t.due_date && t.due_date >= today && t.due_date <= addDaysToDateString(today, 3) && t.status !== 'Done').sort((a, b) => a.due_date.localeCompare(b.due_date));
+  const formatMoney = (value) => Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
   
   const getCounts = (tab) => {
     const activeList = cases.filter(c => tab === 'judge' ? c.court_type === 'Judge Court' : c.court_type === 'High Court');
@@ -1177,17 +1182,74 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     return list;
   };
 
+  const openCaseFinance = (caseRecord, returnMode = null) => {
+    setSelectedCase(caseRecord);
+    setFinanceReturnMode(returnMode);
+    setModalMode('caseFinance');
+  };
+
+  const openCaseTransaction = (caseRecord, txnType, returnMode = null) => {
+    const isIncome = txnType === 'Income';
+    setSelectedCase(caseRecord);
+    setTxnReturnMode(returnMode);
+    setFormData({
+      date: today,
+      txn_type: txnType,
+      category: isIncome ? 'Case Fee' : 'Case Cost',
+      payment_status: isIncome ? 'Due' : 'Paid',
+      amount: '',
+      client_name: caseRecord.party_name || '',
+      description: `${caseRecord.case_no || 'Case'} — ${isIncome ? 'Professional fee' : 'Case cost'}`,
+      case_id: caseRecord.id,
+      voucher_no: ''
+    });
+    setModalMode('addTxn');
+  };
+
+  const openTransactionEditor = (transaction, returnMode = null) => {
+    setFormData({ ...transaction });
+    setTxnReturnMode(returnMode);
+    setModalMode('addTxn');
+  };
+
+  const generateVoucherNo = () => `LS-${today.replace(/-/g, '')}-${Date.now().toString(36).toUpperCase()}`;
+
   const handleSaveCase = async () => {
-    const { error } = formData.id ? await supabase.from('cases').update(formData).eq('id', formData.id) : await supabase.from('cases').insert([formData]);
-    if(error) alert(error.message);
-    else { alert("Saved!"); setModalMode(null); setRefresh(r => r+1); }
+    if (caseSaveLock.current) return;
+    if (!String(formData.case_no || '').trim()) return alert('মামলা নম্বর লিখুন।');
+    caseSaveLock.current = true;
+    setIsSavingCase(true);
+    try {
+      const { order_date, ...casePayload } = formData;
+      const result = formData.id
+        ? await supabase.from('cases').update(casePayload).eq('id', formData.id)
+        : await supabase.from('cases').insert([casePayload]);
+      if (result.error) throw result.error;
+      alert('মামলার তথ্য সফলভাবে সংরক্ষণ হয়েছে।');
+      setModalMode(null);
+      setRefresh(r => r + 1);
+    } catch (err) {
+      alert(err.message || 'মামলার তথ্য সংরক্ষণ করা যায়নি।');
+    } finally {
+      caseSaveLock.current = false;
+      setIsSavingCase(false);
+    }
   };
 
   const handleDeleteCase = async (id) => {
-    if(confirm("Delete entire case record?")) {
-      await supabase.from('cases').delete().eq('id', id);
-      setRefresh(r => r+1);
+    if (!confirm('Delete entire case record?')) return;
+    const { data: linkedTransactions, error: linkError } = await supabase.from('accounts').select('id').eq('case_id', id).limit(1);
+    if (linkError) {
+      alert(`মামলার আর্থিক রেকর্ড যাচাই করা যায়নি: ${linkError.message}`);
+      return;
     }
+    if (linkedTransactions && linkedTransactions.length > 0) {
+      alert('এই মামলার সঙ্গে আয়/ব্যয়ের রেকর্ড যুক্ত আছে। আর্থিক ইতিহাস অক্ষুণ্ণ রাখতে মামলাটি ডিলিট না করে Disposed হিসেবে চিহ্নিত করুন।');
+      return;
+    }
+    const { error } = await supabase.from('cases').delete().eq('id', id);
+    if (error) alert(error.message);
+    else setRefresh(r => r + 1);
   };
 
   const handleWhatsApp = (c) => {
@@ -1228,25 +1290,109 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     }
   };
 
+  const recordAccountAudit = async (accountId, action, snapshot) => {
+    const { error } = await supabase.from('account_audit').insert([{
+      account_id: String(accountId),
+      action,
+      transaction_snapshot: snapshot,
+      changed_by: session?.user?.id || null,
+      changed_by_email: session?.user?.email || null
+    }]);
+    return error;
+  };
+
+  const openAccountAudit = async () => {
+    setAccountAudit([]);
+    setAccountAuditLoading(true);
+    setModalMode('accountAudit');
+    try {
+      const { data, error } = await supabase.from('account_audit').select('*').order('changed_at', { ascending: false }).limit(100);
+      if (error) throw error;
+      setAccountAudit(data || []);
+      setModalMode('accountAudit');
+    } catch (err) {
+      alert(err.message || 'Account audit history could not be loaded.');
+    } finally {
+      setAccountAuditLoading(false);
+    }
+  };
+
   const handleSaveTxn = async () => {
-    const { error } = formData.id ? await supabase.from('accounts').update(formData).eq('id', formData.id) : await supabase.from('accounts').insert([formData]);
-    if(error) alert(error.message);
-    else { alert("Saved!"); setModalMode(null); setRefresh(r => r+1); }
+    if (txnSaveLock.current) return;
+    const amount = Number(formData.amount);
+    if (!formData.date) return alert('লেনদেনের তারিখ নির্বাচন করুন।');
+    if (!Number.isFinite(amount) || amount <= 0) return alert('সঠিক পরিমাণ লিখুন।');
+    if (!String(formData.description || '').trim()) return alert('লেনদেনের বিবরণ লিখুন।');
+
+    txnSaveLock.current = true;
+    setIsSavingTxn(true);
+    try {
+      const { id, ...rawData } = formData;
+      const payload = {
+        ...rawData,
+        date: formData.date,
+        txn_type: formData.txn_type,
+        amount,
+        voucher_no: String(formData.voucher_no || '').trim() || generateVoucherNo(),
+        case_id: formData.case_id || null,
+        client_name: String(formData.client_name || '').trim(),
+        description: String(formData.description || '').trim()
+      };
+      let savedRecord;
+      let auditWarning = '';
+      if (id) {
+        const { data: beforeRecord, error: readError } = await supabase.from('accounts').select('*').eq('id', id).single();
+        if (readError) throw readError;
+        const { data, error } = await supabase.from('accounts').update(payload).eq('id', id).select('*').single();
+        if (error) throw error;
+        savedRecord = data;
+        const auditError = await recordAccountAudit(id, 'UPDATE', { before: beforeRecord, after: savedRecord });
+        if (auditError) auditWarning = `
+Warning: the transaction was updated, but its audit record could not be saved (${auditError.message}).`;
+      } else {
+        const { data, error } = await supabase.from('accounts').insert([payload]).select('*').single();
+        if (error) throw error;
+        savedRecord = data;
+        const auditError = await recordAccountAudit(savedRecord.id, 'CREATE', { after: savedRecord });
+        if (auditError) auditWarning = `
+Warning: the transaction was saved, but its audit record could not be saved (${auditError.message}).`;
+      }
+
+      await fetchAllData();
+      alert(`লেনদেন সংরক্ষিত হয়েছে। Accounts ও সংশ্লিষ্ট মামলার হিসাব একই রেকর্ড থেকে আপডেট হয়েছে।${auditWarning}`);
+      const returnMode = txnReturnMode;
+      setTxnReturnMode(null);
+      setModalMode(returnMode === 'caseFinance' || returnMode === 'viewCase' ? returnMode : null);
+    } catch (err) {
+      alert(err.message || 'লেনদেন সংরক্ষণ করা যায়নি।');
+    } finally {
+      txnSaveLock.current = false;
+      setIsSavingTxn(false);
+    }
   };
 
   const handleDeleteTxn = async (id) => {
-    if(confirm("Delete transaction?")) {
-      await supabase.from('accounts').delete().eq('id', id);
-      setRefresh(r => r+1);
-    }
+    if (!confirm('Delete transaction? This will also remove it from the linked case summary.')) return;
+    const { data: beforeRecord, error: readError } = await supabase.from('accounts').select('*').eq('id', id).single();
+    if (readError) { alert(readError.message); return; }
+    const { error } = await supabase.from('accounts').delete().eq('id', id);
+    if (error) { alert(error.message); return; }
+    const auditError = await recordAccountAudit(id, 'DELETE', { before: beforeRecord });
+    await fetchAllData();
+    if (auditError) alert(`লেনদেন ডিলিট হয়েছে, তবে অডিট রেকর্ড সংরক্ষণ করা যায়নি: ${auditError.message}`);
   };
 
   const getFilteredAccounts = () => {
     return accounts.filter(a => {
-        const matchSearch = accountSearch === '' || 
-            (a.client_name?.toLowerCase().includes(accountSearch.toLowerCase()) || 
-             a.description?.toLowerCase().includes(accountSearch.toLowerCase()) ||
-             a.category?.toLowerCase().includes(accountSearch.toLowerCase()));
+        const linkedCase = a.case_id ? cases.find(c => String(c.id) === String(a.case_id)) : null;
+        const query = accountSearch.toLowerCase();
+        const matchSearch = accountSearch === '' ||
+            (a.client_name?.toLowerCase().includes(query) ||
+             a.description?.toLowerCase().includes(query) ||
+             a.category?.toLowerCase().includes(query) ||
+             linkedCase?.case_no?.toLowerCase().includes(query) ||
+             linkedCase?.party_name?.toLowerCase().includes(query) ||
+             a.voucher_no?.toLowerCase().includes(query));
         
         let matchDate = true;
         if(startDate && endDate) {
@@ -1289,6 +1435,23 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const totalFilteredIncome = filteredTxns.filter(a => a.txn_type === 'Income' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount), 0);
   const totalFilteredExpense = filteredTxns.filter(a => a.txn_type === 'Expense' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount), 0);
   const cashInHand = totalFilteredIncome - totalFilteredExpense;
+
+  const caseFinanceTransactions = selectedCase
+    ? accounts.filter(a => a.case_id !== null && a.case_id !== undefined && String(a.case_id) === String(selectedCase.id)).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+    : [];
+  const caseIncomeTransactions = caseFinanceTransactions.filter(a => a.txn_type === 'Income');
+  const caseExpenseTransactions = caseFinanceTransactions.filter(a => a.txn_type === 'Expense');
+  const sumAmounts = (rows) => rows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const caseFinanceTotals = {
+    totalIncome: sumAmounts(caseIncomeTransactions),
+    received: sumAmounts(caseIncomeTransactions.filter(a => a.payment_status === 'Paid')),
+    dueIncome: sumAmounts(caseIncomeTransactions.filter(a => a.payment_status === 'Due')),
+    totalExpense: sumAmounts(caseExpenseTransactions),
+    paidExpense: sumAmounts(caseExpenseTransactions.filter(a => a.payment_status === 'Paid')),
+    dueExpense: sumAmounts(caseExpenseTransactions.filter(a => a.payment_status === 'Due')),
+    profit: sumAmounts(caseIncomeTransactions) - sumAmounts(caseExpenseTransactions),
+    netCash: sumAmounts(caseIncomeTransactions.filter(a => a.payment_status === 'Paid')) - sumAmounts(caseExpenseTransactions.filter(a => a.payment_status === 'Paid'))
+  };
 
   const handlePrint = () => window.print();
   const setMonthFilter = () => {
@@ -1372,9 +1535,14 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
       const orderSummary = String(formData.note || '').trim();
       const { error: historyError } = await supabase.from('case_history').insert([{
         case_id: oldCase.id,
-        prev_date: formData.order_date || oldCase.next_date || today,
+        order_date: formData.order_date || oldCase.next_date || today,
+        prev_date: oldCase.next_date || null,
         prev_step: oldCase.current_step || '',
-        note: orderSummary
+        new_date: formData.next_date,
+        new_step: String(formData.current_step).trim(),
+        note: orderSummary,
+        updated_by: session?.user?.id || null,
+        updated_by_email: session?.user?.email || null
       }]);
       if (historyError) throw new Error(`Order history could not be saved: ${historyError.message}`);
 
@@ -1482,6 +1650,25 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 <div className="lex-stat-card"><div><span className="lex-stat-label">Needs update</span><strong>{currentCounts.update}</strong><small>Past-date ongoing cases</small></div><AlertTriangle className="lex-stat-icon lex-icon-red" size={24}/></div>
               </section>
 
+              <section className="lex-reminder-grid no-print" aria-label="Hearing and task reminders">
+                <div className={`lex-reminder-panel ${overdueCaseReminders.length || overdueTaskReminders.length ? 'has-alerts' : ''}`}>
+                  <div className="lex-reminder-panel-head"><span className="lex-reminder-icon is-alert"><AlertTriangle size={18}/></span><div><p>ATTENTION REQUIRED</p><h3>Overdue follow-ups</h3></div><span className="lex-reminder-count">{overdueCaseReminders.length + overdueTaskReminders.length}</span></div>
+                  <div className="lex-reminder-list">
+                    {overdueCaseReminders.slice(0, 3).map(c => <button type="button" key={`overdue-case-${c.id}`} onClick={() => openCaseDetails(c)} className="lex-reminder-item"><span className="lex-reminder-date is-alert">{c.next_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.current_step || c.party_name || 'Hearing date passed'}</small></span><ChevronRight size={16}/></button>)}
+                    {overdueTaskReminders.slice(0, 2).map(t => <button type="button" key={`overdue-task-${t.id}`} onClick={() => { setActiveTab('tasks'); setTaskFilter('pending'); }} className="lex-reminder-item"><span className="lex-reminder-date is-alert">{t.due_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{t.title || 'Pending task'}</strong><small>Overdue task · {t.priority || 'Normal'} priority</small></span><ChevronRight size={16}/></button>)}
+                    {!overdueCaseReminders.length && !overdueTaskReminders.length && <div className="lex-reminder-empty"><CheckCircle size={18}/> No overdue hearings or tasks.</div>}
+                  </div>
+                </div>
+                <div className="lex-reminder-panel">
+                  <div className="lex-reminder-panel-head"><span className="lex-reminder-icon is-upcoming"><CalIcon size={18}/></span><div><p>NEXT 3 DAYS</p><h3>Upcoming schedule</h3></div><span className="lex-reminder-count">{nearTermHearings.length + nearTermTaskReminders.length}</span></div>
+                  <div className="lex-reminder-list">
+                    {nearTermHearings.slice(0, 3).map(c => <button type="button" key={`near-case-${c.id}`} onClick={() => openCaseDetails(c)} className="lex-reminder-item"><span className="lex-reminder-date">{c.next_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.current_step || c.party_name || 'Court hearing'}</small></span><ChevronRight size={16}/></button>)}
+                    {nearTermTaskReminders.slice(0, 2).map(t => <button type="button" key={`near-task-${t.id}`} onClick={() => { setActiveTab('tasks'); setTaskFilter('pending'); }} className="lex-reminder-item"><span className="lex-reminder-date">{t.due_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{t.title || 'Pending task'}</strong><small>Task deadline · {t.priority || 'Normal'} priority</small></span><ChevronRight size={16}/></button>)}
+                    {!nearTermHearings.length && !nearTermTaskReminders.length && <div className="lex-reminder-empty"><CalIcon size={18}/> No hearings or task deadlines in the next 3 days.</div>}
+                  </div>
+                </div>
+              </section>
+
               <div className="lex-case-tabs flex gap-0 mb-4 border-b-2 border-slate-300">
                   <button onClick={() => { setMainCaseTab('judge'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'judge' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
                       Judge Court ({getCounts('judge').all})
@@ -1499,26 +1686,26 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               <div className="lex-filter-row flex flex-wrap gap-2 mb-6">
                 {mainCaseTab === 'judge' ? (
                     <>
-                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
-                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending ({currentCounts.pending})</button>
-                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed ({currentCounts.disposed})</button>
-                        <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today ({currentCounts.today})</button>
-                        <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow ({currentCounts.tomorrow})</button>
-                        <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week ({currentCounts.week})</button>
-                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>Needs Update ({currentCounts.update})</button>
+                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All <span className="lex-filter-count">{currentCounts.all}</span></button>
+                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending <span className="lex-filter-count">{currentCounts.pending}</span></button>
+                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed <span className="lex-filter-count">{currentCounts.disposed}</span></button>
+                        <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today <span className="lex-filter-count">{currentCounts.today}</span></button>
+                        <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow <span className="lex-filter-count">{currentCounts.tomorrow}</span></button>
+                        <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week <span className="lex-filter-count">{currentCounts.week}</span></button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
                     </>
                 ) : (
                     <>
-                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All ({currentCounts.all})</button>
-                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending ({currentCounts.pending})</button>
-                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed ({currentCounts.disposed})</button>
-                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-slate-600'}`}>Needs Update ({currentCounts.update})</button>
-                        <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ ({currentCounts.writ})</button>
-                        <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev ({currentCounts.civilRev})</button>
-                        <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev ({currentCounts.crimRev})</button>
-                        <button onClick={() => setCaseFilter('Civil Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Appeal ({currentCounts.civilApp})</button>
-                        <button onClick={() => setCaseFilter('Criminal Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Appeal ({currentCounts.crimApp})</button>
-                        <button onClick={() => setCaseFilter('Misc Case')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Misc Case' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Misc ({currentCounts.misc})</button>
+                        <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All <span className="lex-filter-count">{currentCounts.all}</span></button>
+                        <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending <span className="lex-filter-count">{currentCounts.pending}</span></button>
+                        <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed <span className="lex-filter-count">{currentCounts.disposed}</span></button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
+                        <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ <span className="lex-filter-count">{currentCounts.writ}</span></button>
+                        <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev <span className="lex-filter-count">{currentCounts.civilRev}</span></button>
+                        <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev <span className="lex-filter-count">{currentCounts.crimRev}</span></button>
+                        <button onClick={() => setCaseFilter('Civil Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Appeal <span className="lex-filter-count">{currentCounts.civilApp}</span></button>
+                        <button onClick={() => setCaseFilter('Criminal Appeal')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Appeal' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Appeal <span className="lex-filter-count">{currentCounts.crimApp}</span></button>
+                        <button onClick={() => setCaseFilter('Misc Case')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Misc Case' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Misc <span className="lex-filter-count">{currentCounts.misc}</span></button>
                     </>
                 )}
               </div>
@@ -1544,20 +1731,25 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                       <p className="text-xs font-bold text-[#c5a059] uppercase truncate max-w-[200px]">{c.current_step}</p>
                     </div>
 
-                    <div className="flex gap-2 w-full md:w-auto justify-start md:justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
+                    <div className="lex-case-card-actions flex gap-2 w-full md:w-auto justify-start md:justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
+                      {isAdmin && (
+                        <>
+                          <button type="button" onClick={() => openCaseTransaction(c, 'Income')} className="lex-case-money-action is-fee" title="Add a fee / income to this case"><DollarSign size={16}/><span>Fee</span></button>
+                          <button type="button" onClick={() => openCaseTransaction(c, 'Expense')} className="lex-case-money-action is-cost" title="Add a cost / expense to this case"><TrendingDown size={16}/><span>Cost</span></button>
+                          <button type="button" onClick={() => openCaseFinance(c)} className="lex-case-money-action is-finance" title="View this case's income, costs and dues" aria-label="Case finance"><PieChart size={17}/></button>
+                        </>
+                      )}
                       <button onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); }} className="p-2 shrink-0 bg-slate-900 text-white rounded hover:bg-[#c5a059] font-bold flex items-center gap-1" title="Update hearing date, next step and order summary">
                         <RefreshCw size={16}/> Update
                       </button>
                       <button onClick={() => openCaseDetails(c)} title="View complete case profile and order history" className="lex-case-view-action p-2 shrink-0 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"><Eye size={18}/><span>View case</span></button>
-                      
                       {isAdmin && (
                         <>
-                          <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 shrink-0 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"><Edit3 size={18}/></button>
-                          <button onClick={() => handleDeleteCase(c.id)} className="p-2 shrink-0 bg-red-100 text-red-800 rounded hover:bg-red-200"><Trash2 size={18}/></button>
+                          <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 shrink-0 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200" title="Edit case"><Edit3 size={18}/></button>
+                          <button onClick={() => handleDeleteCase(c.id)} className="p-2 shrink-0 bg-red-100 text-red-800 rounded hover:bg-red-200" title="Delete case"><Trash2 size={18}/></button>
                         </>
                       )}
-                      
-                      <button onClick={() => handleWhatsApp(c)} className="p-2 shrink-0 bg-green-100 text-green-800 rounded hover:bg-green-200"><MessageCircle size={18}/></button>
+                      <button onClick={() => handleWhatsApp(c)} className="p-2 shrink-0 bg-green-100 text-green-800 rounded hover:bg-green-200" title="Share case update by WhatsApp"><MessageCircle size={18}/></button>
                     </div>
                   </div>
                 ))}
@@ -1767,7 +1959,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                     <button onClick={handlePrint} className="bg-slate-200 text-slate-900 px-4 py-2 rounded font-bold hover:bg-slate-300 flex items-center gap-2">
                          <Printer size={18}/> Print / PDF
                     </button>
-                    <button onClick={() => { setFormData({date: today, txn_type: 'Income', category: 'Office', payment_status: 'Paid', amount: '', client_name: '', description: ''}); setModalMode('addTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] flex items-center gap-2">
+                    <button type="button" onClick={openAccountAudit} className="bg-indigo-50 text-indigo-800 px-4 py-2 rounded font-bold hover:bg-indigo-100 flex items-center gap-2">
+                         <History size={18}/> Audit log
+                    </button>
+                    <button onClick={() => { setTxnReturnMode(null); setFormData({date: today, txn_type: 'Income', category: 'Office', payment_status: 'Paid', amount: '', client_name: '', description: '', voucher_no: '', case_id: null}); setModalMode('addTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] flex items-center gap-2">
                         <Plus size={18}/> Add Entry
                     </button>
                 </div>
@@ -1857,12 +2052,14 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               </div>
 
               <div className="lex-ledger-panel bg-white rounded shadow overflow-x-auto">
-                 <table className="lex-ledger-table w-full text-left min-w-[600px]">
+                 <table className="lex-ledger-table w-full text-left min-w-[850px]">
                     <thead className="bg-slate-100 border-b border-slate-200">
                       <tr>
                         <th className="p-3 text-slate-900 font-bold text-xs uppercase">Date</th>
                         <th className="p-3 text-slate-900 font-bold text-xs uppercase">Client / Name</th>
+                        <th className="p-3 text-slate-900 font-bold text-xs uppercase">Case</th>
                         <th className="p-3 text-slate-900 font-bold text-xs uppercase">Description</th>
+                        <th className="p-3 text-slate-900 font-bold text-xs uppercase">Voucher</th>
                         <th className="p-3 text-slate-900 font-bold text-xs uppercase">Category</th>
                         <th className="p-3 text-slate-900 font-bold text-xs uppercase text-center">Status</th>
                         <th className="p-3 text-right text-slate-900 font-bold text-xs uppercase">Amount</th>
@@ -1870,19 +2067,21 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredTxns.length === 0 && <tr><td colSpan="7" className="p-4 text-center text-slate-500 italic">No records found for this period.</td></tr>}
+                      {filteredTxns.length === 0 && <tr><td colSpan="9" className="p-4 text-center text-slate-500 italic">No records found for this period.</td></tr>}
                       {filteredTxns.map(a => (
                         <tr key={a.id} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="p-3 text-sm text-slate-700">{a.date ? a.date.split('-').reverse().join('-') : ''}</td>
                           <td className="p-3 font-bold text-slate-900 text-sm">{a.client_name || '-'}</td>
+                          <td className="p-3 text-sm">{a.case_id ? <button type="button" className="lex-ledger-case-link" onClick={() => { const linkedCase = cases.find(c => String(c.id) === String(a.case_id)); if (linkedCase) openCaseFinance(linkedCase); else alert('The linked case could not be found.'); }}>{cases.find(c => String(c.id) === String(a.case_id))?.case_no || 'Linked case'}</button> : <span className="text-slate-400">General</span>}</td>
                           <td className="p-3 text-sm text-slate-700">{a.description}</td>
+                          <td className="p-3 text-xs font-bold text-slate-600">{a.voucher_no || '—'}</td>
                           <td className="p-3"><span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">{a.category}</span></td>
                           <td className="p-3 text-center">
                              <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${a.payment_status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{a.payment_status}</span>
                           </td>
                           <td className={`p-3 text-right font-bold text-sm ${a.txn_type === 'Income' ? 'text-green-700' : 'text-red-700'}`}>{a.txn_type === 'Income' ? '+' : '-'} {a.amount}</td>
                           <td className="p-3 flex justify-center gap-2 no-print">
-                             <button onClick={() => { setFormData(a); setModalMode('addTxn'); }} className="text-blue-600 hover:bg-blue-100 p-1 rounded"><Edit3 size={16}/></button>
+                             <button type="button" onClick={() => openTransactionEditor(a)} className="text-blue-600 hover:bg-blue-100 p-1 rounded" title="Edit transaction"><Edit3 size={16}/></button>
                              <button onClick={() => handleDeleteTxn(a.id)} className="text-red-600 hover:bg-red-100 p-1 rounded"><Trash2 size={16}/></button>
                           </td>
                         </tr>
@@ -1890,7 +2089,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                     </tbody>
                     <tfoot className="bg-slate-50 font-bold text-slate-900 border-t-2 border-slate-300">
                         <tr>
-                            <td colSpan="5" className="p-3 text-right">NET TOTAL (Cash):</td>
+                            <td colSpan="7" className="p-3 text-right">NET TOTAL (Cash):</td>
                             <td className="p-3 text-right">৳{cashInHand}</td>
                             <td className="no-print"></td>
                         </tr>
@@ -1974,29 +2173,55 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
             <div className="lex-finance-entry-modal bg-white w-full max-w-lg rounded-xl shadow-2xl">
                <div className="bg-slate-900 p-4 text-white flex justify-between">
                   <h3 className="font-bold">{formData.id ? 'Edit Transaction' : 'New Transaction'}</h3>
-                  <button onClick={() => setModalMode(null)}><X/></button>
+                  <button onClick={() => { const returnMode = txnReturnMode; setTxnReturnMode(null); setModalMode(returnMode === 'caseFinance' || returnMode === 'viewCase' ? returnMode : null); }}><X/></button>
                </div>
                <div className="p-6 space-y-4">
                   <div className="flex gap-2">
                       <button onClick={() => setFormData({...formData, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Income' ? 'bg-green-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Income</button>
                       <button onClick={() => setFormData({...formData, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Expense' ? 'bg-red-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Expense</button>
                   </div>
-                  <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
-                  <input placeholder="Client Name" value={formData.client_name} onChange={e => setFormData({...formData, client_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
-                  <input placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border p-2 rounded text-slate-900"/>
+                  <div className="lex-form-field"><label>Transaction date</label><input type="date" value={formData.date || ''} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+                  <div className="lex-form-field"><label>Voucher / receipt number <span className="font-normal normal-case">(auto-generated if blank)</span></label><input placeholder="e.g. LS-20261018-123456" value={formData.voucher_no || ''} onChange={e => setFormData({...formData, voucher_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+                  <div className="lex-form-field"><label>Link to case (optional)</label><select value={formData.case_id ? String(formData.case_id) : ''} onChange={e => setFormData({...formData, case_id: e.target.value || null})} disabled={txnReturnMode === 'caseFinance'} className="w-full border p-2 rounded text-slate-900 bg-white"><option value="">General / not linked to a case</option>{cases.map(c => <option key={c.id} value={String(c.id)}>{c.case_no || 'Case'} — {c.party_name || c.court_name || ''}</option>)}</select>{formData.case_id && <small className="text-xs text-indigo-700">This entry will appear in the linked case's financial summary.</small>}</div>
+                  <div className="lex-form-field"><label>Client / payee name</label><input placeholder="Client Name" value={formData.client_name || ''} onChange={e => setFormData({...formData, client_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
+                  <div className="lex-form-field"><label>Description</label><input placeholder="Describe the fee, cost or transaction" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
                   <div className="flex gap-2">
                      <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
-                        <option>Office</option><option>Personal</option><option>Client</option><option>Court Fee</option><option>Salary</option><option>Savings</option><option>Evidence</option><option>Affidavit</option><option>Order Sheet</option><option>Misc</option>
+                        <option>Office</option><option>Personal</option><option>Client</option><option>Case Fee</option><option>Case Cost</option><option>Court Fee</option><option>Salary</option><option>Savings</option><option>Evidence</option><option>Affidavit</option><option>Order Sheet</option><option>Misc</option>
                       </select>
                       <select value={formData.payment_status} onChange={e => setFormData({...formData, payment_status: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
                         <option>Paid</option><option>Due</option>
                       </select>
                   </div>
                   <input type="number" placeholder="Amount" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full border p-2 rounded font-bold text-lg text-slate-900"/>
-                  <button onClick={handleSaveTxn} className="w-full bg-slate-900 text-white py-3 rounded font-bold">SAVE ENTRY</button>
+                  <button type="button" onClick={handleSaveTxn} disabled={isSavingTxn} className="w-full bg-slate-900 text-white py-3 rounded font-bold disabled:opacity-60 disabled:cursor-wait">{isSavingTxn ? 'Saving…' : formData.id ? 'UPDATE ENTRY' : 'SAVE ENTRY'}</button>
                </div>
             </div>
          </div>
+      )}
+
+      {modalMode === 'accountAudit' && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-5 no-print">
+          <div className="lex-history-modal bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
+            <div className="lex-history-modal-header"><div><p>LEXSWORD · FINANCIAL CONTROLS</p><h3>Accounts audit log</h3><span>Latest 100 create, edit and delete events</span></div><button type="button" aria-label="Close audit log" onClick={() => setModalMode(null)}><X/></button></div>
+            <div className="lex-history-modal-body custom-scrollbar">
+              {accountAuditLoading && <div className="lex-case-finance-empty"><History size={24}/><strong>Loading audit history…</strong></div>}
+              {!accountAuditLoading && accountAudit.length === 0 && <div className="lex-case-finance-empty"><History size={24}/><strong>No audit events yet</strong><span>New financial entries and subsequent edits or deletions will appear here.</span></div>}
+              {!accountAuditLoading && accountAudit.map(entry => {
+                const before = entry.transaction_snapshot?.before;
+                const after = entry.transaction_snapshot?.after;
+                const displayTxn = after || before || {};
+                return <article key={entry.id} className="lex-history-log-entry">
+                  <div className="lex-history-log-top"><strong>{entry.action === 'CREATE' ? 'Transaction created' : entry.action === 'UPDATE' ? 'Transaction updated' : 'Transaction deleted'}</strong><span>{entry.changed_at ? new Date(entry.changed_at).toLocaleString('en-GB') : 'Timestamp unavailable'}</span></div>
+                  <div className="lex-audit-summary-row"><span>Voucher</span><strong>{displayTxn.voucher_no || '—'}</strong><span>Record ID</span><strong>{entry.account_id || '—'}</strong></div>
+                  {before && <div className="lex-history-transition"><span>Before change</span><strong>{before.date || '—'} · {before.txn_type || 'Transaction'} · ৳{formatMoney(before.amount)} · {before.description || '—'} · {before.payment_status || '—'}</strong></div>}
+                  {after && <div className="lex-history-transition is-new"><span>{entry.action === 'CREATE' ? 'Saved transaction' : 'After change'}</span><strong>{after.date || '—'} · {after.txn_type || 'Transaction'} · ৳{formatMoney(after.amount)} · {after.description || '—'} · {after.payment_status || '—'}</strong></div>}
+                  <small className="lex-history-actor">{entry.changed_by_email ? `Changed by ${entry.changed_by_email}` : 'User not recorded'}</small>
+                </article>;
+              })}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* --- Task Manager Modal --- */}
@@ -2163,7 +2388,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
             
             <div className="lex-case-entry-footer p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
                <button onClick={() => setModalMode(null)} className="px-6 py-2 border border-slate-300 bg-white rounded text-slate-700 font-bold hover:bg-slate-100">Cancel</button>
-               <button onClick={handleSaveCase} className="px-8 py-2 bg-slate-900 text-white rounded font-bold hover:bg-[#c5a059] transition shadow"><Save size={16} className="inline mr-2"/>SAVE CASE</button>
+               <button type="button" onClick={handleSaveCase} disabled={isSavingCase} className="px-8 py-2 bg-slate-900 text-white rounded font-bold hover:bg-[#c5a059] transition shadow disabled:opacity-60 disabled:cursor-wait"><Save size={16} className="inline mr-2"/>{isSavingCase ? 'Saving…' : 'SAVE CASE'}</button>
             </div>
           </div>
         </div>
@@ -2200,6 +2425,19 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 </div>
                 {selectedCase.note && <div className="lex-case-current-note"><span>Current case note</span><p>{selectedCase.note}</p></div>}
 
+                {isAdmin && (
+                  <section className="lex-case-finance-preview">
+                    <div className="lex-case-detail-section-head"><div><p className="lex-section-eyebrow">CASE FINANCE</p><h4>Fees, costs & outstanding dues</h4></div><button type="button" className="lex-finance-open-link" onClick={() => openCaseFinance(selectedCase, 'viewCase')}><PieChart size={16}/> Full financial summary</button></div>
+                    <div className="lex-case-finance-preview-grid">
+                      <div><span>Total income / fees</span><strong className="is-income">৳{formatMoney(caseFinanceTotals.totalIncome)}</strong></div>
+                      <div><span>Total expenses</span><strong className="is-expense">৳{formatMoney(caseFinanceTotals.totalExpense)}</strong></div>
+                      <div><span>Net profit / margin</span><strong className={caseFinanceTotals.profit >= 0 ? 'is-income' : 'is-expense'}>৳{formatMoney(caseFinanceTotals.profit)}</strong></div>
+                      <div><span>Receivable due</span><strong className="is-due">৳{formatMoney(caseFinanceTotals.dueIncome)}</strong></div>
+                    </div>
+                    <div className="lex-case-finance-quick-actions"><button type="button" className="is-fee" onClick={() => openCaseTransaction(selectedCase, 'Income', 'viewCase')}><DollarSign size={16}/> Add fee</button><button type="button" className="is-cost" onClick={() => openCaseTransaction(selectedCase, 'Expense', 'viewCase')}><TrendingDown size={16}/> Add cost</button></div>
+                  </section>
+                )}
+
                 <section className="lex-case-timeline-section">
                   <div className="lex-case-detail-section-head"><div><p className="lex-section-eyebrow">COURT PROCEEDINGS</p><h4>Order & hearing history</h4></div><span className="lex-timeline-count">{historyLog.length} record{historyLog.length === 1 ? '' : 's'}</span></div>
                   {historyLog.length === 0 ? (
@@ -2209,9 +2447,12 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                       {historyLog.slice(0, 5).map((h, i) => (
                         <article key={h.id || `${h.prev_date}-${i}`} className="lex-case-timeline-entry">
                           <span className="lex-case-timeline-dot"></span>
-                          <div className="lex-case-timeline-meta"><strong>{h.prev_date ? h.prev_date.split('-').reverse().join('-') : 'Date not recorded'}</strong><span>{h.recorded_at ? new Date(h.recorded_at).toLocaleString('en-GB') : 'History record'}</span></div>
-                          <h5>{h.prev_step || 'Step not recorded'}</h5>
+                          <div className="lex-case-timeline-meta"><strong>{(h.order_date || h.prev_date) ? (h.order_date || h.prev_date).split('-').reverse().join('-') : 'Date not recorded'}</strong><span>{h.recorded_at ? new Date(h.recorded_at).toLocaleString('en-GB') : 'History record'}</span></div>
+                          <h5>{h.new_step || h.prev_step || 'Step not recorded'}</h5>
+                          {(h.prev_date || h.prev_step) && <div className="lex-history-transition"><span>Previous listing</span><strong>{h.prev_date ? h.prev_date.split('-').reverse().join('-') : '—'} · {h.prev_step || 'Step not recorded'}</strong></div>}
+                          {(h.new_date || h.new_step) && <div className="lex-history-transition is-new"><span>Next listing</span><strong>{h.new_date ? h.new_date.split('-').reverse().join('-') : '—'} · {h.new_step || 'Step not recorded'}</strong></div>}
                           {h.note ? <p>{h.note}</p> : <p className="is-muted">No order summary was entered for this record.</p>}
+                          {h.updated_by_email && <small className="lex-history-actor">Updated by {h.updated_by_email}</small>}
                         </article>
                       ))}
                     </div>
@@ -2272,28 +2513,59 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         </div>
       )}
 
+      {modalMode === 'caseFinance' && selectedCase && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-5 no-print">
+          <div className="lex-case-finance-modal bg-white w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+            <header className="lex-case-finance-header">
+              <div className="min-w-0"><p>LEXSWORD · CASE FINANCIAL STATEMENT</p><h3>{selectedCase.case_no || 'Case financial summary'}</h3><span>{selectedCase.party_name || selectedCase.court_name || 'Linked case'} · {selectedCase.court_name || selectedCase.court_type || ''}</span></div>
+              <div className="lex-case-finance-header-actions"><button type="button" className="is-fee" onClick={() => openCaseTransaction(selectedCase, 'Income', 'caseFinance')}><DollarSign size={16}/> Add fee</button><button type="button" className="is-cost" onClick={() => openCaseTransaction(selectedCase, 'Expense', 'caseFinance')}><TrendingDown size={16}/> Add cost</button><button type="button" className="is-close" aria-label="Close case financial summary" onClick={() => { const returnMode = financeReturnMode; setFinanceReturnMode(null); setModalMode(returnMode || null); }}><X size={20}/></button></div>
+            </header>
+            <div className="lex-case-finance-body custom-scrollbar">
+              <div className="lex-case-finance-kpis">
+                <div className="is-income"><span>Total income / fees</span><strong>৳{formatMoney(caseFinanceTotals.totalIncome)}</strong><small>All fee and income entries</small></div>
+                <div className="is-received"><span>Received income</span><strong>৳{formatMoney(caseFinanceTotals.received)}</strong><small>Marked as paid</small></div>
+                <div className="is-expense"><span>Total costs / expenses</span><strong>৳{formatMoney(caseFinanceTotals.totalExpense)}</strong><small>Paid and unpaid costs</small></div>
+                <div className={caseFinanceTotals.profit >= 0 ? 'is-income' : 'is-expense'}><span>Net profit / margin</span><strong>৳{formatMoney(caseFinanceTotals.profit)}</strong><small>Total income minus total costs</small></div>
+                <div className="is-due"><span>Receivable due</span><strong>৳{formatMoney(caseFinanceTotals.dueIncome)}</strong><small>Income entries still due</small></div>
+                <div className="is-payable"><span>Payable cost</span><strong>৳{formatMoney(caseFinanceTotals.dueExpense)}</strong><small>Expenses still due</small></div>
+              </div>
+              <div className="lex-case-finance-cashline"><div><span>Net cash collected / paid</span><strong>৳{formatMoney(caseFinanceTotals.netCash)}</strong></div><p>Net cash = received income − paid expenses. The margin above includes due amounts, so both figures are shown separately.</p></div>
+              <section className="lex-case-finance-transactions">
+                <div className="lex-case-finance-section-head"><div><p>CASE LEDGER</p><h4>Transaction history</h4><span>{caseFinanceTransactions.length} linked transaction{caseFinanceTransactions.length === 1 ? '' : 's'} · sorted by date</span></div><button type="button" onClick={() => openCaseTransaction(selectedCase, 'Income', 'caseFinance')}><Plus size={16}/> New entry</button></div>
+                {caseFinanceTransactions.length === 0 ? <div className="lex-case-finance-empty"><PieChart size={28}/><strong>No financial entries for this case yet</strong><span>Add a fee or cost here, or link an existing Accounts entry to this case.</span></div> : (
+                  <div className="lex-case-finance-list">
+                    {caseFinanceTransactions.map(txn => (
+                      <article key={txn.id} className="lex-case-finance-row">
+                        <div className="lex-case-finance-row-date"><strong>{txn.date ? txn.date.split('-').reverse().join('-') : 'No date'}</strong><span>{txn.voucher_no || 'No voucher no.'}</span></div>
+                        <div className="lex-case-finance-row-copy"><strong>{txn.description || 'Transaction'}</strong><span>{txn.client_name || selectedCase.party_name || '—'} · {txn.category || 'General'}</span></div>
+                        <span className={`lex-finance-type-pill ${txn.txn_type === 'Income' ? 'is-income' : 'is-expense'}`}>{txn.txn_type === 'Income' ? 'Income' : 'Expense'}</span>
+                        <span className={`lex-finance-status-pill ${txn.payment_status === 'Paid' ? 'is-paid' : 'is-due'}`}>{txn.payment_status || 'Unspecified'}</span>
+                        <strong className={`lex-case-finance-row-amount ${txn.txn_type === 'Income' ? 'is-income' : 'is-expense'}`}>{txn.txn_type === 'Income' ? '+' : '−'}৳{formatMoney(txn.amount)}</strong>
+                        <div className="lex-case-finance-row-actions"><button type="button" title="Edit transaction" onClick={() => openTransactionEditor(txn, 'caseFinance')}><Edit3 size={16}/></button><button type="button" title="Delete transaction" onClick={() => handleDeleteTxn(txn.id)}><Trash2 size={16}/></button></div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+
       {modalMode === 'history' && (
-         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
-               <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
-                  <h3 className="font-bold">History Log</h3>
-                  <button onClick={() => setModalMode('viewCase')}><ChevronLeft/></button>
-               </div>
-               <div className="p-4 h-96 overflow-y-auto">
+         <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-5 no-print">
+            <div className="lex-history-modal bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+               <div className="lex-history-modal-header"><div><p>LEXSWORD · PROCEEDINGS</p><h3>Case history log</h3><span>{selectedCase?.case_no || 'Case record'}</span></div><button aria-label="Back to case details" onClick={() => setModalMode('viewCase')}><ChevronLeft/></button></div>
+               <div className="lex-history-modal-body custom-scrollbar">
+                  {historyLog.length === 0 && <div className="lex-case-history-empty"><History size={24}/><strong>No history entries</strong><span>নতুন তারিখ ও পদক্ষেপ আপডেট করার সময় আদেশের সারাংশ সংরক্ষণ হবে।</span></div>}
                   {historyLog.map((h, i) => (
-                    <div key={i} className="flex gap-4 border-l-2 border-slate-300 pl-4 pb-6 relative">
-                        <div className="absolute -left-[9px] top-0 w-4 h-4 bg-slate-300 rounded-full"></div>
-                        <div className="w-full">
-                           <p className="font-bold text-slate-900">{h.prev_date}</p>
-                           <p className="text-sm text-slate-800 font-semibold">{h.prev_step}</p>
-                           {h.note && (
-                              <p className="text-sm text-slate-600 italic bg-slate-100 p-2 mt-2 rounded border-l-2 border-[#c5a059]">
-                                 {h.note}
-                              </p>
-                           )}
-                           <p className="text-[10px] text-slate-400 mt-2">Recorded: {new Date(h.recorded_at).toLocaleDateString()}</p>
-                        </div>
-                     </div>
+                     <article key={h.id || i} className="lex-history-log-entry">
+                        <div className="lex-history-log-top"><strong>{(h.order_date || h.prev_date) ? (h.order_date || h.prev_date).split('-').reverse().join('-') : 'Date not recorded'}</strong><span>{h.recorded_at ? new Date(h.recorded_at).toLocaleString('en-GB') : 'Recorded date unavailable'}</span></div>
+                        {(h.prev_date || h.prev_step) && <div className="lex-history-transition"><span>Previous listing</span><strong>{h.prev_date ? h.prev_date.split('-').reverse().join('-') : '—'} · {h.prev_step || 'Step not recorded'}</strong></div>}
+                        {(h.new_date || h.new_step) && <div className="lex-history-transition is-new"><span>Next listing</span><strong>{h.new_date ? h.new_date.split('-').reverse().join('-') : '—'} · {h.new_step || 'Step not recorded'}</strong></div>}
+                        {h.note && <p className="lex-history-log-note">{h.note}</p>}
+                        {h.updated_by_email && <small className="lex-history-actor">Updated by {h.updated_by_email}</small>}
+                     </article>
                   ))}
                </div>
              </div>
