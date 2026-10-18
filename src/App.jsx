@@ -1046,10 +1046,20 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [financeReturnMode, setFinanceReturnMode] = useState(null);
   const [accountAudit, setAccountAudit] = useState([]);
   const [accountAuditLoading, setAccountAuditLoading] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState(null);
+  const [caseQuickView, setCaseQuickView] = useState(null);
+  const [causeWatchlist, setCauseWatchlist] = useState([]);
+  const [causeForm, setCauseForm] = useState({
+    division: 'High Court Division', case_type: 'Civil Revision', case_number: '', case_year: '',
+    tender_number: '', petitioner: '', respondent: '', notes: ''
+  });
+  const [isSavingCause, setIsSavingCause] = useState(false);
+  const [isCheckingCauseList, setIsCheckingCauseList] = useState(false);
+  const [causeCheckMessage, setCauseCheckMessage] = useState('');
+  const [causeAutoCheckedFor, setCauseAutoCheckedFor] = useState('');
 
+  const showFeedback = (type, title, message) => setFeedbackModal({ type, title, message });
 
-
-  
   useEffect(() => { fetchAllData(); }, [refresh]);
 
   const fetchAllData = async () => {
@@ -1061,6 +1071,16 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     setTasks(tData || []);
     const { data: lnData } = await supabase.from('loans').select('*').order('date', { ascending: false });
     setLoans(lnData || []);
+    if (isAdmin) {
+      const { data: watchData, error: watchError } = await supabase
+        .from('supreme_court_watchlist').select('*').order('created_at', { ascending: false });
+      if (watchError) {
+        setCauseWatchlist([]);
+        if (watchError.code !== '42P01') console.warn('Cause-list watchlist could not be loaded:', watchError.message);
+      } else {
+        setCauseWatchlist(watchData || []);
+      }
+    }
   };
 
   const fetchHistory = async (caseId) => {
@@ -1123,6 +1143,17 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     return Array.from({ length: 7 }, (_, i) => { const date = new Date(start); date.setDate(start.getDate() + i); return date; });
   })();
   const agendaEndDate = addDaysToDateString(selectedCalendarDate, 30);
+  const getDateInTimeZone = (date, timeZone) => {
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date);
+    const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+    return `${values.year}-${values.month}-${values.day}`;
+  };
+  const bangladeshToday = getDateInTimeZone(new Date(), 'Asia/Dhaka');
+  const causeListTomorrow = addDaysToDateString(bangladeshToday, 1);
+  const todaysCaseList = cases.filter(c => c.next_date === today && c.status !== 'Disposed');
+  const tomorrowsCaseList = cases.filter(c => c.next_date === tomorrow && c.status !== 'Disposed');
+  const dashboardQuickCases = caseQuickView === 'today' ? todaysCaseList : caseQuickView === 'tomorrow' ? tomorrowsCaseList : cases;
+  const dashboardQuickTitle = caseQuickView === 'today' ? "Today's hearings" : caseQuickView === 'tomorrow' ? "Tomorrow's hearings" : 'All cases';
   const calendarAgendaItems = [
     ...cases.filter(c => c.next_date && c.next_date >= selectedCalendarDate && c.next_date <= agendaEndDate && c.status !== 'Disposed').map(c => ({ id: `case-${c.id}`, type: 'case', date: c.next_date, title: c.case_no || 'Case hearing', subtitle: c.party_name || c.court_name || '', detail: c.current_step || '', record: c })),
     ...tasks.filter(t => t.due_date && t.due_date >= selectedCalendarDate && t.due_date <= agendaEndDate && t.status !== 'Done').map(t => ({ id: `task-${t.id}`, type: 'task', date: t.due_date, title: t.title || 'Task', subtitle: t.details || '', detail: t.priority || 'Task', record: t }))
@@ -1216,7 +1247,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
 
   const handleSaveCase = async () => {
     if (caseSaveLock.current) return;
-    if (!String(formData.case_no || '').trim()) return alert('মামলা নম্বর লিখুন।');
+    if (!String(formData.case_no || '').trim()) return showFeedback('warning', 'মামলা নম্বর প্রয়োজন', 'মামলা নম্বর লিখুন।');
     caseSaveLock.current = true;
     setIsSavingCase(true);
     try {
@@ -1225,11 +1256,11 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         ? await supabase.from('cases').update(casePayload).eq('id', formData.id)
         : await supabase.from('cases').insert([casePayload]);
       if (result.error) throw result.error;
-      alert('মামলার তথ্য সফলভাবে সংরক্ষণ হয়েছে।');
       setModalMode(null);
       setRefresh(r => r + 1);
+      showFeedback('success', 'মামলার তথ্য সংরক্ষিত হয়েছে', 'মামলার তথ্য সফলভাবে সংরক্ষণ হয়েছে।');
     } catch (err) {
-      alert(err.message || 'মামলার তথ্য সংরক্ষণ করা যায়নি।');
+      showFeedback('error', 'মামলার তথ্য সংরক্ষণ করা যায়নি', err.message || 'মামলার তথ্য সংরক্ষণ করা যায়নি।');
     } finally {
       caseSaveLock.current = false;
       setIsSavingCase(false);
@@ -1252,10 +1283,32 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     else setRefresh(r => r + 1);
   };
 
+  const normalizeBangladeshMobile = (value) => {
+    let digits = String(value || '').replace(/\D/g, '');
+    if (digits.startsWith('00880')) digits = digits.slice(2);
+    if (digits.startsWith('880')) return digits;
+    if (digits.startsWith('0')) return `880${digits.slice(1)}`;
+    if (digits.length === 10) return `880${digits}`;
+    return digits;
+  };
+
+  const openClientWhatsApp = (c, message) => {
+    const phone = normalizeBangladeshMobile(c?.client_mobile);
+    if (!phone || phone.length < 10) {
+      showFeedback('warning', 'মোবাইল নম্বর পাওয়া যায়নি', 'এই মামলার ক্লায়েন্টের WhatsApp-এ বার্তা পাঠাতে আগে সঠিক Client Mobile নম্বর সংরক্ষণ করুন।');
+      return;
+    }
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  };
+
   const handleWhatsApp = (c) => {
-      const msg = `আসসালামু আলাইকুম।\nআপনার মামলার তথ্য:\nমামলা নং: ${c.case_no}\nকোর্ট: ${c.court_name}\nআগামী তারিখ: ${c.next_date}\nপদক্ষেপ: ${c.current_step}\n\nধন্যবাদান্তে,\nঅ্যাডভোকেট আজাদুর রহমান\nহেড অফ চেম্বার, লেক্সসোর্ড ল ফার্ম।`;
-      const url = `https://wa.me/${c.client_mobile}?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank');
+    const msg = `আসসালামু আলাইকুম।\n\nআপনার মামলার বর্তমান তথ্য নিচে দেওয়া হলো—\nমামলা নম্বর: ${c.case_no || 'উল্লেখ নেই'}\nআদালত: ${c.court_name || c.court_type || 'উল্লেখ নেই'}\nপরবর্তী তারিখ: ${c.next_date || 'এখনও নির্ধারিত নয়'}\nপরবর্তী পদক্ষেপ: ${c.current_step || 'আপডেটের অপেক্ষায়'}\n\nমামলার বিষয়ে কোনো তথ্য বা নথি প্রয়োজন হলে অনুগ্রহ করে আমাদের সঙ্গে যোগাযোগ করবেন।\n\nধন্যবাদান্তে,\nমোঃ আজাদুর রহমান\nঅ্যাডভোকেট, বাংলাদেশ সুপ্রীম কোর্ট\nহেড অব লেক্সসোর্ড চেম্বারস`;
+    openClientWhatsApp(c, msg);
+  };
+
+  const handleClientProgressWhatsApp = (c) => {
+    const msg = `আসসালামু আলাইকুম।\n\nপ্রিয় ${c.party_name || 'সম্মানিত মক্কেল'},\n\nআপনার মামলা নম্বর ${c.case_no || '—'} সম্পর্কে আপনাকে আশ্বস্ত করতে চাই যে, লেক্সসোর্ড চেম্বারস আপনার মামলার নথিপত্র, প্রাসঙ্গিক আইনগত বিষয় এবং পরবর্তী করণীয় গুরুত্বসহকারে পর্যালোচনা ও প্রয়োজনীয় প্রস্তুতির কাজ চালিয়ে যাচ্ছে। আপনার মামলার গুরুত্বপূর্ণ অগ্রগতি, আদালতের নির্দেশনা বা আপনার পক্ষ থেকে কোনো তথ্য/নথি প্রয়োজন হলে আমরা যথাসময়ে আপনাকে জানাব।\n\nআপনার আস্থা ও ধৈর্যের জন্য আন্তরিক ধন্যবাদ। আপনার মামলার বিষয়ে যোগাযোগের ক্ষেত্রে যেন কোনো ঘাটতি না থাকে, সে বিষয়ে আমরা সচেতন।\n\nধন্যবাদান্তে,\nমোঃ আজাদুর রহমান\nঅ্যাডভোকেট, বাংলাদেশ সুপ্রীম কোর্ট\nহেড অব লেক্সসোর্ড চেম্বারস`;
+    openClientWhatsApp(c, msg);
   };
 
   const handleSaveDoc = async () => {
@@ -1290,17 +1343,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     }
   };
 
-  const recordAccountAudit = async (accountId, action, snapshot) => {
-    const { error } = await supabase.from('account_audit').insert([{
-      account_id: String(accountId),
-      action,
-      transaction_snapshot: snapshot,
-      changed_by: session?.user?.id || null,
-      changed_by_email: session?.user?.email || null
-    }]);
-    return error;
-  };
-
   const openAccountAudit = async () => {
     setAccountAudit([]);
     setAccountAuditLoading(true);
@@ -1311,7 +1353,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
       setAccountAudit(data || []);
       setModalMode('accountAudit');
     } catch (err) {
-      alert(err.message || 'Account audit history could not be loaded.');
+      showFeedback('error', 'অডিট হিস্ট্রি লোড হয়নি', err.message || 'Account audit history could not be loaded.');
     } finally {
       setAccountAuditLoading(false);
     }
@@ -1320,9 +1362,9 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const handleSaveTxn = async () => {
     if (txnSaveLock.current) return;
     const amount = Number(formData.amount);
-    if (!formData.date) return alert('লেনদেনের তারিখ নির্বাচন করুন।');
-    if (!Number.isFinite(amount) || amount <= 0) return alert('সঠিক পরিমাণ লিখুন।');
-    if (!String(formData.description || '').trim()) return alert('লেনদেনের বিবরণ লিখুন।');
+    if (!formData.date) return showFeedback('warning', 'তারিখ প্রয়োজন', 'লেনদেনের তারিখ নির্বাচন করুন।');
+    if (!Number.isFinite(amount) || amount <= 0) return showFeedback('warning', 'পরিমাণ যাচাই করুন', 'সঠিক ও শূন্যের চেয়ে বেশি পরিমাণ লিখুন।');
+    if (!String(formData.description || '').trim()) return showFeedback('warning', 'বিবরণ প্রয়োজন', 'লেনদেনের বিবরণ লিখুন।');
 
     txnSaveLock.current = true;
     setIsSavingTxn(true);
@@ -1338,33 +1380,23 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         client_name: String(formData.client_name || '').trim(),
         description: String(formData.description || '').trim()
       };
-      let savedRecord;
-      let auditWarning = '';
       if (id) {
-        const { data: beforeRecord, error: readError } = await supabase.from('accounts').select('*').eq('id', id).single();
-        if (readError) throw readError;
-        const { data, error } = await supabase.from('accounts').update(payload).eq('id', id).select('*').single();
+        const { error } = await supabase.from('accounts').update(payload).eq('id', id).select('*').single();
         if (error) throw error;
-        savedRecord = data;
-        const auditError = await recordAccountAudit(id, 'UPDATE', { before: beforeRecord, after: savedRecord });
-        if (auditError) auditWarning = `
-Warning: the transaction was updated, but its audit record could not be saved (${auditError.message}).`;
       } else {
-        const { data, error } = await supabase.from('accounts').insert([payload]).select('*').single();
+        const { error } = await supabase.from('accounts').insert([payload]).select('*').single();
         if (error) throw error;
-        savedRecord = data;
-        const auditError = await recordAccountAudit(savedRecord.id, 'CREATE', { after: savedRecord });
-        if (auditError) auditWarning = `
-Warning: the transaction was saved, but its audit record could not be saved (${auditError.message}).`;
       }
 
+      // The database trigger writes the audit record in the same transaction.
+      // If the audit insert fails, PostgreSQL rolls back the financial change too.
       await fetchAllData();
-      alert(`লেনদেন সংরক্ষিত হয়েছে। Accounts ও সংশ্লিষ্ট মামলার হিসাব একই রেকর্ড থেকে আপডেট হয়েছে।${auditWarning}`);
       const returnMode = txnReturnMode;
       setTxnReturnMode(null);
       setModalMode(returnMode === 'caseFinance' || returnMode === 'viewCase' ? returnMode : null);
+      showFeedback('success', 'লেনদেন সংরক্ষিত হয়েছে', 'Accounts ও সংশ্লিষ্ট মামলার আয়-ব্যয়ের হিসাব আপডেট হয়েছে। অডিট রেকর্ডও ডেটাবেস ট্রিগারের মাধ্যমে সংরক্ষিত হয়েছে।');
     } catch (err) {
-      alert(err.message || 'লেনদেন সংরক্ষণ করা যায়নি।');
+      showFeedback('error', 'লেনদেন সংরক্ষণ করা যায়নি', err.message || 'লেনদেন সংরক্ষণের সময় একটি ত্রুটি হয়েছে।');
     } finally {
       txnSaveLock.current = false;
       setIsSavingTxn(false);
@@ -1372,15 +1404,115 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
   };
 
   const handleDeleteTxn = async (id) => {
-    if (!confirm('Delete transaction? This will also remove it from the linked case summary.')) return;
-    const { data: beforeRecord, error: readError } = await supabase.from('accounts').select('*').eq('id', id).single();
-    if (readError) { alert(readError.message); return; }
+    if (!confirm('লেনদেনটি স্থায়ীভাবে ডিলিট করবেন? সংশ্লিষ্ট মামলার হিসাব থেকেও এটি বাদ যাবে।')) return;
     const { error } = await supabase.from('accounts').delete().eq('id', id);
-    if (error) { alert(error.message); return; }
-    const auditError = await recordAccountAudit(id, 'DELETE', { before: beforeRecord });
+    if (error) {
+      showFeedback('error', 'লেনদেন ডিলিট হয়নি', error.message);
+      return;
+    }
     await fetchAllData();
-    if (auditError) alert(`লেনদেন ডিলিট হয়েছে, তবে অডিট রেকর্ড সংরক্ষণ করা যায়নি: ${auditError.message}`);
+    showFeedback('success', 'লেনদেন ডিলিট হয়েছে', 'লেনদেনটি মুছে ফেলা হয়েছে এবং ডেটাবেস ট্রিগারের মাধ্যমে ডিলিটের অডিট রেকর্ড সংরক্ষিত হয়েছে।');
   };
+
+  const fetchCauseWatchlist = async () => {
+    const { data, error } = await supabase.from('supreme_court_watchlist').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    setCauseWatchlist(data || []);
+    return data || [];
+  };
+
+  const handleSaveCauseWatch = async () => {
+    if (!String(causeForm.case_number || '').trim() && !String(causeForm.tender_number || '').trim()) {
+      showFeedback('warning', 'মামলার নম্বর প্রয়োজন', 'Case Number অথবা Tender Number—অন্তত একটি লিখুন।');
+      return;
+    }
+    if (causeForm.case_number && !causeForm.case_year) {
+      showFeedback('warning', 'মামলার বছর প্রয়োজন', 'Case Number দিলে সংশ্লিষ্ট Year-ও লিখুন।');
+      return;
+    }
+    setIsSavingCause(true);
+    try {
+      const payload = {
+        user_id: session?.user?.id,
+        division: causeForm.division || 'High Court Division',
+        case_type: causeForm.case_type || 'Other',
+        case_number: String(causeForm.case_number || '').trim(),
+        case_year: causeForm.case_year ? Number(causeForm.case_year) : null,
+        tender_number: String(causeForm.tender_number || '').trim(),
+        petitioner: String(causeForm.petitioner || '').trim(),
+        respondent: String(causeForm.respondent || '').trim(),
+        notes: String(causeForm.notes || '').trim(),
+        is_active: true,
+        updated_at: new Date().toISOString()
+      };
+      const result = causeForm.id
+        ? await supabase.from('supreme_court_watchlist').update(payload).eq('id', causeForm.id).select('*').single()
+        : await supabase.from('supreme_court_watchlist').insert([payload]).select('*').single();
+      if (result.error) throw result.error;
+      await fetchCauseWatchlist();
+      setCauseAutoCheckedFor('');
+      setCauseForm({ division: 'High Court Division', case_type: 'Civil Revision', case_number: '', case_year: '', tender_number: '', petitioner: '', respondent: '', notes: '' });
+      showFeedback('success', causeForm.id ? 'মামলার নজরদারি আপডেট হয়েছে' : 'মামলা নজরদারির তালিকায় যুক্ত হয়েছে', 'মামলাটি LexSword-এর Supreme Court Cause List Watchlist-এ সংরক্ষিত হয়েছে।');
+    } catch (err) {
+      showFeedback('error', 'মামলা সংরক্ষণ করা যায়নি', err.message || 'Watchlist entry could not be saved.');
+    } finally {
+      setIsSavingCause(false);
+    }
+  };
+
+  const handleDeleteCauseWatch = async (item) => {
+    if (!confirm(`“${item.case_number || item.tender_number}” নজরদারির তালিকা থেকে মুছে ফেলবেন?`)) return;
+    const { error } = await supabase.from('supreme_court_watchlist').delete().eq('id', item.id);
+    if (error) {
+      showFeedback('error', 'মামলা মুছে ফেলা যায়নি', error.message);
+      return;
+    }
+    await fetchCauseWatchlist();
+    showFeedback('success', 'তালিকা আপডেট হয়েছে', 'মামলাটি নজরদারির তালিকা থেকে সরানো হয়েছে।');
+  };
+
+  const runCauseListCheck = async ({ silent = false } = {}) => {
+    const activeItems = causeWatchlist.filter(item => item.is_active !== false);
+    if (!activeItems.length) {
+      setCauseCheckMessage('প্রথমে অন্তত একটি মামলা নজরদারির তালিকায় যোগ করুন।');
+      if (!silent) showFeedback('warning', 'নজরদারির তালিকা খালি', 'কজলিস্ট যাচাই করার আগে High Court বা Appellate Division-এর মামলার তথ্য যোগ করুন।');
+      return;
+    }
+    setIsCheckingCauseList(true);
+    setCauseCheckMessage(`বাংলাদেশ সুপ্রীম কোর্টের ${causeListTomorrow.split('-').reverse().join('-')} তারিখের কার্যতালিকা যাচাই করা হচ্ছে…`);
+    try {
+      const { data, error } = await supabase.functions.invoke('cause-list-alerts', {
+        body: { check_date: causeListTomorrow, watchlist_ids: activeItems.map(item => item.id) }
+      });
+      if (error) throw error;
+      if (!data || !Array.isArray(data.results)) throw new Error('Cause-list checker থেকে প্রত্যাশিত ফলাফল পাওয়া যায়নি।');
+      await fetchCauseWatchlist();
+      const found = data.results.filter(result => result.status === 'FOUND').length;
+      const notFound = data.results.filter(result => result.status === 'NOT_FOUND').length;
+      const notPublished = data.results.filter(result => result.status === 'NOT_PUBLISHED').length;
+      const errors = data.results.filter(result => result.status === 'ERROR').length;
+      const summary = `যাচাই সম্পন্ন: ${found}টি পাওয়া গেছে, ${notFound}টি প্রকাশিত তালিকায় পাওয়া যায়নি, ${notPublished}টির তালিকা এখনও প্রকাশিত/পাঠযোগ্য নয়, ${errors}টিতে যাচাইয়ের সমস্যা হয়েছে।`;
+      setCauseCheckMessage(summary);
+      if (!silent) showFeedback(found ? 'success' : errors || notPublished ? 'warning' : 'info', 'কজলিস্ট যাচাই সম্পন্ন', `${summary} আইনগত সময়সীমার জন্য অফিসিয়াল কার্যতালিকা নিজেও মিলিয়ে নিন।`);
+    } catch (err) {
+      const message = `স্বয়ংক্রিয় যাচাই চালানো যায়নি। Supabase-এ cause-list-alerts Edge Function deploy করা আছে কি না এবং অফিসিয়াল ওয়েবসাইটে প্রবেশ করা যাচ্ছে কি না যাচাই করুন। বিস্তারিত: ${err.message || 'Unknown error'}`;
+      setCauseCheckMessage(message);
+      if (!silent) showFeedback('error', 'কজলিস্ট যাচাই চালু হয়নি', message);
+    } finally {
+      setIsCheckingCauseList(false);
+    }
+  };
+
+  const causeListNeedsCheck = causeWatchlist.some(item => item.is_active !== false && (
+    item.last_checked_for !== causeListTomorrow || ['NOT_PUBLISHED', 'ERROR'].includes(item.last_check_status)
+  ));
+  useEffect(() => {
+    if (activeTab !== 'causeAlerts' || !isAdmin || !causeListNeedsCheck || causeAutoCheckedFor === causeListTomorrow || isCheckingCauseList) return;
+    setCauseAutoCheckedFor(causeListTomorrow);
+    runCauseListCheck({ silent: true });
+  }, [activeTab, causeWatchlist, causeListNeedsCheck, causeListTomorrow, causeAutoCheckedFor, isCheckingCauseList]);
+
+  const openOfficialCauseSearch = () => window.open('https://www.supremecourt.gov.bd/web/case_search.php', '_blank', 'noopener,noreferrer');
 
   const getFilteredAccounts = () => {
     return accounts.filter(a => {
@@ -1521,9 +1653,9 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
   
   const handleUpdateStatus = async () => {
     if (isUpdating) return;
-    if (!formData.id) return alert('মামলার রেকর্ড পাওয়া যায়নি।');
+    if (!formData.id) return showFeedback('error', 'মামলার রেকর্ড পাওয়া যায়নি', 'মামলার রেকর্ড পাওয়া যায়নি।');
     if (!formData.next_date || !String(formData.current_step || '').trim()) {
-      return alert('পরবর্তী তারিখ ও পরবর্তী পদক্ষেপ পূরণ করুন।');
+      return showFeedback('warning', 'তথ্য অসম্পূর্ণ', 'পরবর্তী তারিখ ও পরবর্তী পদক্ষেপ পূরণ করুন।');
     }
 
     setIsUpdating(true);
@@ -1553,12 +1685,12 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
       }).eq('id', formData.id);
       if (updateError) throw new Error(`Order history was saved, but the case status could not be updated: ${updateError.message}`);
 
-      alert('মামলার তারিখ ও পদক্ষেপ আপডেট হয়েছে; আদেশের সারাংশ হিস্ট্রিতে সংরক্ষিত হয়েছে।');
       setModalMode(null);
       setRefresh(r => r + 1);
+      showFeedback('success', 'মামলার আপডেট সংরক্ষিত হয়েছে', 'মামলার তারিখ ও পদক্ষেপ আপডেট হয়েছে; আদেশের সারাংশ হিস্ট্রিতে সংরক্ষিত হয়েছে।');
     } catch (err) {
       console.error(err);
-      alert(err.message || 'আপডেট করার সময় একটি ত্রুটি হয়েছে।');
+      showFeedback('error', 'আপডেট করা যায়নি', err.message || 'আপডেট করার সময় একটি ত্রুটি হয়েছে।');
     } finally {
       setIsUpdating(false);
     }
@@ -1599,6 +1731,7 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
           <button onClick={() => {setActiveTab('calendar'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'calendar' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
             <CalIcon size={20}/> Calendar
           </button>
+          {isAdmin && <button onClick={() => {setActiveTab('causeAlerts'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'causeAlerts' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}><Bell size={20}/> Supreme Court Alerts</button>}
 
           {isAdmin && (
             <>
@@ -1648,6 +1781,18 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
                 <div className="lex-stat-card"><div><span className="lex-stat-label">Pending cases</span><strong>{currentCounts.pending}</strong><small>Ongoing matters</small></div><Clock className="lex-stat-icon lex-icon-gold" size={24}/></div>
                 <div className="lex-stat-card"><div><span className="lex-stat-label">Hearings today</span><strong>{currentCounts.today}</strong><small>Scheduled for today</small></div><CalIcon className="lex-stat-icon lex-icon-green" size={24}/></div>
                 <div className="lex-stat-card"><div><span className="lex-stat-label">Needs update</span><strong>{currentCounts.update}</strong><small>Past-date ongoing cases</small></div><AlertTriangle className="lex-stat-icon lex-icon-red" size={24}/></div>
+              </section>
+
+              <section className="lex-dashboard-shortcut-grid no-print" aria-label="Quick case lists">
+                <button type="button" className="lex-dashboard-shortcut is-today" onClick={() => setCaseQuickView('today')}>
+                  <span className="lex-shortcut-icon"><CalIcon size={20}/></span><span className="lex-shortcut-copy"><small>TODAY'S HEARINGS</small><strong>{todaysCaseList.length}</strong><em>আজকের মামলার তালিকা ও অ্যাকশন</em></span><ChevronRight size={18}/>
+                </button>
+                <button type="button" className="lex-dashboard-shortcut is-tomorrow" onClick={() => setCaseQuickView('tomorrow')}>
+                  <span className="lex-shortcut-icon"><Clock size={20}/></span><span className="lex-shortcut-copy"><small>TOMORROW'S HEARINGS</small><strong>{tomorrowsCaseList.length}</strong><em>আগামীকালের শুনানি ও করণীয়</em></span><ChevronRight size={18}/>
+                </button>
+                <button type="button" className="lex-dashboard-shortcut is-all" onClick={() => setCaseQuickView('all')}>
+                  <span className="lex-shortcut-icon"><FolderOpen size={20}/></span><span className="lex-shortcut-copy"><small>ALL CASES</small><strong>{cases.length}</strong><em>সব মামলার বিস্তারিত ও অ্যাকশন</em></span><ChevronRight size={18}/>
+                </button>
               </section>
 
               <section className="lex-reminder-grid no-print" aria-label="Hearing and task reminders">
@@ -1720,8 +1865,8 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
                         {c.court_type === 'High Court' && <span className="text-xs font-bold bg-yellow-100 text-yellow-900 px-2 rounded whitespace-nowrap shrink-0">{c.case_nature}</span>}
                         <span className="text-xs font-bold bg-gray-200 text-slate-800 px-2 rounded truncate max-w-[150px] shrink-0">{c.court_name}</span>
                       </div>
-                      <h3 className="text-xl font-bold text-slate-900 truncate">{c.case_no}</h3>
-                      <p className="text-slate-700 font-medium truncate">{c.party_name}</p>
+                      <h3 className="lex-case-card-title text-xl font-bold text-slate-900">{c.case_no || 'মামলা নম্বর উল্লেখ নেই'}</h3>
+                      <p className="lex-case-card-party text-slate-700 font-medium">{c.party_name || 'পক্ষের নাম উল্লেখ নেই'}</p>
                       <p className="text-xs text-slate-500 truncate">Section: {c.section}</p>
                     </div>
                     
@@ -1749,7 +1894,8 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
                           <button onClick={() => handleDeleteCase(c.id)} className="p-2 shrink-0 bg-red-100 text-red-800 rounded hover:bg-red-200" title="Delete case"><Trash2 size={18}/></button>
                         </>
                       )}
-                      <button onClick={() => handleWhatsApp(c)} className="p-2 shrink-0 bg-green-100 text-green-800 rounded hover:bg-green-200" title="Share case update by WhatsApp"><MessageCircle size={18}/></button>
+                      <button type="button" onClick={() => handleWhatsApp(c)} className="p-2 shrink-0 bg-green-100 text-green-800 rounded hover:bg-green-200" title="Share case update by WhatsApp"><MessageCircle size={18}/></button>
+                      <button type="button" onClick={() => handleClientProgressWhatsApp(c)} className="p-2 shrink-0 bg-violet-100 text-violet-800 rounded hover:bg-violet-200" title="Send client reassurance message"><HeartPulse size={18}/></button>
                     </div>
                   </div>
                 ))}
@@ -1935,9 +2081,17 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
                     <div className="lex-day-section-title"><h4><Gavel size={16}/> Court hearings</h4><span>{selectedDateCases.length}</span></div>
                     {selectedDateCases.length === 0 && <p className="lex-calendar-panel-empty">No hearings scheduled for this date.</p>}
                     {selectedDateCases.map(c => (
-                      <button key={c.id} type="button" className="lex-day-event-card is-case" onClick={() => openCaseDetails(c)}>
-                        <span className="lex-day-event-marker"></span><span className="lex-day-event-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.party_name || 'Party not specified'}</small><em>{c.current_step || c.court_name || 'Next step not specified'}</em></span><ChevronRight size={16}/>
-                      </button>
+                      <article key={c.id} className="lex-calendar-case-entry">
+                        <button type="button" className="lex-day-event-card is-case" onClick={() => openCaseDetails(c)}>
+                          <span className="lex-day-event-marker"></span><span className="lex-day-event-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.party_name || 'Party not specified'}</small><em>{c.current_step || c.court_name || 'Next step not specified'}</em></span><ChevronRight size={16}/>
+                        </button>
+                        <div className="lex-calendar-case-actions">
+                          {isAdmin && <button type="button" onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); }}><RefreshCw size={13}/> Update</button>}
+                          <button type="button" onClick={() => openCaseDetails(c)}><Eye size={13}/> View</button>
+                          <button type="button" className="is-whatsapp" onClick={() => handleWhatsApp(c)}><MessageCircle size={13}/> WhatsApp update</button>
+                          <button type="button" className="is-reassure" onClick={() => handleClientProgressWhatsApp(c)}><HeartPulse size={13}/> Client message</button>
+                        </div>
+                      </article>
                     ))}
                   </div>
                   {isAdmin && <div className="lex-day-agenda-section">
@@ -1947,6 +2101,55 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
                   </div>}
                   {isAdmin && <button type="button" className="lex-calendar-add-case" onClick={() => { setFormData({ file_no: '', court_type: 'Judge Court', case_nature: 'Civil Suit', status: 'Ongoing', next_date: selectedCalendarDate, current_step: '', note: '' }); setModalMode('addCase'); }}><Plus size={17}/> Add case on this date</button>}
                 </aside>
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'causeAlerts' && isAdmin && (
+            <section className="lex-cause-page no-print">
+              <div className="lex-cause-hero">
+                <div><p>LEXSWORD · SUPREME COURT WATCH</p><h2>Supreme Court Cause List Alerts</h2><span>High Court Division ও Appellate Division-এর মামলার তালিকা নজরদারি করুন।</span></div>
+                <div className="lex-cause-hero-actions">
+                  <button type="button" onClick={openOfficialCauseSearch}><ExternalLink size={16}/> Official case search</button>
+                  <button type="button" onClick={() => runCauseListCheck()} disabled={isCheckingCauseList}><RefreshCw size={16} className={isCheckingCauseList ? 'animate-spin' : ''}/>{isCheckingCauseList ? 'Checking…' : "Check tomorrow's list"}</button>
+                </div>
+              </div>
+              <div className="lex-cause-note"><AlertTriangle size={18}/><p><strong>গুরুত্বপূর্ণ:</strong> ফলাফল অফিসিয়াল ওয়েবসাইটে প্রকাশিত ও পাঠযোগ্য কার্যতালিকার ওপর নির্ভর করে। “Not published” মানে তালিকা পাওয়া যায়নি/প্রকাশিত নাও হতে পারে—এটি “মামলা নেই” প্রমাণ করে না। গুরুত্বপূর্ণ শুনানির আগে অফিসিয়াল কজলিস্ট অবশ্যই মিলিয়ে নিন।</p></div>
+              {causeCheckMessage && <div className="lex-cause-check-message"><Bell size={17}/><span>{causeCheckMessage}</span></div>}
+              <div className="lex-cause-layout">
+                <form className="lex-cause-form" onSubmit={e => { e.preventDefault(); handleSaveCauseWatch(); }}>
+                  <div className="lex-cause-form-heading"><div><p>WATCHLIST SETUP</p><h3>{causeForm.id ? 'Edit monitored case' : 'Add a case to monitor'}</h3></div><span><Plus size={17}/></span></div>
+                  <div className="lex-cause-form-grid">
+                    <label><span>Court division *</span><select value={causeForm.division} onChange={e => setCauseForm({...causeForm, division: e.target.value})}><option>High Court Division</option><option>Appellate Division</option></select></label>
+                    <label><span>Case type / category *</span><select value={causeForm.case_type} onChange={e => setCauseForm({...causeForm, case_type: e.target.value})}>{['Civil Revision','Criminal Revision','Writ Petition','Civil Appeal','Criminal Appeal','Review','Company Matter','Tender Matter','Arbitration','Admiralty','Other'].map(type => <option key={type}>{type}</option>)}</select></label>
+                    <label><span>Case number</span><input value={causeForm.case_number || ''} onChange={e => setCauseForm({...causeForm, case_number: e.target.value})} placeholder="e.g. 1234"/></label>
+                    <label><span>Year</span><input type="number" min="1900" max="2100" value={causeForm.case_year || ''} onChange={e => setCauseForm({...causeForm, case_year: e.target.value})} placeholder="e.g. 2024"/></label>
+                    <label className="is-wide"><span>Tender number (if applicable)</span><input value={causeForm.tender_number || ''} onChange={e => setCauseForm({...causeForm, tender_number: e.target.value})} placeholder="Tender / e-tender reference"/></label>
+                    <label><span>Petitioner / applicant</span><input value={causeForm.petitioner || ''} onChange={e => setCauseForm({...causeForm, petitioner: e.target.value})} placeholder="Party name"/></label>
+                    <label><span>Respondent / opposite party</span><input value={causeForm.respondent || ''} onChange={e => setCauseForm({...causeForm, respondent: e.target.value})} placeholder="Party name"/></label>
+                    <label className="is-wide"><span>Internal note (optional)</span><textarea rows="2" value={causeForm.notes || ''} onChange={e => setCauseForm({...causeForm, notes: e.target.value})} placeholder="Client, bench, reference or other identifying note"/></label>
+                  </div>
+                  <div className="lex-cause-form-actions"><button type="button" className="is-secondary" onClick={() => setCauseForm({division:'High Court Division',case_type:'Civil Revision',case_number:'',case_year:'',tender_number:'',petitioner:'',respondent:'',notes:''})}>Clear form</button><button type="submit" disabled={isSavingCause}><Save size={16}/>{isSavingCause ? 'Saving…' : causeForm.id ? 'Save changes' : 'Add to watchlist'}</button></div>
+                </form>
+                <div className="lex-cause-watchlist">
+                  <div className="lex-cause-list-heading"><div><p>YOUR TRACKED MATTERS</p><h3>Monitored cases <span>{causeWatchlist.length}</span></h3></div><small>Next check: {causeListTomorrow.split('-').reverse().join('-')}</small></div>
+                  {causeWatchlist.length === 0 && <div className="lex-cause-empty"><Bell size={27}/><strong>No cases in your watchlist</strong><span>বাম পাশের ফর্মে High Court বা Appellate Division-এর মামলা যোগ করুন।</span></div>}
+                  {causeWatchlist.map(item => {
+                    const status = item.last_check_status || 'NOT_CHECKED';
+                    const statusLabel = status === 'FOUND' ? 'Found in list' : status === 'NOT_FOUND' ? 'Not found in checked list' : status === 'NOT_PUBLISHED' ? 'List not published / unavailable' : status === 'ERROR' ? 'Check incomplete' : 'Not checked yet';
+                    return <article key={item.id} className="lex-cause-watch-card">
+                      <div className="lex-cause-watch-top"><span className={`lex-cause-status ${status.toLowerCase().replace('_','-')}`}>{statusLabel}</span><span className="lex-cause-division">{item.division}</span></div>
+                      <h4>{item.case_type || 'Case'} {item.case_number ? `${item.case_number}${item.case_year ? `/${item.case_year}` : ''}` : ''}</h4>
+                      {item.tender_number && <p><strong>Tender:</strong> {item.tender_number}</p>}
+                      {(item.petitioner || item.respondent) && <p className="lex-cause-parties">{item.petitioner || '—'} <span>vs.</span> {item.respondent || '—'}</p>}
+                      {item.notes && <p className="lex-cause-note-text">{item.notes}</p>}
+                      {item.last_result?.message && <p className="lex-cause-result-detail">{item.last_result.message}</p>}
+                      {item.last_result?.source_url && <a href={item.last_result.source_url} target="_blank" rel="noreferrer" className="lex-cause-source-link">Open matching official list <ExternalLink size={12}/></a>}
+                      {item.last_checked_at && <small className="lex-cause-checked-at">Last checked {new Date(item.last_checked_at).toLocaleString('en-GB')} · for {item.last_checked_for ? String(item.last_checked_for).split('-').reverse().join('-') : '—'}</small>}
+                      <div className="lex-cause-card-actions"><button type="button" onClick={() => setCauseForm({...item, case_year: item.case_year ? String(item.case_year) : ''})}><Edit3 size={14}/> Edit</button><button type="button" className="is-delete" onClick={() => handleDeleteCauseWatch(item)}><Trash2 size={14}/> Remove</button></div>
+                    </article>;
+                  })}
+                </div>
               </div>
             </section>
           )}
@@ -2169,32 +2372,31 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
       </nav>
 
       {modalMode === 'addTxn' && (
-         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+         <div className="lex-modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 overflow-y-auto no-print">
             <div className="lex-finance-entry-modal bg-white w-full max-w-lg rounded-xl shadow-2xl">
-               <div className="bg-slate-900 p-4 text-white flex justify-between">
-                  <h3 className="font-bold">{formData.id ? 'Edit Transaction' : 'New Transaction'}</h3>
-                  <button onClick={() => { const returnMode = txnReturnMode; setTxnReturnMode(null); setModalMode(returnMode === 'caseFinance' || returnMode === 'viewCase' ? returnMode : null); }}><X/></button>
+               <div className="lex-finance-entry-header p-4 text-white flex justify-between items-center">
+                  <div><p>LEXSWORD · ACCOUNTS & LEDGER</p><h3 className="font-bold">{formData.id ? 'Edit Transaction' : 'New Transaction'}</h3><span>তারিখ, বিবরণ ও পরিমাণ যাচাই করে সংরক্ষণ করুন।</span></div>
+                  <button type="button" aria-label="Close transaction form" onClick={() => { const returnMode = txnReturnMode; setTxnReturnMode(null); setModalMode(returnMode === 'caseFinance' || returnMode === 'viewCase' ? returnMode : null); }}><X/></button>
                </div>
-               <div className="p-6 space-y-4">
+               <div className="lex-finance-entry-body p-4 sm:p-6 space-y-4">
                   <div className="flex gap-2">
-                      <button onClick={() => setFormData({...formData, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Income' ? 'bg-green-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Income</button>
-                      <button onClick={() => setFormData({...formData, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Expense' ? 'bg-red-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Expense</button>
+                      <button type="button" onClick={() => setFormData({...formData, txn_type: 'Income'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Income' ? 'bg-green-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Income</button>
+                      <button type="button" onClick={() => setFormData({...formData, txn_type: 'Expense'})} className={`flex-1 py-2 rounded font-bold ${formData.txn_type === 'Expense' ? 'bg-red-600 text-white' : 'bg-gray-100 text-slate-900'}`}>Expense</button>
                   </div>
                   <div className="lex-form-field"><label>Transaction date</label><input type="date" value={formData.date || ''} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
                   <div className="lex-form-field"><label>Voucher / receipt number <span className="font-normal normal-case">(auto-generated if blank)</span></label><input placeholder="e.g. LS-20261018-123456" value={formData.voucher_no || ''} onChange={e => setFormData({...formData, voucher_no: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
                   <div className="lex-form-field"><label>Link to case (optional)</label><select value={formData.case_id ? String(formData.case_id) : ''} onChange={e => setFormData({...formData, case_id: e.target.value || null})} disabled={txnReturnMode === 'caseFinance'} className="w-full border p-2 rounded text-slate-900 bg-white"><option value="">General / not linked to a case</option>{cases.map(c => <option key={c.id} value={String(c.id)}>{c.case_no || 'Case'} — {c.party_name || c.court_name || ''}</option>)}</select>{formData.case_id && <small className="text-xs text-indigo-700">This entry will appear in the linked case's financial summary.</small>}</div>
                   <div className="lex-form-field"><label>Client / payee name</label><input placeholder="Client Name" value={formData.client_name || ''} onChange={e => setFormData({...formData, client_name: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
                   <div className="lex-form-field"><label>Description</label><input placeholder="Describe the fee, cost or transaction" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border p-2 rounded text-slate-900"/></div>
-                  <div className="flex gap-2">
-                     <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
-                        <option>Office</option><option>Personal</option><option>Client</option><option>Case Fee</option><option>Case Cost</option><option>Court Fee</option><option>Salary</option><option>Savings</option><option>Evidence</option><option>Affidavit</option><option>Order Sheet</option><option>Misc</option>
-                      </select>
-                      <select value={formData.payment_status} onChange={e => setFormData({...formData, payment_status: e.target.value})} className="w-1/2 border p-2 rounded text-slate-900 bg-white">
-                        <option>Paid</option><option>Due</option>
-                      </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                     <select value={formData.category || 'Office'} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white"><option>Office</option><option>Personal</option><option>Client</option><option>Case Fee</option><option>Case Cost</option><option>Court Fee</option><option>Salary</option><option>Savings</option><option>Evidence</option><option>Affidavit</option><option>Order Sheet</option><option>Misc</option></select>
+                     <select value={formData.payment_status || 'Paid'} onChange={e => setFormData({...formData, payment_status: e.target.value})} className="w-full border p-2 rounded text-slate-900 bg-white"><option>Paid</option><option>Due</option></select>
                   </div>
-                  <input type="number" placeholder="Amount" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full border p-2 rounded font-bold text-lg text-slate-900"/>
-                  <button type="button" onClick={handleSaveTxn} disabled={isSavingTxn} className="w-full bg-slate-900 text-white py-3 rounded font-bold disabled:opacity-60 disabled:cursor-wait">{isSavingTxn ? 'Saving…' : formData.id ? 'UPDATE ENTRY' : 'SAVE ENTRY'}</button>
+                  <div className="lex-form-field"><label>Amount (৳)</label><input type="number" min="0.01" step="0.01" placeholder="Enter amount" value={formData.amount ?? ''} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full border p-3 rounded font-bold text-lg text-slate-900"/></div>
+               </div>
+               <div className="lex-finance-entry-footer">
+                 <button type="button" className="is-cancel" onClick={() => { const returnMode = txnReturnMode; setTxnReturnMode(null); setModalMode(returnMode === 'caseFinance' || returnMode === 'viewCase' ? returnMode : null); }}>Cancel</button>
+                 <button type="button" className="is-save" onClick={handleSaveTxn} disabled={isSavingTxn}><Save size={17}/>{isSavingTxn ? 'Saving…' : formData.id ? 'Update entry' : 'Save entry'}</button>
                </div>
             </div>
          </div>
@@ -2627,7 +2829,6 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
               <h3 className="font-bold">Transaction History: {selectedCase.person_name}</h3>
               <button onClick={() => setModalMode(null)}><X/></button>
             </div>
-         
             <div className="p-4 bg-slate-50 border-b flex justify-between items-center">
                 <span className="font-bold text-slate-700">Total Balance:</span>
                 <span className={`text-xl font-bold ${selectedCase.loan_category === 'Taken' ? 'text-red-600' : 'text-green-600'}`}>৳{selectedCase.balance}</span>
@@ -2635,16 +2836,8 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
             <div className="p-4 max-h-[60vh] overflow-y-auto space-y-3">
                 {selectedCase.history.sort((a,b) => new Date(b.date) - new Date(a.date)).map((h, i) => (
                     <div key={i} className="flex justify-between items-center p-3 border rounded bg-white shadow-sm">
-                        <div>
-                            <p className="font-bold text-sm text-slate-900">{h.date}</p>
-                            <p className="text-xs text-slate-500">{h.note || (h.action === 'Add' ? 'Loan Increased' : 'Repayment')}</p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <span className={`font-bold ${h.action === 'Add' ? 'text-red-600' : 'text-green-600'}`}>
-                                {h.action === 'Add' ? '+' : '-'} ৳{h.amount}
-                            </span>
-                            <button onClick={() => handleDeleteLoanTxn(h.id)} className="text-red-400 hover:text-red-600"><Trash2 size={16}/></button>
-                        </div>
+                        <div><p className="font-bold text-sm text-slate-900">{h.date}</p><p className="text-xs text-slate-500">{h.note || (h.action === 'Add' ? 'Loan Increased' : 'Repayment')}</p></div>
+                        <div className="flex items-center gap-4"><span className={`font-bold ${h.action === 'Add' ? 'text-red-600' : 'text-green-600'}`}>{h.action === 'Add' ? '+' : '-'} ৳{h.amount}</span><button onClick={() => handleDeleteLoanTxn(h.id)} className="text-red-400 hover:text-red-600"><Trash2 size={16}/></button></div>
                     </div>
                 ))}
             </div>
@@ -2652,6 +2845,40 @@ Warning: the transaction was saved, but its audit record could not be saved (${a
         </div>
      )}
 
+      {caseQuickView && (
+        <div className="lex-quick-view-backdrop fixed inset-0 z-[70] flex items-center justify-center p-2 sm:p-4" onClick={() => setCaseQuickView(null)}>
+          <section className="lex-quick-view-modal" role="dialog" aria-modal="true" aria-label={dashboardQuickTitle} onClick={e => e.stopPropagation()}>
+            <header className="lex-quick-view-header"><div><p>LEXSWORD · CASE DASHBOARD</p><h3>{dashboardQuickTitle}</h3><span>{dashboardQuickCases.length} case{dashboardQuickCases.length === 1 ? '' : 's'} · Select an action for any matter</span></div><button type="button" aria-label="Close case list" onClick={() => setCaseQuickView(null)}><X/></button></header>
+            <div className="lex-quick-view-body">
+              {dashboardQuickCases.length === 0 && <div className="lex-cause-empty"><CalIcon size={26}/><strong>No cases in this list</strong><span>এই তালিকার জন্য কোনো মামলা পাওয়া যায়নি।</span></div>}
+              {dashboardQuickCases.map(c => <article key={c.id} className="lex-quick-case-card">
+                <div className="lex-quick-case-top"><div><span className="lex-quick-case-type">{c.court_type || 'Court'} · {c.case_nature || 'Case'}</span><h4>{c.case_no || 'মামলা নম্বর উল্লেখ নেই'}</h4><p>{c.party_name || 'পক্ষের নাম উল্লেখ নেই'}</p></div><span className={`lex-quick-status ${c.status === 'Disposed' ? 'is-disposed' : 'is-pending'}`}>{c.status || 'Ongoing'}</span></div>
+                <div className="lex-quick-case-meta"><span><CalIcon size={13}/> {c.next_date ? c.next_date.split('-').reverse().join('-') : 'তারিখ নির্ধারিত নয়'}</span><span>{c.current_step || c.court_name || 'পদক্ষেপ উল্লেখ নেই'}</span></div>
+                <div className="lex-quick-case-actions">
+                  {isAdmin && <button type="button" className="is-update" onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); setCaseQuickView(null); }}><RefreshCw size={14}/> Update</button>}
+                  <button type="button" className="is-view" onClick={() => { setCaseQuickView(null); openCaseDetails(c); }}><Eye size={14}/> View</button>
+                  <button type="button" className="is-whatsapp" onClick={() => { setCaseQuickView(null); handleWhatsApp(c); }}><MessageCircle size={14}/> WhatsApp update</button>
+                  <button type="button" className="is-reassure" onClick={() => { setCaseQuickView(null); handleClientProgressWhatsApp(c); }}><HeartPulse size={14}/> Client message</button>
+                  {isAdmin && <button type="button" className="is-fee" onClick={() => { setCaseQuickView(null); openCaseTransaction(c, 'Income'); }}><DollarSign size={14}/> Fee</button>}
+                  {isAdmin && <button type="button" className="is-cost" onClick={() => { setCaseQuickView(null); openCaseTransaction(c, 'Expense'); }}><TrendingDown size={14}/> Cost</button>}
+                  {isAdmin && <button type="button" className="is-edit" onClick={() => { setCaseQuickView(null); setFormData({...c}); setModalMode('addCase'); }}><Edit3 size={14}/> Edit</button>}
+                </div>
+              </article>)}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {feedbackModal && (
+        <div className="lex-feedback-backdrop fixed inset-0 z-[120] flex items-center justify-center p-4" role="presentation">
+          <section className={`lex-feedback-modal is-${feedbackModal.type || 'info'}`} role="dialog" aria-modal="true" aria-labelledby="lex-feedback-title">
+            <span className="lex-feedback-icon">{feedbackModal.type === 'success' ? <CheckCircle size={25}/> : feedbackModal.type === 'warning' ? <AlertTriangle size={25}/> : feedbackModal.type === 'error' ? <AlertTriangle size={25}/> : <Bell size={25}/>}</span>
+            <h3 id="lex-feedback-title">{feedbackModal.title}</h3>
+            <p>{feedbackModal.message}</p>
+            <button type="button" onClick={() => setFeedbackModal(null)}>ঠিক আছে</button>
+          </section>
+        </div>
+      )}
 
     </div>
   );
