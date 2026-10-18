@@ -1049,6 +1049,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [feedbackModal, setFeedbackModal] = useState(null);
   const [caseQuickView, setCaseQuickView] = useState(null);
   const [causeWatchlist, setCauseWatchlist] = useState([]);
+  const [causeHistory, setCauseHistory] = useState([]);
+  const [causeHistoryLoading, setCauseHistoryLoading] = useState(false);
+  const [selectedCauseFolder, setSelectedCauseFolder] = useState(null);
+  const [showArchivedCauseCases, setShowArchivedCauseCases] = useState(false);
   const [causeForm, setCauseForm] = useState({
     division: 'High Court Division', case_type: 'Civil Revision', case_number: '', case_year: '',
     tender_number: '', petitioner: '', respondent: '', notes: ''
@@ -1137,6 +1141,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const selectedCalendarDateLabel = selectedCalendarDateObject.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
   const selectedDateCases = cases.filter(c => c.next_date === selectedCalendarDate && c.status !== 'Disposed');
   const selectedDateTasks = tasks.filter(t => t.due_date === selectedCalendarDate && t.status !== 'Done');
+  const visibleCauseWatchlist = causeWatchlist.filter(item => showArchivedCauseCases ? item.is_active === false : item.is_active !== false);
   const calendarWeekDays = (() => {
     const start = new Date(`${selectedCalendarDate}T12:00:00`);
     start.setDate(start.getDate() - start.getDay());
@@ -1421,6 +1426,41 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     return data || [];
   };
 
+  const openCauseFolder = async (item) => {
+    setSelectedCauseFolder(item);
+    setCauseHistory([]);
+    setCauseHistoryLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('supreme_court_watchlist_history')
+        .select('*')
+        .eq('watchlist_id', item.id)
+        .order('checked_at', { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      setCauseHistory(data || []);
+    } catch (err) {
+      showFeedback('error', 'মামলার ইতিহাস লোড হয়নি', err.message || 'Supreme Court Cause List history could not be loaded.');
+    } finally {
+      setCauseHistoryLoading(false);
+    }
+  };
+
+  const handleArchiveCauseWatch = async (item) => {
+    const restoring = item.is_active === false;
+    const { error } = await supabase.from('supreme_court_watchlist')
+      .update({ is_active: restoring, updated_at: new Date().toISOString() })
+      .eq('id', item.id);
+    if (error) {
+      showFeedback('error', 'মামলার ফোল্ডার আপডেট হয়নি', error.message);
+      return;
+    }
+    await fetchCauseWatchlist();
+    showFeedback('success', restoring ? 'মামলা পুনরায় সক্রিয় হয়েছে' : 'মামলা আর্কাইভে রাখা হয়েছে', restoring
+      ? 'মামলাটি আবার দৈনিক Cause List যাচাইয়ের অন্তর্ভুক্ত হবে। আগের ইতিহাস অক্ষত আছে।'
+      : 'মামলাটি সক্রিয় তালিকা থেকে সরানো হয়েছে; ফোল্ডার ও আগের Cause List history সংরক্ষিত আছে।');
+  };
+
   const handleSaveCauseWatch = async () => {
     if (!String(causeForm.case_number || '').trim() && !String(causeForm.tender_number || '').trim()) {
       showFeedback('warning', 'মামলার নম্বর প্রয়োজন', 'Case Number অথবা Tender Number—অন্তত একটি লিখুন।');
@@ -1460,16 +1500,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     }
   };
 
-  const handleDeleteCauseWatch = async (item) => {
-    if (!confirm(`“${item.case_number || item.tender_number}” নজরদারির তালিকা থেকে মুছে ফেলবেন?`)) return;
-    const { error } = await supabase.from('supreme_court_watchlist').delete().eq('id', item.id);
-    if (error) {
-      showFeedback('error', 'মামলা মুছে ফেলা যায়নি', error.message);
-      return;
-    }
-    await fetchCauseWatchlist();
-    showFeedback('success', 'তালিকা আপডেট হয়েছে', 'মামলাটি নজরদারির তালিকা থেকে সরানো হয়েছে।');
-  };
+  const handleDeleteCauseWatch = handleArchiveCauseWatch;
 
   const runCauseListCheck = async ({ silent = false } = {}) => {
     const activeItems = causeWatchlist.filter(item => item.is_active !== false);
@@ -1858,46 +1889,38 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               <div className="lex-case-list grid gap-4 overflow-hidden">
                 {getFilteredCases().length === 0 && <p className="text-slate-500 italic">No cases found.</p>}
                 {getFilteredCases().map(c => (
-                  <div key={c.id} className="lex-case-card bg-white p-4 md:p-5 rounded-lg shadow border-l-4 border-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 transition w-full overflow-hidden">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex gap-2 mb-1 overflow-x-auto custom-scrollbar pb-1">
-                         <span className="text-xs font-bold bg-blue-100 text-blue-900 px-2 rounded whitespace-nowrap shrink-0">{c.court_type}</span>
-                        {c.court_type === 'High Court' && <span className="text-xs font-bold bg-yellow-100 text-yellow-900 px-2 rounded whitespace-nowrap shrink-0">{c.case_nature}</span>}
-                        <span className="text-xs font-bold bg-gray-200 text-slate-800 px-2 rounded truncate max-w-[150px] shrink-0">{c.court_name}</span>
+                  <article key={c.id} className="lex-case-card lex-case-folder-card">
+                    <div className="lex-case-folder-top">
+                      <span className="lex-case-folder-marker" aria-hidden="true"></span>
+                      <div className="lex-case-folder-main">
+                        <div className="lex-case-folder-tags">
+                          <span className="is-court">{c.court_type || 'Court'}</span>
+                          {c.case_nature && <span className="is-nature">{c.case_nature}</span>}
+                          {c.court_name && <span className="is-bench">{c.court_name}</span>}
+                        </div>
+                        <h3 className="lex-case-card-title">{c.case_no || 'মামলা নম্বর উল্লেখ নেই'}</h3>
+                        <p className="lex-case-card-party">{c.party_name || 'পক্ষের নাম উল্লেখ নেই'}</p>
+                        <div className="lex-case-folder-details">
+                          <span className="is-date"><CalIcon size={13}/> <strong>পরবর্তী তারিখ:</strong> {c.next_date ? c.next_date.split('-').reverse().join('-') : 'নির্ধারিত নয়'}</span>
+                          <span className={`is-status ${c.status === 'Disposed' ? 'is-disposed' : 'is-pending'}`}>{c.status || 'Ongoing'}</span>
+                          {c.current_step && <span className="is-step">{c.current_step}</span>}
+                          {c.section && <span className="is-section">ধারা: {c.section}</span>}
+                        </div>
                       </div>
-                      <h3 className="lex-case-card-title text-xl font-bold text-slate-900">{c.case_no || 'মামলা নম্বর উল্লেখ নেই'}</h3>
-                      <p className="lex-case-card-party text-slate-700 font-medium">{c.party_name || 'পক্ষের নাম উল্লেখ নেই'}</p>
-                      <p className="text-xs text-slate-500 truncate">Section: {c.section}</p>
+                      <button type="button" className="lex-case-open-folder" onClick={() => openCaseDetails(c)} title="Open complete case file and order history" aria-label="Open complete case file and order history"><ChevronRight size={19}/></button>
                     </div>
-                    
-                    <div className="text-left md:text-right w-full md:w-auto shrink-0">
-                      <p className="text-xs text-slate-600">Next Date</p>
-                      <p className="text-lg font-bold text-red-600">{c.next_date}</p>
-                      <p className="text-xs font-bold text-[#c5a059] uppercase truncate max-w-[200px]">{c.current_step}</p>
+                    <div className="lex-case-card-actions" aria-label="Case actions">
+                      {isAdmin && <button type="button" className="is-fee" onClick={() => openCaseTransaction(c, 'Income')} title="Add fee / income" aria-label="Add fee / income"><DollarSign size={16}/></button>}
+                      {isAdmin && <button type="button" className="is-cost" onClick={() => openCaseTransaction(c, 'Expense')} title="Add cost / expense" aria-label="Add cost / expense"><TrendingDown size={16}/></button>}
+                      {isAdmin && <button type="button" className="is-finance" onClick={() => openCaseFinance(c)} title="View case finances" aria-label="View case finances"><PieChart size={16}/></button>}
+                      {isAdmin && <button type="button" className="is-update" onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); }} title="Update hearing date and order summary" aria-label="Update hearing date and order summary"><RefreshCw size={16}/></button>}
+                      <button type="button" className="is-view" onClick={() => openCaseDetails(c)} title="View complete case file" aria-label="View complete case file"><Eye size={16}/></button>
+                      {isAdmin && <button type="button" className="is-edit" onClick={() => { setFormData({...c}); setModalMode('addCase'); }} title="Edit case" aria-label="Edit case"><Edit3 size={16}/></button>}
+                      {isAdmin && <button type="button" className="is-delete" onClick={() => handleDeleteCase(c.id)} title="Delete case" aria-label="Delete case"><Trash2 size={16}/></button>}
+                      <button type="button" className="is-whatsapp" onClick={() => handleWhatsApp(c)} title="WhatsApp case update" aria-label="WhatsApp case update"><MessageCircle size={16}/></button>
+                      <button type="button" className="is-reassure" onClick={() => handleClientProgressWhatsApp(c)} title="Send client reassurance message" aria-label="Send client reassurance message"><HeartPulse size={16}/></button>
                     </div>
-
-                    <div className="lex-case-card-actions flex gap-2 w-full md:w-auto justify-start md:justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
-                      {isAdmin && (
-                        <>
-                          <button type="button" onClick={() => openCaseTransaction(c, 'Income')} className="lex-case-money-action is-fee" title="Add a fee / income to this case"><DollarSign size={16}/><span>Fee</span></button>
-                          <button type="button" onClick={() => openCaseTransaction(c, 'Expense')} className="lex-case-money-action is-cost" title="Add a cost / expense to this case"><TrendingDown size={16}/><span>Cost</span></button>
-                          <button type="button" onClick={() => openCaseFinance(c)} className="lex-case-money-action is-finance" title="View this case's income, costs and dues" aria-label="Case finance"><PieChart size={17}/></button>
-                        </>
-                      )}
-                      <button onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); }} className="p-2 shrink-0 bg-slate-900 text-white rounded hover:bg-[#c5a059] font-bold flex items-center gap-1" title="Update hearing date, next step and order summary">
-                        <RefreshCw size={16}/> Update
-                      </button>
-                      <button onClick={() => openCaseDetails(c)} title="View complete case profile and order history" className="lex-case-view-action p-2 shrink-0 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"><Eye size={18}/><span>View case</span></button>
-                      {isAdmin && (
-                        <>
-                          <button onClick={() => { setFormData(c); setModalMode('addCase'); }} className="p-2 shrink-0 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200" title="Edit case"><Edit3 size={18}/></button>
-                          <button onClick={() => handleDeleteCase(c.id)} className="p-2 shrink-0 bg-red-100 text-red-800 rounded hover:bg-red-200" title="Delete case"><Trash2 size={18}/></button>
-                        </>
-                      )}
-                      <button type="button" onClick={() => handleWhatsApp(c)} className="p-2 shrink-0 bg-green-100 text-green-800 rounded hover:bg-green-200" title="Share case update by WhatsApp"><MessageCircle size={18}/></button>
-                      <button type="button" onClick={() => handleClientProgressWhatsApp(c)} className="p-2 shrink-0 bg-violet-100 text-violet-800 rounded hover:bg-violet-200" title="Send client reassurance message"><HeartPulse size={18}/></button>
-                    </div>
-                  </div>
+                  </article>
                 ))}
               </div>
             </div>
@@ -2086,10 +2109,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                           <span className="lex-day-event-marker"></span><span className="lex-day-event-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.party_name || 'Party not specified'}</small><em>{c.current_step || c.court_name || 'Next step not specified'}</em></span><ChevronRight size={16}/>
                         </button>
                         <div className="lex-calendar-case-actions">
-                          {isAdmin && <button type="button" onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); }}><RefreshCw size={13}/> Update</button>}
-                          <button type="button" onClick={() => openCaseDetails(c)}><Eye size={13}/> View</button>
-                          <button type="button" className="is-whatsapp" onClick={() => handleWhatsApp(c)}><MessageCircle size={13}/> WhatsApp update</button>
-                          <button type="button" className="is-reassure" onClick={() => handleClientProgressWhatsApp(c)}><HeartPulse size={13}/> Client message</button>
+                          {isAdmin && <button type="button" title="Update hearing date and order summary" aria-label="Update hearing date and order summary" onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); }}><RefreshCw size={16}/></button>}
+                          <button type="button" title="View case file" aria-label="View case file" onClick={() => openCaseDetails(c)}><Eye size={16}/></button>
+                          <button type="button" className="is-whatsapp" title="WhatsApp case update" aria-label="WhatsApp case update" onClick={() => handleWhatsApp(c)}><MessageCircle size={16}/></button>
+                          <button type="button" className="is-reassure" title="Send client reassurance message" aria-label="Send client reassurance message" onClick={() => handleClientProgressWhatsApp(c)}><HeartPulse size={16}/></button>
                         </div>
                       </article>
                     ))}
@@ -2132,21 +2155,21 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                   <div className="lex-cause-form-actions"><button type="button" className="is-secondary" onClick={() => setCauseForm({division:'High Court Division',case_type:'Civil Revision',case_number:'',case_year:'',tender_number:'',petitioner:'',respondent:'',notes:''})}>Clear form</button><button type="submit" disabled={isSavingCause}><Save size={16}/>{isSavingCause ? 'Saving…' : causeForm.id ? 'Save changes' : 'Add to watchlist'}</button></div>
                 </form>
                 <div className="lex-cause-watchlist">
-                  <div className="lex-cause-list-heading"><div><p>YOUR TRACKED MATTERS</p><h3>Monitored cases <span>{causeWatchlist.length}</span></h3></div><small>Next check: {causeListTomorrow.split('-').reverse().join('-')}</small></div>
-                  {causeWatchlist.length === 0 && <div className="lex-cause-empty"><Bell size={27}/><strong>No cases in your watchlist</strong><span>বাম পাশের ফর্মে High Court বা Appellate Division-এর মামলা যোগ করুন।</span></div>}
-                  {causeWatchlist.map(item => {
+                  <div className="lex-cause-list-heading"><div><p>YOUR TRACKED MATTERS · CASE FOLDERS</p><h3>{showArchivedCauseCases ? 'Archived case folders' : 'Monitored cases'} <span>{visibleCauseWatchlist.length}</span></h3></div><div className="lex-cause-list-tools"><small>Next check: {causeListTomorrow.split('-').reverse().join('-')}</small><button type="button" onClick={() => setShowArchivedCauseCases(value => !value)} title={showArchivedCauseCases ? 'Show active cases' : 'Show archived case folders'}><FolderOpen size={14}/>{showArchivedCauseCases ? 'Active cases' : 'Archive'}</button></div></div>
+                  {visibleCauseWatchlist.length === 0 && <div className="lex-cause-empty"><FolderOpen size={27}/><strong>{showArchivedCauseCases ? 'No archived folders' : 'No cases in your watchlist'}</strong><span>{showArchivedCauseCases ? 'আর্কাইভ করা মামলা এখানে দেখা যাবে।' : 'বাম পাশের ফর্মে High Court বা Appellate Division-এর মামলা যোগ করুন।'}</span></div>}
+                  {visibleCauseWatchlist.map(item => {
                     const status = item.last_check_status || 'NOT_CHECKED';
                     const statusLabel = status === 'FOUND' ? 'Found in list' : status === 'NOT_FOUND' ? 'Not found in checked list' : status === 'NOT_PUBLISHED' ? 'List not published / unavailable' : status === 'ERROR' ? 'Check incomplete' : 'Not checked yet';
                     return <article key={item.id} className="lex-cause-watch-card">
                       <div className="lex-cause-watch-top"><span className={`lex-cause-status ${status.toLowerCase().replace('_','-')}`}>{statusLabel}</span><span className="lex-cause-division">{item.division}</span></div>
-                      <h4>{item.case_type || 'Case'} {item.case_number ? `${item.case_number}${item.case_year ? `/${item.case_year}` : ''}` : ''}</h4>
+                      <button type="button" className="lex-cause-folder-title" onClick={() => openCauseFolder(item)}><FolderOpen size={17}/><span>{item.case_type || 'Case'} {item.case_number ? `${item.case_number}${item.case_year ? `/${item.case_year}` : ''}` : ''}</span><ChevronRight size={16}/></button>
                       {item.tender_number && <p><strong>Tender:</strong> {item.tender_number}</p>}
                       {(item.petitioner || item.respondent) && <p className="lex-cause-parties">{item.petitioner || '—'} <span>vs.</span> {item.respondent || '—'}</p>}
                       {item.notes && <p className="lex-cause-note-text">{item.notes}</p>}
                       {item.last_result?.message && <p className="lex-cause-result-detail">{item.last_result.message}</p>}
                       {item.last_result?.source_url && <a href={item.last_result.source_url} target="_blank" rel="noreferrer" className="lex-cause-source-link">Open matching official list <ExternalLink size={12}/></a>}
                       {item.last_checked_at && <small className="lex-cause-checked-at">Last checked {new Date(item.last_checked_at).toLocaleString('en-GB')} · for {item.last_checked_for ? String(item.last_checked_for).split('-').reverse().join('-') : '—'}</small>}
-                      <div className="lex-cause-card-actions"><button type="button" onClick={() => setCauseForm({...item, case_year: item.case_year ? String(item.case_year) : ''})}><Edit3 size={14}/> Edit</button><button type="button" className="is-delete" onClick={() => handleDeleteCauseWatch(item)}><Trash2 size={14}/> Remove</button></div>
+                      <div className="lex-cause-card-actions"><button type="button" onClick={() => openCauseFolder(item)} title="Open this case folder and cause-list history"><FolderOpen size={14}/> Folder & history</button><button type="button" onClick={() => setCauseForm({...item, case_year: item.case_year ? String(item.case_year) : ''})}><Edit3 size={14}/> Edit</button><button type="button" className="is-archive" onClick={() => handleArchiveCauseWatch(item)} title={item.is_active === false ? 'Restore case to active checks' : 'Archive this case without deleting its history'}>{item.is_active === false ? <Plus size={14}/> : <FolderOpen size={14}/>} {item.is_active === false ? 'Restore' : 'Archive'}</button></div>
                     </article>;
                   })}
                 </div>
@@ -2854,17 +2877,57 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               {dashboardQuickCases.map(c => <article key={c.id} className="lex-quick-case-card">
                 <div className="lex-quick-case-top"><div><span className="lex-quick-case-type">{c.court_type || 'Court'} · {c.case_nature || 'Case'}</span><h4>{c.case_no || 'মামলা নম্বর উল্লেখ নেই'}</h4><p>{c.party_name || 'পক্ষের নাম উল্লেখ নেই'}</p></div><span className={`lex-quick-status ${c.status === 'Disposed' ? 'is-disposed' : 'is-pending'}`}>{c.status || 'Ongoing'}</span></div>
                 <div className="lex-quick-case-meta"><span><CalIcon size={13}/> {c.next_date ? c.next_date.split('-').reverse().join('-') : 'তারিখ নির্ধারিত নয়'}</span><span>{c.current_step || c.court_name || 'পদক্ষেপ উল্লেখ নেই'}</span></div>
-                <div className="lex-quick-case-actions">
-                  {isAdmin && <button type="button" className="is-update" onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); setCaseQuickView(null); }}><RefreshCw size={14}/> Update</button>}
-                  <button type="button" className="is-view" onClick={() => { setCaseQuickView(null); openCaseDetails(c); }}><Eye size={14}/> View</button>
-                  <button type="button" className="is-whatsapp" onClick={() => { setCaseQuickView(null); handleWhatsApp(c); }}><MessageCircle size={14}/> WhatsApp update</button>
-                  <button type="button" className="is-reassure" onClick={() => { setCaseQuickView(null); handleClientProgressWhatsApp(c); }}><HeartPulse size={14}/> Client message</button>
-                  {isAdmin && <button type="button" className="is-fee" onClick={() => { setCaseQuickView(null); openCaseTransaction(c, 'Income'); }}><DollarSign size={14}/> Fee</button>}
-                  {isAdmin && <button type="button" className="is-cost" onClick={() => { setCaseQuickView(null); openCaseTransaction(c, 'Expense'); }}><TrendingDown size={14}/> Cost</button>}
-                  {isAdmin && <button type="button" className="is-edit" onClick={() => { setCaseQuickView(null); setFormData({...c}); setModalMode('addCase'); }}><Edit3 size={14}/> Edit</button>}
+                <div className="lex-quick-case-actions" aria-label="Case actions">
+                  {isAdmin && <button type="button" className="is-update" title="Update hearing and order" aria-label="Update hearing and order" onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); setCaseQuickView(null); }}><RefreshCw size={16}/></button>}
+                  <button type="button" className="is-view" title="View case" aria-label="View case" onClick={() => { setCaseQuickView(null); openCaseDetails(c); }}><Eye size={16}/></button>
+                  <button type="button" className="is-whatsapp" title="WhatsApp update" aria-label="WhatsApp update" onClick={() => { setCaseQuickView(null); handleWhatsApp(c); }}><MessageCircle size={16}/></button>
+                  <button type="button" className="is-reassure" title="Client reassurance message" aria-label="Client reassurance message" onClick={() => { setCaseQuickView(null); handleClientProgressWhatsApp(c); }}><HeartPulse size={16}/></button>
+                  {isAdmin && <button type="button" className="is-fee" title="Add fee" aria-label="Add fee" onClick={() => { setCaseQuickView(null); openCaseTransaction(c, 'Income'); }}><DollarSign size={16}/></button>}
+                  {isAdmin && <button type="button" className="is-cost" title="Add cost" aria-label="Add cost" onClick={() => { setCaseQuickView(null); openCaseTransaction(c, 'Expense'); }}><TrendingDown size={16}/></button>}
+                  {isAdmin && <button type="button" className="is-edit" title="Edit case" aria-label="Edit case" onClick={() => { setCaseQuickView(null); setFormData({...c}); setModalMode('addCase'); }}><Edit3 size={16}/></button>}
                 </div>
               </article>)}
             </div>
+          </section>
+        </div>
+      )}
+
+      {selectedCauseFolder && (
+        <div className="lex-cause-history-backdrop fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4" onClick={() => setSelectedCauseFolder(null)}>
+          <section className="lex-cause-history-modal" role="dialog" aria-modal="true" aria-label="Supreme Court case folder history" onClick={e => e.stopPropagation()}>
+            <header className="lex-cause-history-header">
+              <div><p>LEXSWORD · CASE FOLDER</p><h3>{selectedCauseFolder.case_type || 'Case'} {selectedCauseFolder.case_number ? `${selectedCauseFolder.case_number}${selectedCauseFolder.case_year ? `/${selectedCauseFolder.case_year}` : ''}` : selectedCauseFolder.tender_number}</h3><span>{selectedCauseFolder.division} · Cause List history</span></div>
+              <button type="button" aria-label="Close case folder" onClick={() => setSelectedCauseFolder(null)}><X size={20}/></button>
+            </header>
+            <div className="lex-cause-history-body">
+              <div className="lex-cause-folder-summary">
+                <div><span>Petitioner / Applicant</span><strong>{selectedCauseFolder.petitioner || 'Not provided'}</strong></div>
+                <div><span>Respondent</span><strong>{selectedCauseFolder.respondent || 'Not provided'}</strong></div>
+                <div><span>Tender number</span><strong>{selectedCauseFolder.tender_number || '—'}</strong></div>
+                <div><span>Monitoring</span><strong>{selectedCauseFolder.is_active === false ? 'Archived' : 'Active'}</strong></div>
+              </div>
+              {selectedCauseFolder.notes && <p className="lex-cause-folder-note">{selectedCauseFolder.notes}</p>}
+              <div className="lex-cause-history-title"><div><p>RECORDED CHECKS</p><h4>Cause List appearance history</h4></div><span>{causeHistory.length} records</span></div>
+              {causeHistoryLoading && <div className="lex-cause-history-empty"><RefreshCw size={20} className="animate-spin"/><strong>ইতিহাস লোড হচ্ছে…</strong></div>}
+              {!causeHistoryLoading && causeHistory.length === 0 && <div className="lex-cause-history-empty"><History size={24}/><strong>এখনও কোনো যাচাইয়ের ইতিহাস নেই</strong><span>মামলাটি নজরদারির তালিকায় যোগ করার পর Cause List checker চালালে প্রতিটি চেক এখানে সংরক্ষিত হবে।</span></div>}
+              {!causeHistoryLoading && causeHistory.length > 0 && <div className="lex-cause-history-timeline">
+                {causeHistory.map(entry => {
+                  const statusLabel = entry.status === 'FOUND' ? 'তালিকায় পাওয়া গেছে' : entry.status === 'NOT_FOUND' ? 'যাচাই করা তালিকায় মেলেনি' : entry.status === 'NOT_PUBLISHED' ? 'তালিকা প্রকাশিত/পাঠযোগ্য নয়' : entry.status === 'ERROR' ? 'যাচাই অসম্পূর্ণ' : 'যাচাই হয়নি';
+                  return <article key={entry.id} className="lex-cause-history-entry">
+                    <span className={`lex-cause-history-dot ${String(entry.status || '').toLowerCase().replace('_','-')}`}></span>
+                    <div className="lex-cause-history-entry-content">
+                      <div className="lex-cause-history-entry-top"><strong>{statusLabel}</strong><time>{entry.check_date ? String(entry.check_date).split('-').reverse().join('-') : 'তারিখ নেই'}</time></div>
+                      <small>যাচাইয়ের সময়: {entry.checked_at ? new Date(entry.checked_at).toLocaleString('en-GB') : '—'} · বেঞ্চ/পেজ পরীক্ষা: {entry.pages_checked ?? 0}</small>
+                      {entry.message && <p>{entry.message}</p>}
+                      {entry.matched_text && <blockquote>{entry.matched_text}</blockquote>}
+                      {entry.error && <p className="is-error">বিস্তারিত: {entry.error}</p>}
+                      {entry.source_url && <a href={entry.source_url} target="_blank" rel="noreferrer" className="lex-cause-source-link">অফিসিয়াল তালিকা খুলুন <ExternalLink size={12}/></a>}
+                    </div>
+                  </article>;
+                })}
+              </div>}
+            </div>
+            <footer className="lex-cause-history-footer"><button type="button" onClick={() => { setSelectedCauseFolder(null); runCauseListCheck(); }} disabled={isCheckingCauseList}><RefreshCw size={15} className={isCheckingCauseList ? 'animate-spin' : ''}/> {isCheckingCauseList ? 'যাচাই হচ্ছে…' : 'আগামীকালের তালিকা যাচাই'}</button><button type="button" className="is-close" onClick={() => setSelectedCauseFolder(null)}>বন্ধ করুন</button></footer>
           </section>
         </div>
       )}
