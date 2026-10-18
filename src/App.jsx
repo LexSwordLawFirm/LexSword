@@ -1049,23 +1049,29 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [accountAuditLoading, setAccountAuditLoading] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState(null);
   const [caseQuickView, setCaseQuickView] = useState(null);
-  const [causeWatchlist, setCauseWatchlist] = useState([]);
-  const [causeHistory, setCauseHistory] = useState([]);
-  const [causeHistoryLoading, setCauseHistoryLoading] = useState(false);
-  const [selectedCauseFolder, setSelectedCauseFolder] = useState(null);
-  const [showArchivedCauseCases, setShowArchivedCauseCases] = useState(false);
-  const [causeForm, setCauseForm] = useState({
-    division: 'High Court Division', case_type: 'Civil Revision', case_number: '', case_year: '',
-    tender_number: '', petitioner: '', respondent: '', notes: ''
-  });
-  const [isSavingCause, setIsSavingCause] = useState(false);
-  const [isCheckingCauseList, setIsCheckingCauseList] = useState(false);
-  const [causeCheckMessage, setCauseCheckMessage] = useState('');
-  const [causeAutoCheckedFor, setCauseAutoCheckedFor] = useState('');
+  // Premium task workflow and dashboard reminder state.
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [taskPeriod, setTaskPeriod] = useState('today');
+  const [taskSearchTerm, setTaskSearchTerm] = useState('');
+  const [taskDeleteTarget, setTaskDeleteTarget] = useState(null);
+  const [pendingTaskPopupOpen, setPendingTaskPopupOpen] = useState(false);
+  const [pendingTaskPopupDismissed, setPendingTaskPopupDismissed] = useState(false);
 
   const showFeedback = (type, title, message) => setFeedbackModal({ type, title, message });
 
   useEffect(() => { fetchAllData(); }, [refresh]);
+
+  // Show a dismissible reminder whenever the admin enters the dashboard and pending tasks exist.
+  useEffect(() => {
+    if (activeTab !== 'dashboard') {
+      setPendingTaskPopupOpen(false);
+      setPendingTaskPopupDismissed(false);
+      return;
+    }
+    if (!pendingTaskPopupDismissed && tasks.some(task => task.status !== 'Done')) {
+      setPendingTaskPopupOpen(true);
+    }
+  }, [activeTab, tasks, pendingTaskPopupDismissed]);
 
   const fetchAllData = async () => {
     const { data: cData } = await supabase.from('cases').select('*').order('next_date', { ascending: true });
@@ -1076,16 +1082,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     setTasks(tData || []);
     const { data: lnData } = await supabase.from('loans').select('*').order('date', { ascending: false });
     setLoans(lnData || []);
-    if (isAdmin) {
-      const { data: watchData, error: watchError } = await supabase
-        .from('supreme_court_watchlist').select('*').order('created_at', { ascending: false });
-      if (watchError) {
-        setCauseWatchlist([]);
-        if (watchError.code !== '42P01') console.warn('Cause-list watchlist could not be loaded:', watchError.message);
-      } else {
-        setCauseWatchlist(watchData || []);
-      }
-    }
   };
 
   const fetchHistory = async (caseId) => {
@@ -1142,7 +1138,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const selectedCalendarDateLabel = selectedCalendarDateObject.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
   const selectedDateCases = cases.filter(c => c.next_date === selectedCalendarDate && c.status !== 'Disposed');
   const selectedDateTasks = tasks.filter(t => t.due_date === selectedCalendarDate && t.status !== 'Done');
-  const visibleCauseWatchlist = causeWatchlist.filter(item => showArchivedCauseCases ? item.is_active === false : item.is_active !== false);
   const calendarWeekDays = (() => {
     const start = new Date(`${selectedCalendarDate}T12:00:00`);
     start.setDate(start.getDate() - start.getDay());
@@ -1154,8 +1149,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
     return `${values.year}-${values.month}-${values.day}`;
   };
-  const bangladeshToday = getDateInTimeZone(new Date(), 'Asia/Dhaka');
-  const causeListTomorrow = addDaysToDateString(bangladeshToday, 1);
   const todaysCaseList = cases.filter(c => c.next_date === today && c.status !== 'Disposed');
   const tomorrowsCaseList = cases.filter(c => c.next_date === tomorrow && c.status !== 'Disposed');
   const dashboardQuickCases = caseQuickView === 'today' ? todaysCaseList : caseQuickView === 'tomorrow' ? tomorrowsCaseList : cases;
@@ -1214,10 +1207,29 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
 
   const getFilteredTasks = () => {
-    let list = tasks;
-    if(taskFilter === 'pending') list = tasks.filter(t => t.status !== 'Done');
-    if(taskFilter === 'completed') list = tasks.filter(t => t.status === 'Done');
-    return list;
+    let list = [...tasks];
+    if (taskFilter === 'pending') list = list.filter(t => t.status !== 'Done');
+    if (taskFilter === 'completed') list = list.filter(t => t.status === 'Done');
+    if (taskPeriod === 'today') list = list.filter(t => t.due_date === today);
+    else if (taskPeriod === 'tomorrow') list = list.filter(t => t.due_date === tomorrow);
+    else if (taskPeriod === 'week') list = list.filter(t => t.due_date && t.due_date > tomorrow && t.due_date <= addDaysToDateString(today, 7));
+    else if (taskPeriod === 'overdue') list = list.filter(t => t.due_date && t.due_date < today && t.status !== 'Done');
+    const query = taskSearchTerm.trim().toLowerCase();
+    if (query) list = list.filter(t => `${t.title || ''} ${t.details || ''} ${t.priority || ''}`.toLowerCase().includes(query));
+    const priorityOrder = { Urgent: 0, High: 1, Normal: 2, Low: 3 };
+    return list.sort((a, b) => (priorityOrder[a.priority] ?? 4) - (priorityOrder[b.priority] ?? 4) || String(a.due_date || '9999-12-31').localeCompare(String(b.due_date || '9999-12-31')));
+  };
+
+  const openTaskDetails = (task) => {
+    setSelectedTask(task);
+    setPendingTaskPopupOpen(false);
+    setPendingTaskPopupDismissed(true);
+    setModalMode('viewTask');
+  };
+
+  const openTaskEditor = (task) => {
+    setFormData({ title: '', details: '', due_date: today, priority: 'Normal', status: 'Pending', ...task });
+    setModalMode('addTask');
   };
 
   const openCaseFinance = (caseRecord, returnMode = null) => {
@@ -1421,132 +1433,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     showFeedback('success', 'লেনদেন ডিলিট হয়েছে', 'লেনদেনটি মুছে ফেলা হয়েছে এবং ডেটাবেস ট্রিগারের মাধ্যমে ডিলিটের অডিট রেকর্ড সংরক্ষিত হয়েছে।');
   };
 
-  const fetchCauseWatchlist = async () => {
-    const { data, error } = await supabase.from('supreme_court_watchlist').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    setCauseWatchlist(data || []);
-    return data || [];
-  };
-
-  const openCauseFolder = async (item) => {
-    setSelectedCauseFolder(item);
-    setCauseHistory([]);
-    setCauseHistoryLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('supreme_court_watchlist_history')
-        .select('*')
-        .eq('watchlist_id', item.id)
-        .order('checked_at', { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      setCauseHistory(data || []);
-    } catch (err) {
-      showFeedback('error', 'মামলার ইতিহাস লোড হয়নি', err.message || 'Supreme Court Cause List history could not be loaded.');
-    } finally {
-      setCauseHistoryLoading(false);
-    }
-  };
-
-  const handleArchiveCauseWatch = async (item) => {
-    const restoring = item.is_active === false;
-    const { error } = await supabase.from('supreme_court_watchlist')
-      .update({ is_active: restoring, updated_at: new Date().toISOString() })
-      .eq('id', item.id);
-    if (error) {
-      showFeedback('error', 'মামলার ফোল্ডার আপডেট হয়নি', error.message);
-      return;
-    }
-    await fetchCauseWatchlist();
-    showFeedback('success', restoring ? 'মামলা পুনরায় সক্রিয় হয়েছে' : 'মামলা আর্কাইভে রাখা হয়েছে', restoring
-      ? 'মামলাটি আবার দৈনিক Cause List যাচাইয়ের অন্তর্ভুক্ত হবে। আগের ইতিহাস অক্ষত আছে।'
-      : 'মামলাটি সক্রিয় তালিকা থেকে সরানো হয়েছে; ফোল্ডার ও আগের Cause List history সংরক্ষিত আছে।');
-  };
-
-  const handleSaveCauseWatch = async () => {
-    if (!String(causeForm.case_number || '').trim() && !String(causeForm.tender_number || '').trim()) {
-      showFeedback('warning', 'মামলার নম্বর প্রয়োজন', 'Case Number অথবা Tender Number—অন্তত একটি লিখুন।');
-      return;
-    }
-    if (causeForm.case_number && !causeForm.case_year) {
-      showFeedback('warning', 'মামলার বছর প্রয়োজন', 'Case Number দিলে সংশ্লিষ্ট Year-ও লিখুন।');
-      return;
-    }
-    setIsSavingCause(true);
-    try {
-      const payload = {
-        user_id: session?.user?.id,
-        division: causeForm.division || 'High Court Division',
-        case_type: causeForm.case_type || 'Other',
-        case_number: String(causeForm.case_number || '').trim(),
-        case_year: causeForm.case_year ? Number(causeForm.case_year) : null,
-        tender_number: String(causeForm.tender_number || '').trim(),
-        petitioner: String(causeForm.petitioner || '').trim(),
-        respondent: String(causeForm.respondent || '').trim(),
-        notes: String(causeForm.notes || '').trim(),
-        is_active: true,
-        updated_at: new Date().toISOString()
-      };
-      const result = causeForm.id
-        ? await supabase.from('supreme_court_watchlist').update(payload).eq('id', causeForm.id).select('*').single()
-        : await supabase.from('supreme_court_watchlist').insert([payload]).select('*').single();
-      if (result.error) throw result.error;
-      await fetchCauseWatchlist();
-      setCauseAutoCheckedFor('');
-      setCauseForm({ division: 'High Court Division', case_type: 'Civil Revision', case_number: '', case_year: '', tender_number: '', petitioner: '', respondent: '', notes: '' });
-      showFeedback('success', causeForm.id ? 'মামলার নজরদারি আপডেট হয়েছে' : 'মামলা নজরদারির তালিকায় যুক্ত হয়েছে', 'মামলাটি LexSword-এর Supreme Court Cause List Watchlist-এ সংরক্ষিত হয়েছে।');
-    } catch (err) {
-      showFeedback('error', 'মামলা সংরক্ষণ করা যায়নি', err.message || 'Watchlist entry could not be saved.');
-    } finally {
-      setIsSavingCause(false);
-    }
-  };
-
-  const handleDeleteCauseWatch = handleArchiveCauseWatch;
-
-  const runCauseListCheck = async ({ silent = false } = {}) => {
-    const activeItems = causeWatchlist.filter(item => item.is_active !== false);
-    if (!activeItems.length) {
-      setCauseCheckMessage('প্রথমে অন্তত একটি মামলা নজরদারির তালিকায় যোগ করুন।');
-      if (!silent) showFeedback('warning', 'নজরদারির তালিকা খালি', 'কজলিস্ট যাচাই করার আগে High Court বা Appellate Division-এর মামলার তথ্য যোগ করুন।');
-      return;
-    }
-    setIsCheckingCauseList(true);
-    setCauseCheckMessage(`বাংলাদেশ সুপ্রীম কোর্টের ${causeListTomorrow.split('-').reverse().join('-')} তারিখের কার্যতালিকা যাচাই করা হচ্ছে…`);
-    try {
-      const { data, error } = await supabase.functions.invoke('cause-list-alerts', {
-        body: { check_date: causeListTomorrow, watchlist_ids: activeItems.map(item => item.id) }
-      });
-      if (error) throw error;
-      if (!data || !Array.isArray(data.results)) throw new Error('Cause-list checker থেকে প্রত্যাশিত ফলাফল পাওয়া যায়নি।');
-      await fetchCauseWatchlist();
-      const found = data.results.filter(result => result.status === 'FOUND').length;
-      const notFound = data.results.filter(result => result.status === 'NOT_FOUND').length;
-      const notPublished = data.results.filter(result => result.status === 'NOT_PUBLISHED').length;
-      const errors = data.results.filter(result => result.status === 'ERROR').length;
-      const summary = `যাচাই সম্পন্ন: ${found}টি পাওয়া গেছে, ${notFound}টি প্রকাশিত তালিকায় পাওয়া যায়নি, ${notPublished}টির তালিকা এখনও প্রকাশিত/পাঠযোগ্য নয়, ${errors}টিতে যাচাইয়ের সমস্যা হয়েছে।`;
-      setCauseCheckMessage(summary);
-      if (!silent) showFeedback(found ? 'success' : errors || notPublished ? 'warning' : 'info', 'কজলিস্ট যাচাই সম্পন্ন', `${summary} আইনগত সময়সীমার জন্য অফিসিয়াল কার্যতালিকা নিজেও মিলিয়ে নিন।`);
-    } catch (err) {
-      const message = `স্বয়ংক্রিয় যাচাই চালানো যায়নি। Supabase-এ cause-list-alerts Edge Function deploy করা আছে কি না এবং অফিসিয়াল ওয়েবসাইটে প্রবেশ করা যাচ্ছে কি না যাচাই করুন। বিস্তারিত: ${err.message || 'Unknown error'}`;
-      setCauseCheckMessage(message);
-      if (!silent) showFeedback('error', 'কজলিস্ট যাচাই চালু হয়নি', message);
-    } finally {
-      setIsCheckingCauseList(false);
-    }
-  };
-
-  const causeListNeedsCheck = causeWatchlist.some(item => item.is_active !== false && (
-    item.last_checked_for !== causeListTomorrow || ['NOT_PUBLISHED', 'ERROR'].includes(item.last_check_status)
-  ));
-  useEffect(() => {
-    if (activeTab !== 'causeAlerts' || !isAdmin || !causeListNeedsCheck || causeAutoCheckedFor === causeListTomorrow || isCheckingCauseList) return;
-    setCauseAutoCheckedFor(causeListTomorrow);
-    runCauseListCheck({ silent: true });
-  }, [activeTab, causeWatchlist, causeListNeedsCheck, causeListTomorrow, causeAutoCheckedFor, isCheckingCauseList]);
-
-  const openOfficialCauseSearch = () => window.open('https://www.supremecourt.gov.bd/web/case_search.php', '_blank', 'noopener,noreferrer');
-
   const getFilteredAccounts = () => {
     return accounts.filter(a => {
         const linkedCase = a.case_id ? cases.find(c => String(c.id) === String(a.case_id)) : null;
@@ -1647,20 +1533,61 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
 
   const handleSaveTask = async () => {
-    const { error } = await supabase.from('tasks').insert([formData]);
-    if(error) alert(error.message);
-    else { alert("Task Added!"); setModalMode(null); setRefresh(r => r+1); }
+    const title = String(formData.title || '').trim();
+    if (!title) {
+      showFeedback('warning', 'কাজের শিরোনাম প্রয়োজন', 'কাজটি সংরক্ষণের আগে একটি সংক্ষিপ্ত শিরোনাম লিখুন।');
+      return;
+    }
+    const payload = {
+      title,
+      details: String(formData.details || '').trim(),
+      due_date: formData.due_date || null,
+      priority: formData.priority || 'Normal',
+      status: formData.status || 'Pending'
+    };
+    try {
+      const result = formData.id
+        ? await supabase.from('tasks').update(payload).eq('id', formData.id)
+        : await supabase.from('tasks').insert([payload]);
+      if (result.error) throw result.error;
+      setModalMode(null);
+      setSelectedTask(null);
+      setRefresh(r => r + 1);
+      showFeedback('success', formData.id ? 'কাজ আপডেট হয়েছে' : 'নতুন কাজ সংরক্ষিত হয়েছে', 'কাজের তথ্য সফলভাবে সংরক্ষণ করা হয়েছে।');
+    } catch (err) {
+      showFeedback('error', 'কাজ সংরক্ষণ করা যায়নি', err.message || 'কাজের তথ্য সেভ করতে সমস্যা হয়েছে।');
+    }
   };
+
   const handleToggleTask = async (task) => {
     const newStatus = task.status === 'Done' ? 'Pending' : 'Done';
     const { error } = await supabase.from('tasks').update({ status: newStatus }).eq('id', task.id);
-    if(!error) setRefresh(r => r+1);
-  };
-  const handleDeleteTask = async (id) => {
-    if(confirm("Delete task?")) {
-      await supabase.from('tasks').delete().eq('id', id);
-      setRefresh(r => r+1);
+    if (error) {
+      showFeedback('error', 'কাজের অবস্থা পরিবর্তন হয়নি', error.message);
+      return;
     }
+    if (selectedTask && String(selectedTask.id) === String(task.id)) setSelectedTask({ ...task, status: newStatus });
+    setRefresh(r => r + 1);
+  };
+
+  const handleDeleteTask = (id) => {
+    const task = tasks.find(item => String(item.id) === String(id));
+    setTaskDeleteTarget(task || { id });
+    setModalMode('confirmDeleteTask');
+  };
+
+  const confirmDeleteTask = async () => {
+    if (!taskDeleteTarget?.id) return;
+    const { error } = await supabase.from('tasks').delete().eq('id', taskDeleteTarget.id);
+    if (error) {
+      showFeedback('error', 'কাজ ডিলিট হয়নি', error.message);
+      return;
+    }
+    setModalMode(null);
+    setSelectedTask(null);
+    setTaskDeleteTarget(null);
+    setRefresh(r => r + 1);
+    showFeedback('success', 'কাজ মুছে ফেলা হয়েছে', 'নির্বাচিত কাজটি Task Manager থেকে মুছে ফেলা হয়েছে।');
   };
 
   const taskStats = {
@@ -1668,6 +1595,16 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     pending: tasks.filter(t => t.status !== 'Done').length,
     urgent: tasks.filter(t => t.priority === 'Urgent' && t.status !== 'Done').length,
     completed: tasks.filter(t => t.status === 'Done').length
+  };
+  const pendingTaskItems = tasks.filter(t => t.status !== 'Done').sort((a, b) => {
+    const rank = { Urgent: 0, High: 1, Normal: 2, Low: 3 };
+    return (rank[a.priority] ?? 4) - (rank[b.priority] ?? 4) || String(a.due_date || '9999-12-31').localeCompare(String(b.due_date || '9999-12-31'));
+  });
+  const taskPeriodCounts = {
+    today: pendingTaskItems.filter(t => t.due_date === today).length,
+    tomorrow: pendingTaskItems.filter(t => t.due_date === tomorrow).length,
+    week: pendingTaskItems.filter(t => t.due_date && t.due_date > tomorrow && t.due_date <= addDaysToDateString(today, 7)).length,
+    overdue: pendingTaskItems.filter(t => t.due_date && t.due_date < today).length
   };
 
   const loanSummaries = loans.reduce((acc, curr) => {
@@ -1776,7 +1713,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           <button onClick={() => {setActiveTab('calendar'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'calendar' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}>
             <CalIcon size={20}/> Calendar
           </button>
-          {isAdmin && <button onClick={() => {setActiveTab('causeAlerts'); setMobileMenuOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded transition ${activeTab === 'causeAlerts' ? 'bg-[#c5a059] text-slate-900 font-bold' : 'text-gray-400 hover:bg-slate-800'}`}><Bell size={20}/> Supreme Court Alerts</button>}
 
           {isAdmin && (
             <>
@@ -1804,7 +1740,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         <main className="lex-main flex-1 overflow-y-auto relative p-4 md:p-6 print-container">
           
           {activeTab === 'dashboard' && (
-            <div className="no-print">
+            <div className={caseFilter === 'update' ? '' : 'no-print'}>
               <section className="lex-overview-hero">
                 <div className="lex-overview-copy">
                   <p className="lex-overview-kicker">LEXSWORD · CHAMBER WORKSPACE</p>
@@ -1851,8 +1787,8 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 <div className={`lex-reminder-panel ${overdueCaseReminders.length || overdueTaskReminders.length ? 'has-alerts' : ''}`}>
                   <div className="lex-reminder-panel-head"><span className="lex-reminder-icon is-alert"><AlertTriangle size={18}/></span><div><p>ATTENTION REQUIRED</p><h3>Overdue follow-ups</h3></div><span className="lex-reminder-count">{overdueCaseReminders.length + overdueTaskReminders.length}</span></div>
                   <div className="lex-reminder-list">
-                    {overdueCaseReminders.slice(0, 3).map(c => <button type="button" key={`overdue-case-${c.id}`} onClick={() => openCaseDetails(c)} className="lex-reminder-item"><span className="lex-reminder-date is-alert">{c.next_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.current_step || c.party_name || 'Hearing date passed'}</small></span><ChevronRight size={16}/></button>)}
-                    {overdueTaskReminders.slice(0, 2).map(t => <button type="button" key={`overdue-task-${t.id}`} onClick={() => { setActiveTab('tasks'); setTaskFilter('pending'); }} className="lex-reminder-item"><span className="lex-reminder-date is-alert">{t.due_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{t.title || 'Pending task'}</strong><small>Overdue task · {t.priority || 'Normal'} priority</small></span><ChevronRight size={16}/></button>)}
+                    {overdueCaseReminders.map(c => <button type="button" key={`overdue-case-${c.id}`} onClick={() => openCaseDetails(c)} className="lex-reminder-item"><span className="lex-reminder-date is-alert">{c.next_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.current_step || c.party_name || 'Hearing date passed'}</small></span><ChevronRight size={16}/></button>)}
+                    {overdueTaskReminders.map(t => <button type="button" key={`overdue-task-${t.id}`} onClick={() => openTaskDetails(t)} className="lex-reminder-item"><span className="lex-reminder-date is-alert">{t.due_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{t.title || 'Pending task'}</strong><small>Overdue task · {t.priority || 'Normal'} priority</small></span><ChevronRight size={16}/></button>)}
                     {!overdueCaseReminders.length && !overdueTaskReminders.length && <div className="lex-reminder-empty"><CheckCircle size={18}/> No overdue hearings or tasks.</div>}
                   </div>
                 </div>
@@ -1860,7 +1796,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                   <div className="lex-reminder-panel-head"><span className="lex-reminder-icon is-upcoming"><CalIcon size={18}/></span><div><p>NEXT 3 DAYS</p><h3>Upcoming schedule</h3></div><span className="lex-reminder-count">{nearTermHearings.length + nearTermTaskReminders.length}</span></div>
                   <div className="lex-reminder-list">
                     {nearTermHearings.map(c => <button type="button" key={`near-case-${c.id}`} onClick={() => openCaseDetails(c)} className="lex-reminder-item"><span className="lex-reminder-date">{c.next_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.current_step || c.party_name || 'Court hearing'}</small></span><ChevronRight size={16}/></button>)}
-                    {nearTermTaskReminders.map(t => <button type="button" key={`near-task-${t.id}`} onClick={() => { setActiveTab('tasks'); setTaskFilter('pending'); }} className="lex-reminder-item"><span className="lex-reminder-date">{t.due_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{t.title || 'Pending task'}</strong><small>Task deadline · {t.priority || 'Normal'} priority</small></span><ChevronRight size={16}/></button>)}
+                    {nearTermTaskReminders.map(t => <button type="button" key={`near-task-${t.id}`} onClick={() => openTaskDetails(t)} className="lex-reminder-item"><span className="lex-reminder-date">{t.due_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{t.title || 'Pending task'}</strong><small>Task deadline · {t.priority || 'Normal'} priority</small></span><ChevronRight size={16}/></button>)}
                     {!nearTermHearings.length && !nearTermTaskReminders.length && <div className="lex-reminder-empty"><CalIcon size={18}/> No hearings or task deadlines in the next 3 days.</div>}
                   </div>
                 </div>
@@ -1964,64 +1900,49 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           )}
 
           {activeTab === 'tasks' && isAdmin && (
-            <div className="no-print">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold text-slate-900">Task Manager</h2>
-                <button onClick={() => { setFormData({priority: 'Normal', status: 'Pending'}); setModalMode('addTask'); }} className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded shadow hover:bg-[#c5a059] font-bold">
-                  <Plus size={18}/> ADD TASK
-                </button>
-               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white p-4 rounded shadow border-l-4 border-blue-500">
-                  <p className="text-xs font-bold text-gray-500 uppercase">Total Tasks</p>
-                  <p className="text-2xl font-bold text-slate-900">{taskStats.total}</p>
-                 </div>
-                <div className="bg-white p-4 rounded shadow border-l-4 border-yellow-500">
-                  <p className="text-xs font-bold text-gray-500 uppercase">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-600">{taskStats.pending}</p>
-                </div>
-                 <div className="bg-white p-4 rounded shadow border-l-4 border-red-500">
-                  <p className="text-xs font-bold text-gray-500 uppercase">Urgent</p>
-                  <p className="text-2xl font-bold text-red-600">{taskStats.urgent}</p>
-                </div>
-                <div className="bg-white p-4 rounded shadow border-l-4 border-green-500">
-                  <p className="text-xs font-bold text-gray-500 uppercase">Completed</p>
-                  <p className="text-2xl font-bold text-green-600">{taskStats.completed}</p>
-                </div>
+            <section className="lex-task-workspace no-print">
+              <header className="lex-task-page-header">
+                <div><p className="lex-section-eyebrow">LEXSWORD · CHAMBER OPERATIONS</p><h2>Task Manager</h2><p>আজকের কাজ, কোর্টের প্রস্তুতি, ডেডলাইন এবং টিমের ফলো-আপ এক জায়গায় পরিচালনা করুন।</p></div>
+                <button type="button" onClick={() => openTaskEditor({})} className="lex-task-add-button"><Plus size={18}/> নতুন কাজ</button>
+              </header>
+
+              <div className="lex-task-stat-grid">
+                <button type="button" className="lex-task-stat-card is-total" onClick={() => { setTaskPeriod('all'); setTaskFilter('all'); }}><span className="lex-task-stat-icon"><ClipboardList size={19}/></span><span><small>সকল কাজ</small><strong>{taskStats.total}</strong></span></button>
+                <button type="button" className="lex-task-stat-card is-pending" onClick={() => { setTaskPeriod('all'); setTaskFilter('pending'); }}><span className="lex-task-stat-icon"><Clock size={19}/></span><span><small>অসম্পন্ন</small><strong>{taskStats.pending}</strong></span></button>
+                <button type="button" className="lex-task-stat-card is-urgent" onClick={() => { setTaskPeriod('overdue'); setTaskFilter('pending'); }}><span className="lex-task-stat-icon"><AlertTriangle size={19}/></span><span><small>বকেয়া কাজ</small><strong>{taskPeriodCounts.overdue}</strong></span></button>
+                <button type="button" className="lex-task-stat-card is-done" onClick={() => { setTaskPeriod('all'); setTaskFilter('completed'); }}><span className="lex-task-stat-icon"><CheckCircle size={19}/></span><span><small>সম্পন্ন</small><strong>{taskStats.completed}</strong></span></button>
               </div>
-              <div className="flex gap-4 mb-4 border-b border-slate-200 pb-2">
-                 <button onClick={() => setTaskFilter('pending')} className={`font-bold pb-2 px-2 ${taskFilter === 'pending' ? 'text-[#c5a059] border-b-2 border-[#c5a059]' : 'text-gray-500'}`}>To-Do List</button>
-                <button onClick={() => setTaskFilter('completed')} className={`font-bold pb-2 px-2 ${taskFilter === 'completed' ? 'text-[#c5a059] border-b-2 border-[#c5a059]' : 'text-gray-500'}`}>Completed</button>
-                <button onClick={() => setTaskFilter('all')} className={`font-bold pb-2 px-2 ${taskFilter === 'all' ? 'text-[#c5a059] border-b-2 border-[#c5a059]' : 'text-gray-500'}`}>All Tasks</button>
+
+              <div className="lex-task-schedule-grid" aria-label="Task date filters">
+                <button type="button" className={taskPeriod === 'today' ? 'is-active is-today' : 'is-today'} onClick={() => { setTaskPeriod('today'); setTaskFilter('pending'); }}><span><CalIcon size={18}/></span><small>আজকের কাজ</small><strong>{taskPeriodCounts.today}</strong><em>{today.split('-').reverse().join('-')}</em></button>
+                <button type="button" className={taskPeriod === 'tomorrow' ? 'is-active is-tomorrow' : 'is-tomorrow'} onClick={() => { setTaskPeriod('tomorrow'); setTaskFilter('pending'); }}><span><Clock size={18}/></span><small>আগামীকালের কাজ</small><strong>{taskPeriodCounts.tomorrow}</strong><em>{tomorrow.split('-').reverse().join('-')}</em></button>
+                <button type="button" className={taskPeriod === 'week' ? 'is-active is-week' : 'is-week'} onClick={() => { setTaskPeriod('week'); setTaskFilter('pending'); }}><span><CalIcon size={18}/></span><small>আগামী ৭ দিনের কাজ</small><strong>{taskPeriodCounts.week}</strong><em>সামনের ডেডলাইন</em></button>
+                <button type="button" className={taskPeriod === 'overdue' ? 'is-active is-overdue' : 'is-overdue'} onClick={() => { setTaskPeriod('overdue'); setTaskFilter('pending'); }}><span><AlertTriangle size={18}/></span><small>বকেয়া কাজ</small><strong>{taskPeriodCounts.overdue}</strong><em>তাৎক্ষণিক ফলো-আপ</em></button>
+                <button type="button" className={taskPeriod === 'all' ? 'is-active is-all' : 'is-all'} onClick={() => { setTaskPeriod('all'); setTaskFilter('all'); }}><span><FolderOpen size={18}/></span><small>সব কাজ</small><strong>{taskStats.total}</strong><em>সম্পূর্ণ তালিকা</em></button>
               </div>
-              <div className="space-y-3">
-                {getFilteredTasks().length === 0 && <p className="text-slate-500 italic">No tasks found.</p>}
-                {getFilteredTasks().map(t => (
-                  <div key={t.id} className={`bg-white p-4 rounded shadow flex items-center justify-between group transition ${t.status === 'Done' ? 'opacity-60 bg-gray-50' : 'hover:shadow-md'}`}>
-                    <div className="flex items-center gap-4">
-                      <button onClick={() => handleToggleTask(t)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition ${t.status === 'Done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-[#c5a059]'}`}>
-                        {t.status === 'Done' && <Check size={14}/>}
-                      </button>
-                      <div>
-                        <h4 className={`font-bold text-lg text-slate-900 ${t.status === 'Done' ? 'line-through text-gray-500' : ''}`}>{t.title}</h4>
-                        {t.details && <p className="text-sm text-slate-600">{t.details}</p>}
-                        <div className="flex gap-3 mt-1 text-xs font-bold items-center">
-                          {t.due_date && (
-                             <span className={`flex items-center gap-1 ${new Date(t.due_date) < new Date() && t.status !== 'Done' ? 'text-red-600' : 'text-slate-500'}`}>
-                              <Clock size={12}/> {t.due_date}
-                            </span>
-                           )}
-                          <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wide ${t.priority === 'Urgent' ? 'bg-red-100 text-red-700' : t.priority === 'High' ? 'bg-orange-100 text-orange-700' : t.priority === 'Normal' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
-                            {t.priority}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <button onClick={() => handleDeleteTask(t.id)} className="text-slate-400 hover:text-red-500 p-2"><Trash2 size={18}/></button>
-                  </div>
-                ))}
+
+              <div className="lex-task-list-toolbar">
+                <div className="lex-task-status-tabs" role="tablist" aria-label="Task status filter">
+                  <button type="button" className={taskFilter === 'pending' ? 'is-active' : ''} onClick={() => setTaskFilter('pending')}>To-do <span>{taskStats.pending}</span></button>
+                  <button type="button" className={taskFilter === 'completed' ? 'is-active' : ''} onClick={() => setTaskFilter('completed')}>Completed <span>{taskStats.completed}</span></button>
+                  <button type="button" className={taskFilter === 'all' ? 'is-active' : ''} onClick={() => setTaskFilter('all')}>All tasks <span>{taskStats.total}</span></button>
+                </div>
+                <label className="lex-task-search"><Search size={17}/><input value={taskSearchTerm} onChange={e => setTaskSearchTerm(e.target.value)} placeholder="কাজের নাম বা বিবরণ দিয়ে খুঁজুন…"/></label>
               </div>
-             </div>
+
+              <div className="lex-task-card-grid">
+                {getFilteredTasks().length === 0 && <div className="lex-task-empty"><CheckSquare size={28}/><strong>এই তালিকায় কোনো কাজ নেই</strong><span>অন্য তারিখ নির্বাচন করুন অথবা নতুন কাজ যোগ করুন।</span></div>}
+                {getFilteredTasks().map(t => {
+                  const overdue = t.due_date && t.due_date < today && t.status !== 'Done';
+                  return <article key={t.id} className={`lex-task-card ${t.status === 'Done' ? 'is-complete' : ''} ${overdue ? 'is-overdue' : ''}`}>
+                    <div className="lex-task-card-top"><button type="button" className={`lex-task-complete-toggle ${t.status === 'Done' ? 'is-checked' : ''}`} onClick={() => handleToggleTask(t)} title={t.status === 'Done' ? 'Mark as pending' : 'Mark as completed'} aria-label={t.status === 'Done' ? 'Mark as pending' : 'Mark as completed'}>{t.status === 'Done' && <Check size={14}/>}</button><span className={`lex-task-priority priority-${String(t.priority || 'Normal').toLowerCase()}`}>{t.priority || 'Normal'} priority</span><span className={`lex-task-status ${t.status === 'Done' ? 'is-done' : overdue ? 'is-overdue' : 'is-pending'}`}>{t.status === 'Done' ? 'Completed' : overdue ? 'Overdue' : 'Pending'}</span></div>
+                    <button type="button" className="lex-task-card-main" onClick={() => openTaskDetails(t)}><strong>{t.title || 'Untitled task'}</strong><p>{t.details || 'কোনো বিস্তারিত বর্ণনা যোগ করা হয়নি।'}</p></button>
+                    <div className="lex-task-card-meta"><span><CalIcon size={14}/>{t.due_date ? t.due_date.split('-').reverse().join('-') : 'ডেডলাইন নির্ধারিত নয়'}</span><span><Clock size={14}/>{overdue ? 'ডেডলাইন পার হয়েছে' : t.status === 'Done' ? 'কাজ সম্পন্ন' : 'চলমান কাজ'}</span></div>
+                    <div className="lex-task-card-actions"><button type="button" onClick={() => openTaskDetails(t)} title="বিস্তারিত দেখুন" aria-label="বিস্তারিত দেখুন"><Eye size={16}/><span>বিস্তারিত</span></button><button type="button" onClick={() => openTaskEditor(t)} title="কাজ সম্পাদনা" aria-label="কাজ সম্পাদনা"><Edit3 size={16}/><span>এডিট</span></button><button type="button" className="is-delete" onClick={() => handleDeleteTask(t.id)} title="কাজ মুছুন" aria-label="কাজ মুছুন"><Trash2 size={16}/></button></div>
+                  </article>;
+                })}
+              </div>
+            </section>
           )}
 
           {activeTab === 'calendar' && (
@@ -2161,55 +2082,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                   </div>}
                   {isAdmin && <button type="button" className="lex-calendar-add-case" onClick={() => { setFormData({ file_no: '', court_type: 'Judge Court', case_nature: 'Civil Suit', status: 'Ongoing', next_date: selectedCalendarDate, current_step: '', note: '' }); setModalMode('addCase'); }}><Plus size={17}/> Add case on this date</button>}
                 </aside>
-              </div>
-            </section>
-          )}
-
-          {activeTab === 'causeAlerts' && isAdmin && (
-            <section className="lex-cause-page no-print">
-              <div className="lex-cause-hero">
-                <div><p>LEXSWORD · SUPREME COURT WATCH</p><h2>Supreme Court Cause List Alerts</h2><span>High Court Division ও Appellate Division-এর মামলার তালিকা নজরদারি করুন।</span></div>
-                <div className="lex-cause-hero-actions">
-                  <button type="button" onClick={openOfficialCauseSearch}><ExternalLink size={16}/> Official case search</button>
-                  <button type="button" onClick={() => runCauseListCheck()} disabled={isCheckingCauseList}><RefreshCw size={16} className={isCheckingCauseList ? 'animate-spin' : ''}/>{isCheckingCauseList ? 'Checking…' : "Check tomorrow's list"}</button>
-                </div>
-              </div>
-              <div className="lex-cause-note"><AlertTriangle size={18}/><p><strong>গুরুত্বপূর্ণ:</strong> ফলাফল অফিসিয়াল ওয়েবসাইটে প্রকাশিত ও পাঠযোগ্য কার্যতালিকার ওপর নির্ভর করে। “Not published” মানে তালিকা পাওয়া যায়নি/প্রকাশিত নাও হতে পারে—এটি “মামলা নেই” প্রমাণ করে না। গুরুত্বপূর্ণ শুনানির আগে অফিসিয়াল কজলিস্ট অবশ্যই মিলিয়ে নিন।</p></div>
-              {causeCheckMessage && <div className="lex-cause-check-message"><Bell size={17}/><span>{causeCheckMessage}</span></div>}
-              <div className="lex-cause-layout">
-                <form className="lex-cause-form" onSubmit={e => { e.preventDefault(); handleSaveCauseWatch(); }}>
-                  <div className="lex-cause-form-heading"><div><p>WATCHLIST SETUP</p><h3>{causeForm.id ? 'Edit monitored case' : 'Add a case to monitor'}</h3></div><span><Plus size={17}/></span></div>
-                  <div className="lex-cause-form-grid">
-                    <label><span>Court division *</span><select value={causeForm.division} onChange={e => setCauseForm({...causeForm, division: e.target.value})}><option>High Court Division</option><option>Appellate Division</option></select></label>
-                    <label><span>Case type / category *</span><select value={causeForm.case_type} onChange={e => setCauseForm({...causeForm, case_type: e.target.value})}>{['Civil Revision','Criminal Revision','Writ Petition','Civil Appeal','Criminal Appeal','Review','Company Matter','Tender Matter','Arbitration','Admiralty','Other'].map(type => <option key={type}>{type}</option>)}</select></label>
-                    <label><span>Case number</span><input value={causeForm.case_number || ''} onChange={e => setCauseForm({...causeForm, case_number: e.target.value})} placeholder="e.g. 1234"/></label>
-                    <label><span>Year</span><input type="number" min="1900" max="2100" value={causeForm.case_year || ''} onChange={e => setCauseForm({...causeForm, case_year: e.target.value})} placeholder="e.g. 2024"/></label>
-                    <label className="is-wide"><span>Tender number (if applicable)</span><input value={causeForm.tender_number || ''} onChange={e => setCauseForm({...causeForm, tender_number: e.target.value})} placeholder="Tender / e-tender reference"/></label>
-                    <label><span>Petitioner / applicant</span><input value={causeForm.petitioner || ''} onChange={e => setCauseForm({...causeForm, petitioner: e.target.value})} placeholder="Party name"/></label>
-                    <label><span>Respondent / opposite party</span><input value={causeForm.respondent || ''} onChange={e => setCauseForm({...causeForm, respondent: e.target.value})} placeholder="Party name"/></label>
-                    <label className="is-wide"><span>Internal note (optional)</span><textarea rows="2" value={causeForm.notes || ''} onChange={e => setCauseForm({...causeForm, notes: e.target.value})} placeholder="Client, bench, reference or other identifying note"/></label>
-                  </div>
-                  <div className="lex-cause-form-actions"><button type="button" className="is-secondary" onClick={() => setCauseForm({division:'High Court Division',case_type:'Civil Revision',case_number:'',case_year:'',tender_number:'',petitioner:'',respondent:'',notes:''})}>Clear form</button><button type="submit" disabled={isSavingCause}><Save size={16}/>{isSavingCause ? 'Saving…' : causeForm.id ? 'Save changes' : 'Add to watchlist'}</button></div>
-                </form>
-                <div className="lex-cause-watchlist">
-                  <div className="lex-cause-list-heading"><div><p>YOUR TRACKED MATTERS · CASE FOLDERS</p><h3>{showArchivedCauseCases ? 'Archived case folders' : 'Monitored cases'} <span>{visibleCauseWatchlist.length}</span></h3></div><div className="lex-cause-list-tools"><small>Next check: {causeListTomorrow.split('-').reverse().join('-')}</small><button type="button" onClick={() => setShowArchivedCauseCases(value => !value)} title={showArchivedCauseCases ? 'Show active cases' : 'Show archived case folders'}><FolderOpen size={14}/>{showArchivedCauseCases ? 'Active cases' : 'Archive'}</button></div></div>
-                  {visibleCauseWatchlist.length === 0 && <div className="lex-cause-empty"><FolderOpen size={27}/><strong>{showArchivedCauseCases ? 'No archived folders' : 'No cases in your watchlist'}</strong><span>{showArchivedCauseCases ? 'আর্কাইভ করা মামলা এখানে দেখা যাবে।' : 'বাম পাশের ফর্মে High Court বা Appellate Division-এর মামলা যোগ করুন।'}</span></div>}
-                  {visibleCauseWatchlist.map(item => {
-                    const status = item.last_check_status || 'NOT_CHECKED';
-                    const statusLabel = status === 'FOUND' ? 'Found in list' : status === 'NOT_FOUND' ? 'Not found in checked list' : status === 'NOT_PUBLISHED' ? 'List not published / unavailable' : status === 'ERROR' ? 'Check incomplete' : 'Not checked yet';
-                    return <article key={item.id} className="lex-cause-watch-card">
-                      <div className="lex-cause-watch-top"><span className={`lex-cause-status ${status.toLowerCase().replace('_','-')}`}>{statusLabel}</span><span className="lex-cause-division">{item.division}</span></div>
-                      <button type="button" className="lex-cause-folder-title" onClick={() => openCauseFolder(item)}><FolderOpen size={17}/><span>{item.case_type || 'Case'} {item.case_number ? `${item.case_number}${item.case_year ? `/${item.case_year}` : ''}` : ''}</span><ChevronRight size={16}/></button>
-                      {item.tender_number && <p><strong>Tender:</strong> {item.tender_number}</p>}
-                      {(item.petitioner || item.respondent) && <p className="lex-cause-parties">{item.petitioner || '—'} <span>vs.</span> {item.respondent || '—'}</p>}
-                      {item.notes && <p className="lex-cause-note-text">{item.notes}</p>}
-                      {item.last_result?.message && <p className="lex-cause-result-detail">{item.last_result.message}</p>}
-                      {item.last_result?.source_url && <a href={item.last_result.source_url} target="_blank" rel="noreferrer" className="lex-cause-source-link">Open matching official list <ExternalLink size={12}/></a>}
-                      {item.last_checked_at && <small className="lex-cause-checked-at">Last checked {new Date(item.last_checked_at).toLocaleString('en-GB')} · for {item.last_checked_for ? String(item.last_checked_for).split('-').reverse().join('-') : '—'}</small>}
-                      <div className="lex-cause-card-actions"><button type="button" onClick={() => openCauseFolder(item)} title="Open this case folder and cause-list history"><FolderOpen size={14}/> Folder & history</button><button type="button" onClick={() => setCauseForm({...item, case_year: item.case_year ? String(item.case_year) : ''})}><Edit3 size={14}/> Edit</button><button type="button" className="is-archive" onClick={() => handleArchiveCauseWatch(item)} title={item.is_active === false ? 'Restore case to active checks' : 'Archive this case without deleting its history'}>{item.is_active === false ? <Plus size={14}/> : <FolderOpen size={14}/>} {item.is_active === false ? 'Restore' : 'Archive'}</button></div>
-                    </article>;
-                  })}
-                </div>
               </div>
             </section>
           )}
@@ -2493,38 +2365,38 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         </div>
       )}
 
-      {/* --- Task Manager Modal --- */}
+      {/* Premium Task create/edit form */}
       {modalMode === 'addTask' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
-            <div className="bg-slate-900 p-4 text-white flex justify-between">
-              <h3 className="font-bold flex items-center gap-2"><CheckSquare/> New Task</h3>
-              <button onClick={() => setModalMode(null)}><X/></button>
+        <div className="lex-task-modal-backdrop fixed inset-0 z-[105] flex items-center justify-center p-3 sm:p-5 no-print" onClick={() => { setModalMode(null); setSelectedTask(null); }}>
+          <section className="lex-task-form-modal" role="dialog" aria-modal="true" aria-label={formData.id ? 'Edit task' : 'Create task'} onClick={e => e.stopPropagation()}>
+            <header className="lex-task-modal-header"><div><p>LEXSWORD · TASK WORKSPACE</p><h3>{formData.id ? 'কাজ সম্পাদনা করুন' : 'নতুন কাজ যোগ করুন'}</h3><span>কাজের বিবরণ, ডেডলাইন ও অগ্রাধিকার সংরক্ষণ করুন।</span></div><button type="button" onClick={() => { setModalMode(null); setSelectedTask(null); }} aria-label="Close task form"><X size={20}/></button></header>
+            <div className="lex-task-form-body">
+              <label className="lex-task-field"><span>কাজের শিরোনাম *</span><input required autoFocus value={formData.title || ''} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="যেমন: ক্লায়েন্টকে ফোন করা"/></label>
+              <label className="lex-task-field"><span>কাজের বিস্তারিত</span><textarea rows="4" value={formData.details || ''} onChange={e => setFormData({...formData, details: e.target.value})} placeholder="করণীয়, প্রয়োজনীয় কাগজপত্র, ক্লায়েন্ট নির্দেশনা…"/></label>
+              <div className="lex-task-form-grid">
+                <label className="lex-task-field"><span>ডেডলাইন</span><input type="date" value={formData.due_date || ''} onChange={e => setFormData({...formData, due_date: e.target.value})}/></label>
+                <label className="lex-task-field"><span>অগ্রাধিকার</span><select value={formData.priority || 'Normal'} onChange={e => setFormData({...formData, priority: e.target.value})}><option>Urgent</option><option>High</option><option>Normal</option><option>Low</option></select></label>
+                <label className="lex-task-field"><span>অবস্থা</span><select value={formData.status || 'Pending'} onChange={e => setFormData({...formData, status: e.target.value})}><option>Pending</option><option>Done</option></select></label>
+              </div>
             </div>
-            <div className="p-6 space-y-4">
-               <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Task Title</label>
-                  <input placeholder="e.g. Call Client Mr. Rahim" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
-               </div>
-               <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Details (Optional)</label>
-                  <textarea rows="2" placeholder="Details..." value={formData.details} onChange={e => setFormData({...formData, details: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
-               </div>
-               <div className="grid grid-cols-2 gap-4">
-                  <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Due Date</label>
-                      <input type="date" value={formData.due_date} onChange={e => setFormData({...formData, due_date: e.target.value})} className="w-full border p-3 rounded text-slate-900"/>
-                  </div>
-                  <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Priority</label>
-                      <select value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})} className="w-full border p-3 rounded text-slate-900 bg-white">
-                        <option>Normal</option><option>High</option><option>Urgent</option><option>Low</option>
-                      </select>
-                  </div>
-               </div>
-                <button onClick={handleSaveTask} className="w-full bg-slate-900 text-white py-3 rounded font-bold hover:bg-[#c5a059]">CREATE TASK</button>
-            </div>
-          </div>
+            <footer className="lex-task-modal-footer"><button type="button" className="is-secondary" onClick={() => { setModalMode(null); setSelectedTask(null); }}>বাতিল</button><button type="button" className="is-primary" onClick={handleSaveTask}><Save size={16}/>{formData.id ? 'পরিবর্তন সেভ করুন' : 'কাজ সেভ করুন'}</button></footer>
+          </section>
+        </div>
+      )}
+
+      {modalMode === 'viewTask' && selectedTask && (
+        <div className="lex-task-modal-backdrop fixed inset-0 z-[105] flex items-center justify-center p-3 sm:p-5 no-print" onClick={() => { setModalMode(null); setSelectedTask(null); }}>
+          <section className="lex-task-detail-modal" role="dialog" aria-modal="true" aria-label="Task details" onClick={e => e.stopPropagation()}>
+            <header className="lex-task-modal-header"><div><p>LEXSWORD · TASK DETAILS</p><h3>{selectedTask.title || 'কাজের বিস্তারিত'}</h3><span>কাজের অবস্থা, ডেডলাইন ও অগ্রাধিকার</span></div><button type="button" onClick={() => { setModalMode(null); setSelectedTask(null); }} aria-label="Close task details"><X size={20}/></button></header>
+            <div className="lex-task-detail-body"><div className="lex-task-detail-badges"><span className={`lex-task-priority priority-${String(selectedTask.priority || 'Normal').toLowerCase()}`}>{selectedTask.priority || 'Normal'} priority</span><span className={`lex-task-status ${selectedTask.status === 'Done' ? 'is-done' : selectedTask.due_date && selectedTask.due_date < today ? 'is-overdue' : 'is-pending'}`}>{selectedTask.status === 'Done' ? 'Completed' : selectedTask.due_date && selectedTask.due_date < today ? 'Overdue' : 'Pending'}</span></div><div className="lex-task-detail-meta"><div><small>ডেডলাইন</small><strong>{selectedTask.due_date ? selectedTask.due_date.split('-').reverse().join('-') : 'নির্ধারিত নয়'}</strong></div><div><small>অগ্রাধিকার</small><strong>{selectedTask.priority || 'Normal'}</strong></div><div><small>অবস্থা</small><strong>{selectedTask.status || 'Pending'}</strong></div></div><div className="lex-task-detail-description"><small>কাজের বিবরণ</small><p>{selectedTask.details || 'কোনো বিস্তারিত বর্ণনা যোগ করা হয়নি।'}</p></div></div>
+            <footer className="lex-task-modal-footer is-wrap"><button type="button" className="is-secondary" onClick={() => { setModalMode(null); setSelectedTask(null); }}>বন্ধ করুন</button><button type="button" className="is-danger" onClick={() => handleDeleteTask(selectedTask.id)}><Trash2 size={16}/> ডিলিট</button><button type="button" className="is-secondary" onClick={() => openTaskEditor(selectedTask)}><Edit3 size={16}/> এডিট</button><button type="button" className="is-primary" onClick={() => handleToggleTask(selectedTask)}>{selectedTask.status === 'Done' ? <RefreshCw size={16}/> : <Check size={16}/>} {selectedTask.status === 'Done' ? 'আবার Pending করুন' : 'কাজ সম্পন্ন করুন'}</button></footer>
+          </section>
+        </div>
+      )}
+
+      {modalMode === 'confirmDeleteTask' && taskDeleteTarget && (
+        <div className="lex-task-modal-backdrop fixed inset-0 z-[115] flex items-center justify-center p-4 no-print" onClick={() => { setModalMode(selectedTask ? 'viewTask' : null); setTaskDeleteTarget(null); }}>
+          <section className="lex-task-delete-modal" role="dialog" aria-modal="true" aria-label="Confirm task deletion" onClick={e => e.stopPropagation()}><span><Trash2 size={24}/></span><h3>কাজটি স্থায়ীভাবে মুছবেন?</h3><p>“{taskDeleteTarget.title || 'নির্বাচিত কাজ'}” মুছে ফেললে তা Task Manager থেকে চলে যাবে। এই কাজটি ফিরিয়ে আনা যাবে না।</p><div><button type="button" onClick={() => { setTaskDeleteTarget(null); setModalMode(selectedTask ? 'viewTask' : null); }}>বাতিল</button><button type="button" onClick={confirmDeleteTask}>হ্যাঁ, ডিলিট করুন</button></div></section>
         </div>
       )}
 
@@ -2917,7 +2789,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           <section className="lex-quick-view-modal" role="dialog" aria-modal="true" aria-label={dashboardQuickTitle} onClick={e => e.stopPropagation()}>
             <header className="lex-quick-view-header"><div><p>LEXSWORD · CASE DASHBOARD</p><h3>{dashboardQuickTitle}</h3><span>{dashboardQuickCases.length} case{dashboardQuickCases.length === 1 ? '' : 's'} · Select an action for any matter</span></div><button type="button" aria-label="Close case list" onClick={() => setCaseQuickView(null)}><X/></button></header>
             <div className="lex-quick-view-body">
-              {dashboardQuickCases.length === 0 && <div className="lex-cause-empty"><CalIcon size={26}/><strong>No cases in this list</strong><span>এই তালিকার জন্য কোনো মামলা পাওয়া যায়নি।</span></div>}
+              {dashboardQuickCases.length === 0 && <div className="lex-quick-empty"><CalIcon size={26}/><strong>No cases in this list</strong><span>এই তালিকার জন্য কোনো মামলা পাওয়া যায়নি।</span></div>}
               {dashboardQuickCases.map(c => <article key={c.id} className="lex-quick-case-card">
                 <div className="lex-quick-case-top"><div><span className="lex-quick-case-type">{c.court_type || 'Court'} · {c.case_nature || 'Case'}</span><h4>{c.case_no || 'মামলা নম্বর উল্লেখ নেই'}</h4><p>{c.party_name || 'পক্ষের নাম উল্লেখ নেই'}</p></div><span className={`lex-quick-status ${c.status === 'Disposed' ? 'is-disposed' : 'is-pending'}`}>{c.status || 'Ongoing'}</span></div>
                 <div className="lex-quick-case-meta"><span><CalIcon size={13}/> {c.next_date ? c.next_date.split('-').reverse().join('-') : 'তারিখ নির্ধারিত নয়'}</span><span>{c.current_step || c.court_name || 'পদক্ষেপ উল্লেখ নেই'}</span></div>
@@ -2936,42 +2808,14 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         </div>
       )}
 
-      {selectedCauseFolder && (
-        <div className="lex-cause-history-backdrop fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4" onClick={() => setSelectedCauseFolder(null)}>
-          <section className="lex-cause-history-modal" role="dialog" aria-modal="true" aria-label="Supreme Court case folder history" onClick={e => e.stopPropagation()}>
-            <header className="lex-cause-history-header">
-              <div><p>LEXSWORD · CASE FOLDER</p><h3>{selectedCauseFolder.case_type || 'Case'} {selectedCauseFolder.case_number ? `${selectedCauseFolder.case_number}${selectedCauseFolder.case_year ? `/${selectedCauseFolder.case_year}` : ''}` : selectedCauseFolder.tender_number}</h3><span>{selectedCauseFolder.division} · Cause List history</span></div>
-              <button type="button" aria-label="Close case folder" onClick={() => setSelectedCauseFolder(null)}><X size={20}/></button>
-            </header>
-            <div className="lex-cause-history-body">
-              <div className="lex-cause-folder-summary">
-                <div><span>Petitioner / Applicant</span><strong>{selectedCauseFolder.petitioner || 'Not provided'}</strong></div>
-                <div><span>Respondent</span><strong>{selectedCauseFolder.respondent || 'Not provided'}</strong></div>
-                <div><span>Tender number</span><strong>{selectedCauseFolder.tender_number || '—'}</strong></div>
-                <div><span>Monitoring</span><strong>{selectedCauseFolder.is_active === false ? 'Archived' : 'Active'}</strong></div>
-              </div>
-              {selectedCauseFolder.notes && <p className="lex-cause-folder-note">{selectedCauseFolder.notes}</p>}
-              <div className="lex-cause-history-title"><div><p>RECORDED CHECKS</p><h4>Cause List appearance history</h4></div><span>{causeHistory.length} records</span></div>
-              {causeHistoryLoading && <div className="lex-cause-history-empty"><RefreshCw size={20} className="animate-spin"/><strong>ইতিহাস লোড হচ্ছে…</strong></div>}
-              {!causeHistoryLoading && causeHistory.length === 0 && <div className="lex-cause-history-empty"><History size={24}/><strong>এখনও কোনো যাচাইয়ের ইতিহাস নেই</strong><span>মামলাটি নজরদারির তালিকায় যোগ করার পর Cause List checker চালালে প্রতিটি চেক এখানে সংরক্ষিত হবে।</span></div>}
-              {!causeHistoryLoading && causeHistory.length > 0 && <div className="lex-cause-history-timeline">
-                {causeHistory.map(entry => {
-                  const statusLabel = entry.status === 'FOUND' ? 'তালিকায় পাওয়া গেছে' : entry.status === 'NOT_FOUND' ? 'যাচাই করা তালিকায় মেলেনি' : entry.status === 'NOT_PUBLISHED' ? 'তালিকা প্রকাশিত/পাঠযোগ্য নয়' : entry.status === 'ERROR' ? 'যাচাই অসম্পূর্ণ' : 'যাচাই হয়নি';
-                  return <article key={entry.id} className="lex-cause-history-entry">
-                    <span className={`lex-cause-history-dot ${String(entry.status || '').toLowerCase().replace('_','-')}`}></span>
-                    <div className="lex-cause-history-entry-content">
-                      <div className="lex-cause-history-entry-top"><strong>{statusLabel}</strong><time>{entry.check_date ? String(entry.check_date).split('-').reverse().join('-') : 'তারিখ নেই'}</time></div>
-                      <small>যাচাইয়ের সময়: {entry.checked_at ? new Date(entry.checked_at).toLocaleString('en-GB') : '—'} · বেঞ্চ/পেজ পরীক্ষা: {entry.pages_checked ?? 0}</small>
-                      {entry.message && <p>{entry.message}</p>}
-                      {entry.matched_text && <blockquote>{entry.matched_text}</blockquote>}
-                      {entry.error && <p className="is-error">বিস্তারিত: {entry.error}</p>}
-                      {entry.source_url && <a href={entry.source_url} target="_blank" rel="noreferrer" className="lex-cause-source-link">অফিসিয়াল তালিকা খুলুন <ExternalLink size={12}/></a>}
-                    </div>
-                  </article>;
-                })}
-              </div>}
+      {pendingTaskPopupOpen && activeTab === 'dashboard' && pendingTaskItems.length > 0 && (
+        <div className="lex-pending-task-backdrop fixed inset-0 z-[90] flex items-center justify-center p-3 sm:p-5 no-print" onClick={() => { setPendingTaskPopupOpen(false); setPendingTaskPopupDismissed(true); }}>
+          <section className="lex-pending-task-modal" role="dialog" aria-modal="true" aria-label="Pending chamber tasks" onClick={e => e.stopPropagation()}>
+            <header><span className="lex-pending-task-mark"><Bell size={21}/></span><div><p>LEXSWORD · DAILY BRIEFING</p><h3>আপনার অসম্পন্ন কাজগুলো</h3><span>{pendingTaskItems.length}টি কাজ বাকি আছে — কোনো ডেডলাইন যেন মিস না হয়।</span></div><button type="button" aria-label="Close pending tasks" onClick={() => { setPendingTaskPopupOpen(false); setPendingTaskPopupDismissed(true); }}><X size={20}/></button></header>
+            <div className="lex-pending-task-list">
+              {pendingTaskItems.map(task => <article key={`pending-popup-${task.id}`} className="lex-pending-task-row"><span className={`lex-task-priority priority-${String(task.priority || 'Normal').toLowerCase()}`}>{task.priority || 'Normal'}</span><button type="button" className="lex-pending-task-copy" onClick={() => openTaskDetails(task)}><strong>{task.title || 'Untitled task'}</strong><small>{task.due_date ? `ডেডলাইন: ${task.due_date.split('-').reverse().join('-')}` : 'ডেডলাইন নির্ধারিত নয়'} · {task.details || 'বিস্তারিত দেখুন'}</small></button><button type="button" className="lex-pending-task-view" onClick={() => openTaskDetails(task)} title="বিস্তারিত দেখুন" aria-label="বিস্তারিত দেখুন"><Eye size={17}/></button></article>)}
             </div>
-            <footer className="lex-cause-history-footer"><button type="button" onClick={() => { setSelectedCauseFolder(null); runCauseListCheck(); }} disabled={isCheckingCauseList}><RefreshCw size={15} className={isCheckingCauseList ? 'animate-spin' : ''}/> {isCheckingCauseList ? 'যাচাই হচ্ছে…' : 'আগামীকালের তালিকা যাচাই'}</button><button type="button" className="is-close" onClick={() => setSelectedCauseFolder(null)}>বন্ধ করুন</button></footer>
+            <footer><button type="button" className="is-secondary" onClick={() => { setPendingTaskPopupOpen(false); setPendingTaskPopupDismissed(true); }}>পরে দেখব</button><button type="button" className="is-primary" onClick={() => { setPendingTaskPopupOpen(false); setPendingTaskPopupDismissed(true); setTaskPeriod('all'); setTaskFilter('pending'); setActiveTab('tasks'); }}>সব কাজ দেখুন <ChevronRight size={16}/></button></footer>
           </section>
         </div>
       )}
