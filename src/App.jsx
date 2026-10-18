@@ -5,10 +5,10 @@ import {
   Calendar as CalIcon, Save, Trash2, 
   ExternalLink, MessageCircle, FolderOpen, LogOut, 
   Plus, X, Edit3, Filter, ChevronLeft, ChevronRight, 
-  Eye, History, User, Lock, Folder, Check, Mail, Phone, MapPin, 
+  Eye, History, Lock, Folder, Check, Mail, Phone, MapPin, 
   ArrowRight, Menu, RefreshCw, CheckCircle, Search, ClipboardList, 
   AlertTriangle, Clock, CheckSquare, Printer, PieChart, TrendingUp, TrendingDown,
-  Quote, Shield, Users, Award, BookOpen, Briefcase, Landmark, HardHat, HeartPulse, Gem, FileText, Scale as ScaleIcon, ShieldCheck, Sparkles, MessageSquare
+  Quote, Shield, Users, Award, BookOpen, Briefcase, Landmark, HardHat, HeartPulse, Gem, FileText, Scale as ScaleIcon, ShieldCheck, MessageSquare
 } from 'lucide-react';
 
 // ==============================================================================
@@ -1035,25 +1035,17 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
    
-  const [calendarDate, setCalendarDate] = useState(new Date()); 
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const [calendarView, setCalendarView] = useState('month');
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  });
   const [modalMode, setModalMode] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
   const [formData, setFormData] = useState({});
   const [newDoc, setNewDoc] = useState({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null });
   const [isUpdating, setIsUpdating] = useState(false);
- // --- AI Logic States & Persistent Data ---
-  const [aiActiveTab, setAiActiveTab] = useState('summary');
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiResults, setAiResults] = useState({ summary: '', timeline: '', questions: '' });
-  const [aiParty, setAiParty] = useState('Plaintiff/Petitioner (বাদী/আবেদনকারী)');
-  const [selectedAiDoc, setSelectedAiDoc] = useState(null); // যে ফাইলটি AI পড়বে
-  const [aiChatLog, setAiChatLog] = useState([]); // চ্যাটিং এর জন্য
-  const [aiChatInput, setAiChatInput] = useState('');
-  const [isAiChatLoading, setIsAiChatLoading] = useState(false);
-// --- AI & Cloudinary States ---
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
 
 
 
@@ -1072,17 +1064,34 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
 
   const fetchHistory = async (caseId) => {
-    const { data } = await supabase.from('case_history').select('*').eq('case_id', caseId).order('recorded_at', { ascending: false });
+    setHistoryLog([]);
+    const { data, error } = await supabase.from('case_history').select('*').eq('case_id', caseId).order('recorded_at', { ascending: false });
+    if (error) { console.error('Unable to load case history:', error); return; }
     setHistoryLog(data || []);
   };
 
   const fetchDocuments = async (caseId) => {
-    const { data } = await supabase.from('documents').select('*').eq('case_id', caseId).order('created_at', { ascending: false });
+    setDocuments([]);
+    const { data, error } = await supabase.from('documents').select('*').eq('case_id', caseId).order('created_at', { ascending: false });
+    if (error) { console.error('Unable to load case documents:', error); return; }
     setDocuments(data || []);
   };
 
+  const openCaseDetails = (caseRecord) => {
+    setSelectedCase(caseRecord);
+    setHistoryLog([]);
+    setDocuments([]);
+    setNewDoc({ folder_type: 'Plaint (Arji)', doc_name: '', drive_link: '', id: null });
+    fetchHistory(caseRecord.id);
+    fetchDocuments(caseRecord.id);
+    setModalMode('viewCase');
+  };
+
   const changeMonth = (offset) => {
-    setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + offset, 1));
+    const nextMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + offset, 1);
+    setCalendarDate(nextMonth);
+    const offsetMs = nextMonth.getTimezoneOffset() * 60000;
+    setSelectedCalendarDate(new Date(nextMonth.getTime() - offsetMs).toISOString().slice(0, 10));
   };
 
   const getLocalStr = (d) => {
@@ -1098,6 +1107,29 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const last = first + 4; 
   const sunday = getLocalStr(new Date(curr.setDate(first)));
   const thursday = getLocalStr(new Date(curr.setDate(last)));
+
+  const addDaysToDateString = (dateStr, amount) => {
+    const date = new Date(`${dateStr}T12:00:00`);
+    date.setDate(date.getDate() + amount);
+    return getLocalStr(date);
+  };
+  const selectedCalendarDateObject = new Date(`${selectedCalendarDate}T12:00:00`);
+  const selectedCalendarDateLabel = selectedCalendarDateObject.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+  const selectedDateCases = cases.filter(c => c.next_date === selectedCalendarDate && c.status !== 'Disposed');
+  const selectedDateTasks = tasks.filter(t => t.due_date === selectedCalendarDate && t.status !== 'Done');
+  const calendarWeekDays = (() => {
+    const start = new Date(`${selectedCalendarDate}T12:00:00`);
+    start.setDate(start.getDate() - start.getDay());
+    return Array.from({ length: 7 }, (_, i) => { const date = new Date(start); date.setDate(start.getDate() + i); return date; });
+  })();
+  const agendaEndDate = addDaysToDateString(selectedCalendarDate, 30);
+  const calendarAgendaItems = [
+    ...cases.filter(c => c.next_date && c.next_date >= selectedCalendarDate && c.next_date <= agendaEndDate && c.status !== 'Disposed').map(c => ({ id: `case-${c.id}`, type: 'case', date: c.next_date, title: c.case_no || 'Case hearing', subtitle: c.party_name || c.court_name || '', detail: c.current_step || '', record: c })),
+    ...tasks.filter(t => t.due_date && t.due_date >= selectedCalendarDate && t.due_date <= agendaEndDate && t.status !== 'Done').map(t => ({ id: `task-${t.id}`, type: 'task', date: t.due_date, title: t.title || 'Task', subtitle: t.details || '', detail: t.priority || 'Task', record: t }))
+  ].sort((a, b) => a.date.localeCompare(b.date));
+  const upcomingHearings = cases.filter(c => c.next_date && c.next_date >= today && c.status !== 'Disposed');
+  const todaysHearings = cases.filter(c => c.next_date === today);
+  const upcomingTasks = tasks.filter(t => t.due_date && t.due_date >= today && t.status !== 'Done');
   
   const getCounts = (tab) => {
     const activeList = cases.filter(c => tab === 'judge' ? c.court_type === 'Judge Court' : c.court_type === 'High Court');
@@ -1261,8 +1293,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const handlePrint = () => window.print();
   const setMonthFilter = () => {
       const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const firstDay = getLocalStr(first);
+      const lastDay = getLocalStr(last);
       setStartDate(firstDay);
       setEndDate(lastDay);
   };
@@ -1323,236 +1357,45 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
   
   const handleUpdateStatus = async () => {
-    // যদি ইতোমধ্যে আপডেট চলতে থাকে, তবে ফাংশনটি এখানেই থেমে যাবে (ডাবল এন্ট্রি রোধ করবে)
-    if (isUpdating) return; 
-    
-    setIsUpdating(true); // আপডেট শুরু হলে বাটন ডিসেবল করার জন্য
+    if (isUpdating) return;
+    if (!formData.id) return alert('মামলার রেকর্ড পাওয়া যায়নি।');
+    if (!formData.next_date || !String(formData.current_step || '').trim()) {
+      return alert('পরবর্তী তারিখ ও পরবর্তী পদক্ষেপ পূরণ করুন।');
+    }
 
+    setIsUpdating(true);
     try {
-        const { data: oldCase } = await supabase.from('cases').select('*').eq('id', formData.id).single();
-        if (oldCase) {
-            await supabase.from('case_history').insert([{
-                case_id: oldCase.id,
-                prev_date: oldCase.next_date,
-                prev_step: oldCase.current_step,
-                note: formData.note || '' 
-            }]);
-        }
-        const { error } = await supabase.from('cases').update({
-            next_date: formData.next_date,
-            current_step: formData.current_step,
-            note: '' 
-        }).eq('id', formData.id);
-        
-        if(error) {
-            alert(error.message);
-        } else {
-            alert("Status Updated!"); 
-            setModalMode(null); 
-            setRefresh(r => r+1);
-        }
+      const { data: oldCase, error: readError } = await supabase.from('cases').select('*').eq('id', formData.id).single();
+      if (readError || !oldCase) throw readError || new Error('Case record not found.');
+
+      // Save the order summary against the hearing/order date before changing the next hearing.
+      const orderSummary = String(formData.note || '').trim();
+      const { error: historyError } = await supabase.from('case_history').insert([{
+        case_id: oldCase.id,
+        prev_date: formData.order_date || oldCase.next_date || today,
+        prev_step: oldCase.current_step || '',
+        note: orderSummary
+      }]);
+      if (historyError) throw new Error(`Order history could not be saved: ${historyError.message}`);
+
+      const { error: updateError } = await supabase.from('cases').update({
+        next_date: formData.next_date,
+        current_step: String(formData.current_step).trim(),
+        note: ''
+      }).eq('id', formData.id);
+      if (updateError) throw new Error(`Order history was saved, but the case status could not be updated: ${updateError.message}`);
+
+      alert('মামলার তারিখ ও পদক্ষেপ আপডেট হয়েছে; আদেশের সারাংশ হিস্ট্রিতে সংরক্ষিত হয়েছে।');
+      setModalMode(null);
+      setRefresh(r => r + 1);
     } catch (err) {
-        alert("আপডেট করার সময় একটি ত্রুটি হয়েছে!");
-        console.error(err);
+      console.error(err);
+      alert(err.message || 'আপডেট করার সময় একটি ত্রুটি হয়েছে।');
     } finally {
-        // আপডেট শেষ হলে (সফল বা ব্যর্থ যাই হোক) বাটন আবার সচল করে দেবে
-        setIsUpdating(false); 
+      setIsUpdating(false);
     }
   };
 
- // =========================================================================
-  // CLOUDINARY + SUPABASE FILE UPLOAD HANDLER
-  // =========================================================================
-  const handleFileUpload = async (event, caseId) => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      setIsUploading(true);
-      setUploadProgress(20);
-
-      const data = new FormData();
-      data.append('file', file);
-      data.append('upload_preset', 'LexSword'); 
-      data.append('cloud_name', 'dcjykxffd'); 
-
-      try {
-          setUploadProgress(60);
-          const response = await fetch('https://api.cloudinary.com/v1_1/dcjykxffd/auto/upload', {
-              method: 'POST',
-              body: data
-          });
-          
-          const result = await response.json();
-          setUploadProgress(90);
-          
-          if (result.secure_url) {
-              setUploadedFileUrl(result.secure_url); 
-              
-              // Cloudinary থেকে লিংক পাওয়ার পর সাথে সাথে ডাটাবেসে সেভ করা হচ্ছে
-              const { data: insertedDoc, error } = await supabase.from('documents').insert([{ 
-                  case_id: caseId, 
-                  folder_type: 'AI Uploaded', 
-                  doc_name: file.name || 'Case_Document', 
-                  drive_link: result.secure_url 
-              }]).select().single();
-
-              if (!error) {
-                  fetchDocuments(caseId); // লিস্ট সাথে সাথে আপডেট হবে
-                  setSelectedAiDoc(insertedDoc || { drive_link: result.secure_url }); // ফাইলটি অটোমেটিক AI এর জন্য সিলেক্ট হয়ে যাবে
-              } else {
-                  console.error("DB Save Error:", error);
-              }
-          } else {
-              alert("আপলোড ফেইল হয়েছে! আবার চেষ্টা করুন।");
-          }
-      } catch (error) {
-          console.error("Upload Error:", error);
-          alert("ইন্টারনেট কানেকশন চেক করুন!");
-      } finally {
-          setUploadProgress(100);
-          setTimeout(() => { setIsUploading(false); setUploadProgress(0); }, 1500);
-      }
-  };
-// =========================================================================
-  // ADVANCED AI ANALYSIS & SAVE HANDLER
-  // =========================================================================
-  
-  // ১. AI ডাটা প্রতিটি নির্দিষ্ট ডকুমেন্টের সাথে চিরস্থায়ী সেভ করার ফাংশন
-  const handleSaveAiData = async () => {
-      if (!selectedAiDoc) return alert("আগে একটি ডকুমেন্ট সিলেক্ট করুন!");
-      
-      const { error } = await supabase.from('documents').update({
-          ai_party: aiParty,
-          ai_summary: aiResults.summary,
-          ai_timeline: aiResults.timeline,
-          ai_questions: aiResults.questions
-      }).eq('id', selectedAiDoc.id); // এখন এটি নির্দিষ্ট ফাইলের সাথে সেভ হবে
-      
-      if(error) alert(error.message);
-      else {
-          alert("AI ডেটা সফলভাবে এই ডকুমেন্টের সাথে সেভ হয়েছে!");
-          fetchDocuments(selectedCase.id); // রিফ্রেশ করার জন্য
-      }
-  };
-  // ২. নির্দিষ্ট ফাইল থেকে AI জেনারেট করার ফাংশন
-  const handleGenerateAI = async () => {
-      if (!selectedAiDoc) return alert("বাম পাশ থেকে আগে একটি ফাইল 'Select for AI' করুন!");
-      setIsAiLoading(true);
-
-      try {
-          const fileRes = await fetch(selectedAiDoc.drive_link);
-          const blob = await fileRes.blob();
-          
-          const blobToBase64 = (b) => new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.readAsDataURL(b);
-              reader.onloadend = () => resolve(reader.result.split(',')[1]);
-              reader.onerror = (error) => reject(error);
-          });
-
-          const base64data = await blobToBase64(blob);
-          let mimeType = blob.type;
-          if (!mimeType || mimeType === 'application/octet-stream') {
-              mimeType = selectedAiDoc.drive_link.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
-          }
-
-          const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-
-          // Advanced Prompt Engineering
-        const promptText = `আপনি বাংলাদেশের সুপ্রিম কোর্টের ও ঢাকা জজ কোর্ট এর একজন অত্যন্ত দক্ষ এবং সিনিয়র আইনজীবী। 
-          আপনি এই মামলায় '${aiParty}' এর পক্ষের আইনজীবী হিসেবে লড়ছেন। 
-          আমি আপনাকে এই মামলার একটি নথিপত্র দিচ্ছি।
-          
-          আপনার জন্য কঠোর নির্দেশনা (Strict Instructions):
-          ১. কোনো মার্কডাউন (Markdown) চিহ্ন যেমন ** বা * বা # ব্যবহার করবেন না। এটি সম্পূর্ণ নিষিদ্ধ।
-          ২. হেডিং বা শিরোনামগুলো বোঝানোর জন্য [ ] ব্র্যাকেট ব্যবহার করুন বা বড় অক্ষরে লিখুন। 
-          ৩. প্রতিটি প্যারাগ্রাফের মাঝে ডাবল এন্টার (Double Line break) দিয়ে পর্যাপ্ত ফাঁকা জায়গা রাখবেন যেন পড়তে বইয়ের মতো লাগে।
-          ৪. কোনো কাল্পনিক তথ্য (Hallucination) দেবেন না। শুধুমাত্র ফাইলের তথ্যের উপর ভিত্তি করে ফ্যাক্টস দেবেন।
-          ৫. আইনি যুক্তি (Arguments) ও জেরা (Cross-examination) তৈরির সময় আপনার সর্বোচ্চ আইনি মেধা খাটাবেন।
-          
-          আপনার উত্তরটি অবশ্যই একটি JSON অবজেক্ট হতে হবে। কাঠামো:
-          {
-            "summary": "[ফ্যাক্টস ও আইনি বিশ্লেষণ]\n\nবিস্তারিত বিবরণ...",
-            "timeline": "১. [তারিখ]: [ঘটনা বিস্তারিত]\n\n২. [তারিখ]: [ঘটনা বিস্তারিত]",
-            "questions": "[জেরার প্রশ্নসমূহ]\n\n১. [প্রশ্ন]\n\n২. [প্রশ্ন]"
-          }`;
-
-          const requestBody = {
-              contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: mimeType, data: base64data } }] }],
-              generationConfig: { response_mime_type: "application/json" }
-          };
-
-          const aiResponse = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-          const aiData = await aiResponse.json();
-          
-          if (aiData.error) { alert("AI Error: " + aiData.error.message); setIsAiLoading(false); return; }
-
-          const responseText = aiData.candidates[0].content.parts[0].text;
-          const parsedResults = JSON.parse(responseText);
-          
-          setAiResults({
-              summary: parsedResults.summary || "",
-              timeline: parsedResults.timeline || "",
-              questions: parsedResults.questions || ""
-          });
-          
-      } catch (error) {
-          console.error("Error processing AI:", error);
-          alert("এআই অ্যানালাইসিস করতে সমস্যা হচ্ছে। ফাইল সাইজ চেক করুন।");
-      } finally {
-          setIsAiLoading(false);
-      }
-  };
-
-  // ৩. AI Chat Function
-  // ৩. AI Chat Function (Smart & Contextual)
-  const handleAiChat = async () => {
-      if(!aiChatInput.trim()) return;
-      
-      const userText = aiChatInput;
-      const newChatLog = [...aiChatLog, { sender: 'user', text: userText }];
-      setAiChatLog(newChatLog);
-      setAiChatInput('');
-      setIsAiChatLoading(true);
-      
-      try {
-          const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-          
-          // হিস্ট্রি এবং কনটেক্সট তৈরি করা
-          const historyText = newChatLog.map(m => `${m.sender === 'user' ? 'Client' : 'AI'}: ${m.text}`).join('\n');
-          
-          const chatContext = `আপনি বাংলাদেশের সুপ্রিম কোর্টের একজন অত্যন্ত দক্ষ আইনজীবী। আপনি '${aiParty}' এর পক্ষে লড়ছেন। 
-          মামলার ফ্যাক্টস: ${aiResults.summary || 'এখনো ফ্যাক্টস জেনারেট করা হয়নি'}
-          টাইমলাইন: ${aiResults.timeline || 'এখনো টাইমলাইন জেনারেট করা হয়নি'}
-          
-          নিচে আপনার এবং ইউজারের কথোপকথনের ইতিহাস দেওয়া হলো:
-          ${historyText}
-          
-          নির্দেশনা: 
-          ১. উপরের তথ্যের ভিত্তিতে ইউজারের শেষ প্রশ্নের উত্তর দিন। 
-          ২. অত্যন্ত প্রফেশনাল এবং আইনি ভাষায় বাংলায় উত্তর দেবেন। 
-          ৩. কোনো মার্কডাউন চিহ্ন যেমন ** বা * ব্যবহার করবেন না। শুধু সুন্দর প্যারাগ্রাফ ব্যবহার করবেন।`;
-
-          const response = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents: [{ parts: [{ text: chatContext }] }] })
-          });
-          
-          const data = await response.json();
-          if(data.error) throw new Error(data.error.message);
-          
-          const botMsg = { sender: 'ai', text: data.candidates[0].content.parts[0].text };
-          setAiChatLog(prev => [...prev, botMsg]);
-      } catch(e) {
-          console.error(e);
-          setAiChatLog(prev => [...prev, { sender: 'ai', text: "দুঃখিত, আমি এই মুহূর্তে উত্তর দিতে পারছি না। আবার চেষ্টা করুন।" }]);
-      } finally {
-          setIsAiChatLoading(false);
-      }
-  }
   return (
     <div className="lex-dashboard lex-admin-dashboard flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-900">
       
@@ -1702,13 +1545,10 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                     </div>
 
                     <div className="flex gap-2 w-full md:w-auto justify-start md:justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
-                      <button onClick={() => { setSelectedCase(c); fetchDocuments(c.id); setModalMode('aiAnalysis'); }} className="p-2 shrink-0 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 font-bold flex items-center gap-1 border border-purple-300 shadow-sm" title="AI Case Analysis">
-                        <Sparkles size={16} className="text-purple-600"/> AI Research
-                      </button>
-                      <button onClick={() => { setFormData(c); setModalMode('updateStatus'); }} className="p-2 shrink-0 bg-slate-900 text-white rounded hover:bg-[#c5a059] font-bold flex items-center gap-1" title="Update">
+                      <button onClick={() => { setFormData({...c, order_date: c.next_date || today, note: ''}); setModalMode('updateStatus'); }} className="p-2 shrink-0 bg-slate-900 text-white rounded hover:bg-[#c5a059] font-bold flex items-center gap-1" title="Update hearing date, next step and order summary">
                         <RefreshCw size={16}/> Update
                       </button>
-                      <button onClick={() => { setSelectedCase(c); fetchDocuments(c.id); fetchHistory(c.id); setModalMode('viewCase'); }} className="p-2 shrink-0 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"><Eye size={18}/></button>
+                      <button onClick={() => openCaseDetails(c)} title="View complete case profile and order history" className="lex-case-view-action p-2 shrink-0 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"><Eye size={18}/><span>View case</span></button>
                       
                       {isAdmin && (
                         <>
@@ -1787,73 +1627,153 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           )}
 
           {activeTab === 'calendar' && (
-            <div className="lex-calendar-panel bg-white p-4 md:p-6 rounded shadow h-full flex flex-col text-slate-900 no-print">
-              <div className="lex-calendar-toolbar flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-                  <h2 className="text-2xl font-bold">Monthly Schedule</h2>
-                  <div className="lex-calendar-controls flex items-center gap-4 bg-slate-200 p-2 rounded text-slate-900">
-                    <button aria-label="Previous month" onClick={() => changeMonth(-1)} className="lex-calendar-arrow p-2 hover:bg-slate-300 rounded"><ChevronLeft/></button>
-                    <button onClick={() => setCalendarDate(new Date())} className="lex-calendar-jump-today">Today</button>
-                    <span className="font-bold text-lg w-36 text-center">{calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                    <button aria-label="Next month" onClick={() => changeMonth(1)} className="lex-calendar-arrow p-2 hover:bg-slate-300 rounded"><ChevronRight/></button>
+            <section className="lex-calendar-workspace no-print">
+              <div className="lex-calendar-heading">
+                <div>
+                  <p className="lex-section-eyebrow">LEXSWORD · CHAMBER PLANNER</p>
+                  <h2>Hearing calendar</h2>
+                  <p>এক জায়গায় শুনানির তারিখ, মামলার পদক্ষেপ ও দৈনন্দিন কাজ দেখুন।</p>
+                </div>
+                <div className="lex-calendar-view-switch" role="tablist" aria-label="Calendar view">
+                  {[['month', 'Month'], ['week', 'Week'], ['agenda', 'Agenda']].map(([view, label]) => (
+                    <button key={view} type="button" role="tab" aria-selected={calendarView === view} onClick={() => setCalendarView(view)} className={calendarView === view ? 'is-active' : ''}>{label}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lex-calendar-insights">
+                <div className="lex-calendar-insight"><span className="lex-insight-mark lex-mark-blue"><Gavel size={17}/></span><div><small>Upcoming hearings</small><strong>{upcomingHearings.length}</strong><span>Open matters with future dates</span></div></div>
+                <div className="lex-calendar-insight"><span className="lex-insight-mark lex-mark-gold"><CalIcon size={17}/></span><div><small>Today's hearings</small><strong>{todaysHearings.length}</strong><span>{today.split('-').reverse().join('-')}</span></div></div>
+                <div className="lex-calendar-insight"><span className="lex-insight-mark lex-mark-green"><CheckSquare size={17}/></span><div><small>Upcoming tasks</small><strong>{isAdmin ? upcomingTasks.length : '—'}</strong><span>Pending chamber actions</span></div></div>
+              </div>
+
+              <div className="lex-calendar-main-grid">
+                <div className="lex-calendar-board">
+                  <div className="lex-calendar-toolbar">
+                    <div>
+                      <h3>{calendarDate.toLocaleString('en-GB', { month: 'long', year: 'numeric' })}</h3>
+                      <p>{calendarView === 'month' ? 'Monthly overview' : calendarView === 'week' ? 'Selected week · Sunday to Saturday' : 'Upcoming schedule · next 30 days'}</p>
+                    </div>
+                    <div className="lex-calendar-controls">
+                      <button type="button" aria-label="Previous month" onClick={() => changeMonth(-1)} className="lex-calendar-arrow"><ChevronLeft size={18}/></button>
+                      <button type="button" onClick={() => { const now = new Date(); setCalendarDate(now); setSelectedCalendarDate(today); }} className="lex-calendar-jump-today">Today</button>
+                      <button type="button" aria-label="Next month" onClick={() => changeMonth(1)} className="lex-calendar-arrow"><ChevronRight size={18}/></button>
+                    </div>
                   </div>
-              </div>
-              <div className="lex-calendar-weekdays grid grid-cols-7 gap-1 font-bold text-center bg-slate-200 text-slate-900 p-2 rounded mb-2 text-xs md:text-base">
-                  <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-              </div>
-              <div className="lex-calendar-grid grid grid-cols-7 gap-1 md:gap-2 flex-1">
-                  {[...Array(42)].map((_, i) => {
-                    const year = calendarDate.getFullYear();
-                    const month = calendarDate.getMonth();
-                    const firstDay = new Date(year, month, 1).getDay();
-                    const d = new Date(year, month, 1 + i - firstDay);
-                    const dateStr = getLocalStr(d);
-                    const isCurrentMonth = d.getMonth() === month;
-                    const hasCase = cases.filter(c => c.next_date === dateStr);
-                    const hasTask = isAdmin ? tasks.filter(t => t.due_date === dateStr && t.status !== 'Done') : [];
-                    return (
-                      <div key={i} className={`lex-calendar-cell border p-1 md:p-2 h-24 md:h-32 rounded-lg flex flex-col transition-all ${dateStr === today ? 'lex-calendar-today' : ''} ${!isCurrentMonth ? 'bg-slate-50 opacity-50' : hasCase.length > 0 ? 'bg-white border-red-200 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
-                        <div className="flex justify-between items-start mb-1.5">
-                           <span className={`text-xs md:text-sm font-bold ${isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}`}>{d.getDate()}</span>
-                          <div className="flex gap-1">
-                            {isCurrentMonth && hasTask.length > 0 && <span className="lex-task-day-dot w-2 h-2 rounded-full bg-blue-500" title={`${hasTask.length} task${hasTask.length === 1 ? '' : 's'}`}></span>}
-                           </div>
-                        </div>
-                        <div className="flex flex-col gap-1.5 overflow-y-auto flex-1 pr-1 custom-scrollbar">
-                          {isCurrentMonth && hasCase.map(c => (
-                            <div key={c.id} onClick={(e) => { e.stopPropagation(); setSelectedCase(c); setModalMode('viewCase'); }} className="lex-calendar-event text-[10px] md:text-xs truncate bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded cursor-pointer hover:bg-red-600 hover:text-white transition-colors font-semibold shadow-sm flex items-center gap-1.5" title={`${c.case_no} - ${c.party_name}`}>
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span> 
-                              <span className="truncate">{c.case_no}</span>
-                             </div>
-                          ))}
-                          {isCurrentMonth && hasTask.map(t => (
-                            <button key={t.id} type="button" onClick={(e) => { e.stopPropagation(); setActiveTab('tasks'); setTaskFilter('pending'); }} className="lex-calendar-event lex-calendar-event-task" title={t.title}>
-                              <span className="lex-calendar-event-dot"></span>
-                              <span className="truncate">{t.title}</span>
-                            </button>
-                          ))}
-                        </div>
+
+                  {calendarView === 'month' && (
+                    <>
+                      <div className="lex-calendar-weekdays"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+                      <div className="lex-calendar-grid">
+                        {[...Array(42)].map((_, i) => {
+                          const year = calendarDate.getFullYear();
+                          const month = calendarDate.getMonth();
+                          const firstDay = new Date(year, month, 1).getDay();
+                          const d = new Date(year, month, 1 + i - firstDay);
+                          const dateStr = getLocalStr(d);
+                          const isCurrentMonth = d.getMonth() === month;
+                          const dayCases = cases.filter(c => c.next_date === dateStr && c.status !== 'Disposed');
+                          const dayTasks = isAdmin ? tasks.filter(t => t.due_date === dateStr && t.status !== 'Done') : [];
+                          return (
+                            <div key={dateStr} role="button" tabIndex={0} onClick={() => setSelectedCalendarDate(dateStr)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setSelectedCalendarDate(dateStr); }} className={`lex-calendar-cell ${dateStr === today ? 'lex-calendar-today' : ''} ${dateStr === selectedCalendarDate ? 'lex-calendar-selected' : ''} ${!isCurrentMonth ? 'lex-calendar-outside' : ''}`}>
+                              <div className="lex-calendar-date-row"><span>{d.getDate()}</span>{dayCases.length + dayTasks.length > 0 && <span className="lex-calendar-count">{dayCases.length + dayTasks.length}</span>}</div>
+                              <div className="lex-calendar-cell-events">
+                                {isCurrentMonth && dayCases.slice(0, 2).map(c => (
+                                  <button key={c.id} type="button" onClick={e => { e.stopPropagation(); openCaseDetails(c); }} className="lex-calendar-event" title={`${c.case_no} — ${c.party_name}`}>
+                                    <span className="lex-calendar-event-dot lex-case-dot"></span><span>{c.case_no || 'Case hearing'}</span>
+                                  </button>
+                                ))}
+                                {isCurrentMonth && dayTasks.slice(0, 1).map(t => (
+                                  <button key={t.id} type="button" onClick={e => { e.stopPropagation(); setActiveTab('tasks'); setTaskFilter('pending'); }} className="lex-calendar-event lex-calendar-event-task" title={t.title}>
+                                    <span className="lex-calendar-event-dot"></span><span>{t.title}</span>
+                                  </button>
+                                ))}
+                                {isCurrentMonth && dayCases.length + dayTasks.length > 3 && <span className="lex-calendar-more">+{dayCases.length + dayTasks.length - 3} more</span>}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    )
-                  })}
+                    </>
+                  )}
+
+                  {calendarView === 'week' && (
+                    <div className="lex-calendar-week-grid">
+                      {calendarWeekDays.map(d => {
+                        const dateStr = getLocalStr(d);
+                        const dayCases = cases.filter(c => c.next_date === dateStr && c.status !== 'Disposed');
+                        const dayTasks = isAdmin ? tasks.filter(t => t.due_date === dateStr && t.status !== 'Done') : [];
+                        return (
+                          <div key={dateStr} className={`lex-calendar-week-day ${dateStr === today ? 'is-today' : ''} ${dateStr === selectedCalendarDate ? 'is-selected' : ''}`}>
+                            <button type="button" className="lex-calendar-week-day-head" onClick={() => setSelectedCalendarDate(dateStr)}><span>{d.toLocaleDateString('en-GB', { weekday: 'short' })}</span><strong>{d.getDate()}</strong></button>
+                            <div className="lex-calendar-week-events">
+                              {dayCases.map(c => <button key={c.id} type="button" className="lex-calendar-week-event is-case" onClick={() => openCaseDetails(c)}><strong>{c.case_no || 'Case hearing'}</strong><span>{c.current_step || c.party_name}</span></button>)}
+                              {dayTasks.map(t => <button key={t.id} type="button" className="lex-calendar-week-event is-task" onClick={() => { setActiveTab('tasks'); setTaskFilter('pending'); }}><strong>{t.title}</strong><span>{t.priority || 'Task'}</span></button>)}
+                              {dayCases.length + dayTasks.length === 0 && <span className="lex-calendar-empty-day">No events</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {calendarView === 'agenda' && (
+                    <div className="lex-calendar-agenda-list">
+                      <div className="lex-calendar-agenda-intro"><h4>Upcoming schedule</h4><span>From {selectedCalendarDate.split('-').reverse().join('-')} · next 30 days</span></div>
+                      {calendarAgendaItems.length === 0 && <div className="lex-calendar-empty-state"><CalIcon size={26}/><strong>No upcoming events</strong><span>Choose another date or add a hearing/task.</span></div>}
+                      {calendarAgendaItems.map(item => (
+                        <button key={item.id} type="button" className="lex-calendar-agenda-item" onClick={() => item.type === 'case' ? openCaseDetails(item.record) : (setActiveTab('tasks'), setTaskFilter('pending'))}>
+                          <span className={`lex-agenda-date ${item.type === 'case' ? 'is-case' : 'is-task'}`}><strong>{item.date.slice(8, 10)}</strong><small>{new Date(`${item.date}T12:00:00`).toLocaleDateString('en-GB', { month: 'short' })}</small></span>
+                          <span className="lex-agenda-copy"><strong>{item.title}</strong><small>{item.subtitle || '—'}</small><em>{item.detail || (item.type === 'case' ? 'Court hearing' : 'Task')}</em></span>
+                          <span className={`lex-agenda-type ${item.type}`}>{item.type === 'case' ? 'HEARING' : 'TASK'}</span>
+                          <ChevronRight size={17}/>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <aside className="lex-calendar-day-panel">
+                  <div className="lex-calendar-day-panel-head">
+                    <p>SELECTED DATE</p>
+                    <h3>{selectedCalendarDateLabel}</h3>
+                    <span>{selectedDateCases.length} hearing{selectedDateCases.length === 1 ? '' : 's'} · {selectedDateTasks.length} task{selectedDateTasks.length === 1 ? '' : 's'}</span>
+                  </div>
+                  <div className="lex-day-agenda-section">
+                    <div className="lex-day-section-title"><h4><Gavel size={16}/> Court hearings</h4><span>{selectedDateCases.length}</span></div>
+                    {selectedDateCases.length === 0 && <p className="lex-calendar-panel-empty">No hearings scheduled for this date.</p>}
+                    {selectedDateCases.map(c => (
+                      <button key={c.id} type="button" className="lex-day-event-card is-case" onClick={() => openCaseDetails(c)}>
+                        <span className="lex-day-event-marker"></span><span className="lex-day-event-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.party_name || 'Party not specified'}</small><em>{c.current_step || c.court_name || 'Next step not specified'}</em></span><ChevronRight size={16}/>
+                      </button>
+                    ))}
+                  </div>
+                  {isAdmin && <div className="lex-day-agenda-section">
+                    <div className="lex-day-section-title"><h4><CheckSquare size={16}/> Chamber tasks</h4><span>{selectedDateTasks.length}</span></div>
+                    {selectedDateTasks.length === 0 && <p className="lex-calendar-panel-empty">No pending tasks for this date.</p>}
+                    {selectedDateTasks.map(t => <button key={t.id} type="button" className="lex-day-event-card is-task" onClick={() => { setActiveTab('tasks'); setTaskFilter('pending'); }}><span className="lex-day-event-marker"></span><span className="lex-day-event-copy"><strong>{t.title}</strong><small>{t.details || 'Task'}</small><em>{t.priority || 'Normal priority'}</em></span><ChevronRight size={16}/></button>)}
+                  </div>}
+                  {isAdmin && <button type="button" className="lex-calendar-add-case" onClick={() => { setFormData({ file_no: '', court_type: 'Judge Court', case_nature: 'Civil Suit', status: 'Ongoing', next_date: selectedCalendarDate, current_step: '', note: '' }); setModalMode('addCase'); }}><Plus size={17}/> Add case on this date</button>}
+                </aside>
               </div>
-            </div>
+            </section>
           )}
 
           {activeTab === 'accounts' && isAdmin && (
-            <div className="space-y-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
-                <h2 className="text-3xl font-bold text-slate-900">Financial Management</h2>
+            <div className="lex-finance-page space-y-6">
+              <div className="lex-finance-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
+                <div><p className="lex-section-eyebrow">LEXSWORD · FINANCE WORKSPACE</p><h2 className="text-3xl font-bold text-slate-900">Accounts & Ledger</h2><p>আয়, ব্যয়, বকেয়া এবং সঞ্চয়ের হিসাব এক জায়গায় পরিচালনা করুন।</p></div>
                 <div className="flex gap-2 w-full md:w-auto">
                     <button onClick={handlePrint} className="bg-slate-200 text-slate-900 px-4 py-2 rounded font-bold hover:bg-slate-300 flex items-center gap-2">
                          <Printer size={18}/> Print / PDF
                     </button>
-                    <button onClick={() => { setFormData({txn_type: 'Income', category: 'Office', payment_status: 'Paid'}); setModalMode('addTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] flex items-center gap-2">
+                    <button onClick={() => { setFormData({date: today, txn_type: 'Income', category: 'Office', payment_status: 'Paid', amount: '', client_name: '', description: ''}); setModalMode('addTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] flex items-center gap-2">
                         <Plus size={18}/> Add Entry
                     </button>
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded shadow border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
+              <div className="lex-finance-filter-panel bg-white p-4 rounded shadow border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
                   <div className="col-span-1">
                       <label className="text-xs font-bold text-slate-500 uppercase">Search</label>
                       <div className="relative">
@@ -1877,7 +1797,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               </div>
 
             {/* --- NEW STATS GRID FOR TODAY & SAVINGS --- */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="lex-finance-stat-grid grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="bg-white p-4 rounded shadow border-l-4 border-blue-500 flex flex-col justify-between">
                       <p className="text-xs font-bold text-gray-500 uppercase">Today's Income</p>
                       <p className="text-2xl font-bold text-slate-900 mt-1">৳{todayIncome}</p>
@@ -1899,7 +1819,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               </div>
 
               {/* ORIGINAL FILTERED STATS GRID */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="lex-finance-stat-grid grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded shadow border-l-4 border-green-500 flex flex-col justify-between">
                     <div>
                         <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingUp size={14}/> Total Income</p>
@@ -1936,8 +1856,8 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                   <p className="text-xs mt-2">Period: {startDate || 'All Time'} to {endDate || 'Present'}</p>
               </div>
 
-              <div className="bg-white rounded shadow overflow-x-auto">
-                 <table className="w-full text-left min-w-[600px]">
+              <div className="lex-ledger-panel bg-white rounded shadow overflow-x-auto">
+                 <table className="lex-ledger-table w-full text-left min-w-[600px]">
                     <thead className="bg-slate-100 border-b border-slate-200">
                       <tr>
                         <th className="p-3 text-slate-900 font-bold text-xs uppercase">Date</th>
@@ -2051,7 +1971,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
 
       {modalMode === 'addTxn' && (
          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl">
+            <div className="lex-finance-entry-modal bg-white w-full max-w-lg rounded-xl shadow-2xl">
                <div className="bg-slate-900 p-4 text-white flex justify-between">
                   <h3 className="font-bold">{formData.id ? 'Edit Transaction' : 'New Transaction'}</h3>
                   <button onClick={() => setModalMode(null)}><X/></button>
@@ -2114,49 +2034,37 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         </div>
       )}
 
-      {/* --- UPDATED: Update Status Modal with Fallback Values --- */}
+      {/* Premium hearing update + order history capture */}
       {modalMode === 'updateStatus' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
-            <div className="bg-slate-900 p-4 text-white flex justify-between">
-              <h3 className="font-bold flex items-center gap-2"><RefreshCw size={18}/> Update Status</h3>
-              <button onClick={() => setModalMode(null)}><X/></button>
+        <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+          <div className="lex-update-modal bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden">
+            <div className="lex-update-modal-header">
+              <div className="flex items-center gap-3"><span className="lex-modal-icon"><RefreshCw size={19}/></span><div><p>CASE WORKFLOW</p><h3>Update hearing & order</h3></div></div>
+              <button type="button" aria-label="Close update dialog" onClick={() => setModalMode(null)}><X size={21}/></button>
             </div>
-            <div className="p-6 space-y-4">
-                <div className="bg-slate-100 p-3 rounded mb-4">
-                  <p className="text-xs font-bold text-slate-500">CASE NO</p>
-                  <p className="text-xl font-bold text-slate-900">{formData.case_no || 'N/A'}</p>
-               </div>
-               <div>
-                  <label className="block text-xs font-bold text-red-700 mb-1">New Date</label>
-                  <input type="date" value={formData.next_date || ''} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white font-bold"/>
-               </div>
-               <div>
-                  <label className="block text-xs font-bold text-red-700 mb-1">New Step</label>
-                  <input value={formData.current_step || ''} onChange={e => setFormData({...formData, current_step: e.target.value})} className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white font-bold"/>
-               </div>
-               <div>
-                  <label className="block text-xs font-bold text-red-700 mb-1">Update Note / Order</label>
-                  <textarea rows="3" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আদেশের সারাংশ বা নতুন নোট লিখুন..." className="w-full border-2 border-red-200 p-3 rounded text-slate-900 bg-white"></textarea>
-               </div>
-               <button 
-  onClick={handleUpdateStatus} 
-  disabled={isUpdating}
-  className={`w-full py-3 rounded font-bold transition duration-300 text-white ${isUpdating ? 'bg-gray-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-[#c5a059]'}`}
->
-  {isUpdating ? 'UPDATING...' : 'CONFIRM UPDATE'}
-</button>
+            <div className="p-5 md:p-7 space-y-5">
+              <div className="lex-update-case-summary"><span>CASE NUMBER</span><strong>{formData.case_no || 'N/A'}</strong><small>{formData.party_name || formData.court_name || 'Case record'}</small></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="lex-form-field"><label>Order / hearing date</label><input type="date" value={formData.order_date || formData.next_date || today} onChange={e => setFormData({...formData, order_date: e.target.value})} className="w-full"/><small>যে তারিখের আদেশের সারাংশ সংরক্ষণ করছেন।</small></div>
+                <div className="lex-form-field"><label>Next hearing date <span>*</span></label><input type="date" value={formData.next_date || ''} onChange={e => setFormData({...formData, next_date: e.target.value})} className="w-full" required/></div>
+                <div className="lex-form-field sm:col-span-2"><label>Next step / পদক্ষেপ <span>*</span></label><input value={formData.current_step || ''} onChange={e => setFormData({...formData, current_step: e.target.value})} placeholder="যেমন: সাক্ষ্য গ্রহণ, যুক্তিতর্ক, আদেশের জন্য" className="w-full" required/></div>
+                <div className="lex-form-field sm:col-span-2"><label>Order summary / আদেশের সারাংশ</label><textarea rows="5" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আজকের আদেশ, আদালতের নির্দেশনা, সম্পন্ন কাজ এবং পরবর্তী করণীয় লিখুন..." className="w-full"/><small>সেভ করলে সারাংশটি মামলার History-তে থাকবে; বর্তমান তারিখ ও পদক্ষেপও আপডেট হবে।</small></div>
+              </div>
+              <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end border-t border-slate-100 pt-4">
+                <button type="button" onClick={() => setModalMode(null)} className="lex-secondary-action">Cancel</button>
+                <button type="button" onClick={handleUpdateStatus} disabled={isUpdating} className="lex-primary-action"><Save size={17}/>{isUpdating ? 'Saving history…' : 'Save update & order history'}</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
      {modalMode === 'addCase' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
-            <div className="bg-slate-900 p-4 text-white flex justify-between">
-              <h3 className="font-bold flex items-center gap-2"><Gavel/> {formData.id ? 'Edit Case' : 'New Case Entry'}</h3>
-              <button onClick={() => setModalMode(null)}><X/></button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+          <div className="lex-case-entry-modal bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="lex-case-entry-header bg-slate-900 p-4 text-white flex justify-between">
+              <div><p>LEXSWORD · CASE MANAGEMENT</p><h3 className="font-bold flex items-center gap-2"><Gavel/> {formData.id ? 'Edit case record' : 'Create new case'}</h3><span>মামলার তথ্য নির্ভুলভাবে সংরক্ষণ করুন।</span></div>
+              <button type="button" aria-label="Close case form" onClick={() => setModalMode(null)}><X/></button>
             </div>
             
             <div className="p-6">
@@ -2253,60 +2161,63 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
 
             </div>
             
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+            <div className="lex-case-entry-footer p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
                <button onClick={() => setModalMode(null)} className="px-6 py-2 border border-slate-300 bg-white rounded text-slate-700 font-bold hover:bg-slate-100">Cancel</button>
-               <button onClick={handleSaveCase} className="px-8 py-2 bg-slate-900 text-white rounded font-bold hover:bg-[#c5a059] transition shadow">SAVE DATA</button>
+               <button onClick={handleSaveCase} className="px-8 py-2 bg-slate-900 text-white rounded font-bold hover:bg-[#c5a059] transition shadow"><Save size={16} className="inline mr-2"/>SAVE CASE</button>
             </div>
           </div>
         </div>
       )}
       {modalMode === 'viewCase' && selectedCase && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto text-slate-900">
-             <div className="bg-slate-900 p-4 text-white flex justify-between items-center">
-                <h3 className="font-bold flex items-center gap-2">Case Record: {selectedCase.case_no}</h3>
-                <button onClick={() => setModalMode(null)}><X/></button>
+          <div className="lex-case-detail-modal bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto text-slate-900">
+             <div className="lex-case-detail-header bg-slate-900 p-4 text-white flex justify-between items-center">
+                <div><p>LEXSWORD · CASE FILE</p><h3 className="font-bold flex items-center gap-2">{selectedCase.case_no || 'Case Record'}</h3><span>{selectedCase.party_name || selectedCase.court_name || 'Case details and proceedings'}</span></div>
+                <div className="flex items-center gap-2">{isAdmin && <button type="button" onClick={() => { setFormData({...selectedCase, order_date: selectedCase.next_date || today, note: ''}); setModalMode('updateStatus'); }} className="lex-case-header-update"><RefreshCw size={15}/> Update</button>}<button type="button" aria-label="Close case profile" onClick={() => setModalMode(null)}><X/></button></div>
              </div>
-             <div className="p-6 space-y-6">
-                <div className="grid grid-cols-2 gap-6 text-sm bg-slate-50 p-4 rounded border">
-                       <div>
-                          <p className="text-slate-500 font-bold uppercase text-xs">Court Info</p>
-                          <p className="font-bold text-lg text-slate-900">{selectedCase.court_name}</p>
-                          <p className="text-slate-700">{selectedCase.court_type} - {selectedCase.case_nature}</p>
-                          
-                          {/* --- High Court Fields --- */}
-                          {selectedCase.court_type === 'High Court' && (
-                             <div className="mt-2 pt-2 border-t border-slate-200">
-                                <p className="text-[10px] font-bold text-slate-500 uppercase">District</p>
-                                <p className="font-semibold text-slate-800">{selectedCase.district_name || 'N/A'}</p>
-                             </div>
-                          )}
-                       </div>
-                       <div>
-                          <p className="text-slate-500 font-bold uppercase text-xs">Parties</p>
-                          <p className="font-bold text-lg text-slate-900">{selectedCase.party_name}</p>
+             <div className="p-4 md:p-6 space-y-6">
+                <div className="lex-case-detail-hero">
+                  <div><p>NEXT HEARING</p><strong>{selectedCase.next_date ? selectedCase.next_date.split('-').reverse().join('-') : 'Not scheduled'}</strong><span>{selectedCase.current_step || 'Next step not specified'}</span></div>
+                  <span className={`lex-case-status-pill ${selectedCase.status === 'Disposed' ? 'is-disposed' : 'is-active'}`}>{selectedCase.status || 'Ongoing'}</span>
+                </div>
+                <div className="lex-case-detail-section-head"><div><p className="lex-section-eyebrow">CASE PROFILE</p><h4>Case information</h4></div><button type="button" onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="lex-history-link"><History size={16}/> Full history</button></div>
+                <div className="lex-case-detail-grid">
+                  {[
+                    ['Court type', selectedCase.court_type],
+                    ['Case nature', selectedCase.case_nature],
+                    ['Court name', selectedCase.court_name],
+                    ['File number', selectedCase.file_no],
+                    ['District', selectedCase.district_name],
+                    ['Case section', selectedCase.section],
+                    ['Party name', selectedCase.party_name],
+                    ['On behalf of', selectedCase.on_behalf_of],
+                    ['Client mobile', selectedCase.client_mobile],
+                    ['Present status', selectedCase.present_status],
+                    ['Case status', selectedCase.status]
+                  ].filter(([label, value]) => value !== null && value !== undefined && String(value).trim() !== '').map(([label, value]) => (
+                    <div key={label} className="lex-case-detail-field"><span>{label}</span><strong>{String(value)}</strong></div>
+                  ))}
+                </div>
+                {selectedCase.note && <div className="lex-case-current-note"><span>Current case note</span><p>{selectedCase.note}</p></div>}
 
-                          {/* --- High Court Fields --- */}
-                          {selectedCase.court_type === 'High Court' && (
-                             <div className="mt-2 pt-2 border-t border-slate-200">
-                                <p className="text-[10px] font-bold text-slate-500 uppercase">On Behalf Of</p>
-                                <p className="font-semibold text-slate-800">{selectedCase.on_behalf_of || 'N/A'}</p>
-                             </div>
-                          )}
-                       </div>
-                       <div>
-                          <p className="text-slate-500 font-bold uppercase text-xs">Status</p>
-                          <p className="text-lg font-bold text-red-600">{selectedCase.next_date}</p>
-                          <p className="text-slate-900">{selectedCase.current_step}</p>
-                       {selectedCase.note && <p className="text-sm text-slate-700 mt-3 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">{selectedCase.note}</p>}
-                       </div>
-                       <div className="flex items-end">
-                          <button onClick={() => { fetchHistory(selectedCase.id); setModalMode('history'); }} className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded text-xs font-bold hover:bg-[#c5a059] transition">
-                             <History size={16}/> VIEW HISTORY
-                          </button>
-                       </div>
+                <section className="lex-case-timeline-section">
+                  <div className="lex-case-detail-section-head"><div><p className="lex-section-eyebrow">COURT PROCEEDINGS</p><h4>Order & hearing history</h4></div><span className="lex-timeline-count">{historyLog.length} record{historyLog.length === 1 ? '' : 's'}</span></div>
+                  {historyLog.length === 0 ? (
+                    <div className="lex-case-history-empty"><History size={22}/><strong>No order history recorded yet</strong><span>তারিখ ও পদক্ষেপ আপডেট করার সময় আদেশের সারাংশ লিখলে এখানে সংরক্ষিত হবে।</span></div>
+                  ) : (
+                    <div className="lex-case-timeline">
+                      {historyLog.slice(0, 5).map((h, i) => (
+                        <article key={h.id || `${h.prev_date}-${i}`} className="lex-case-timeline-entry">
+                          <span className="lex-case-timeline-dot"></span>
+                          <div className="lex-case-timeline-meta"><strong>{h.prev_date ? h.prev_date.split('-').reverse().join('-') : 'Date not recorded'}</strong><span>{h.recorded_at ? new Date(h.recorded_at).toLocaleString('en-GB') : 'History record'}</span></div>
+                          <h5>{h.prev_step || 'Step not recorded'}</h5>
+                          {h.note ? <p>{h.note}</p> : <p className="is-muted">No order summary was entered for this record.</p>}
+                        </article>
+                      ))}
                     </div>
-  
+                  )}
+                </section>
+
                 <div>
                    <div className="flex justify-between items-center mb-4 border-b pb-2">
                      <h4 className="font-bold text-lg flex items-center gap-2 text-slate-900"><FolderOpen className="text-[#c5a059]"/> Professional Digital Case File Manager</h4>
@@ -2469,186 +2380,6 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
         </div>
      )}
 
-   {/* =========================================================================
-          NEW AI RESEARCH MODAL (Phase 3: Persistent, Specific File & Chat)
-          ========================================================================= */}
-      {modalMode === 'aiAnalysis' && selectedCase && (
-        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[99999] flex items-center justify-center p-2 md:p-4 no-print">
-          <div className="bg-slate-50 w-full max-w-7xl rounded-xl md:rounded-2xl shadow-2xl overflow-hidden h-[95vh] flex flex-col border border-slate-700">
-            
-            {/* AI Header */}
-            <div className="bg-slate-900 p-3 md:p-5 text-white flex justify-between items-center border-b-4 border-purple-500 shrink-0">
-              <div className="flex items-center gap-2 md:gap-4">
-                <div className="p-1.5 md:p-2 bg-purple-500/20 rounded-lg"><Sparkles size={24} className="text-purple-400" /></div>
-                <div>
-                  <h3 className="font-bold text-sm md:text-xl flex items-center gap-2">AI Command Center <span className="bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full">PRO</span></h3>
-                  <p className="text-[10px] md:text-xs text-purple-300 tracking-wider font-bold">Case: {selectedCase.case_no} | {selectedCase.party_name}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                 <div className="hidden md:flex items-center gap-2 bg-slate-800 p-2 rounded">
-                    <label className="text-xs text-slate-400 font-bold">Representing:</label>
-                    <select value={aiParty} onChange={(e) => setAiParty(e.target.value)} className="bg-slate-700 text-white text-xs p-1 rounded border-none outline-none font-bold">
-                       <option>Plaintiff/Petitioner (বাদী/আবেদনকারী)</option>
-                       <option>Defendant/Opposite Party (বিবাদী/প্রতিপক্ষ)</option>
-                       <option>Appellant (আপিলকারী)</option>
-                       <option>Respondent (রেসপনডেন্ট)</option>
-                    </select>
-                 </div>
-                 <button onClick={() => setModalMode(null)} className="hover:bg-red-500 p-2 rounded transition"><X size={24}/></button>
-              </div>
-            </div>
-
-            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-              
-             {/* Left Column: Persistent File Archive */}
-              <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 bg-white p-4 md:p-6 overflow-y-auto flex flex-col gap-6 shrink-0 h-[40%] md:h-full">
-                
-                {/* Previous Beautiful Purple Design */}
-                <div className="bg-purple-50 border border-purple-200 p-4 md:p-6 rounded-xl text-center shadow-inner relative overflow-hidden shrink-0">
-                  {uploadProgress > 0 && <div className="absolute top-0 left-0 h-1.5 bg-purple-600 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>}
-                  
-                  <FolderOpen size={32} className="text-purple-400 mx-auto mb-2 md:mb-3 md:w-12 md:h-12"/>
-                  <h4 className="font-bold text-slate-900 text-sm md:text-base mb-1 md:mb-2">Upload Case File</h4>
-                  <p className="text-[10px] md:text-xs text-slate-500 mb-3 md:mb-4 hidden md:block">Upload PDF or Images for AI analysis.</p>
-                  
-                  <input type="file" id="ai-file-upload" className="hidden" onChange={(e) => handleFileUpload(e, selectedCase.id)} />
-                  <label htmlFor="ai-file-upload" className={`w-full py-2 md:py-3 rounded-lg text-sm md:text-base font-bold transition shadow-md flex justify-center items-center gap-2 cursor-pointer ${isUploading ? 'bg-purple-400 text-white cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-700'}`}>
-                    {isUploading ? <span className="animate-pulse">Uploading {uploadProgress}%</span> : <><Plus size={16}/> Select File</>}
-                  </label>
-                </div>
-
-                {/* Archive List with Edit/Delete */}
-                <div className="flex-1 overflow-y-auto mt-2">
-                  <h4 className="font-bold text-xs text-slate-900 uppercase mb-3 flex items-center gap-2 border-b pb-2"><FileText size={14} className="text-slate-500"/> Uploaded Documents</h4>
-                  <div className="space-y-2">
-                     {documents.map(d => (
-                         <div key={d.id} className={`p-3 rounded-lg border flex flex-col gap-2 transition ${selectedAiDoc?.id === d.id ? 'bg-green-50 border-green-400 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
-                             <div className="flex justify-between items-start">
-                                 <div className="flex items-center gap-2 overflow-hidden">
-                                     {selectedAiDoc?.id === d.id ? <CheckCircle size={16} className="text-green-600 shrink-0"/> : <Folder size={16} className="text-[#c5a059] shrink-0"/>}
-                                     <p className="text-xs font-bold text-slate-700 truncate">{d.doc_name || d.folder_type}</p>
-                                 </div>
-                                 <div className="flex gap-1 shrink-0">
-                                     <a href={d.drive_link} target="_blank" className="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100"><Eye size={12}/></a>
-                                     <button onClick={() => handleDeleteDoc(d.id)} className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100"><Trash2 size={12}/></button>
-                                 </div>
-                             </div>
-                             {selectedAiDoc?.id !== d.id && (
-                                <button onClick={() => { 
-                                    setSelectedAiDoc(d);
-                                    setAiParty(d.ai_party || 'Plaintiff/Petitioner (বাদী/আবেদনকারী)');
-                                    setAiResults({ summary: d.ai_summary || '', timeline: d.ai_timeline || '', questions: d.ai_questions || '' });
-                                    setAiChatLog([]); // নতুন ফাইল সিলেক্ট করলে চ্যাট ক্লিয়ার হবে
-                                }} className="w-full py-1.5 text-[10px] font-bold rounded bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
-                                   Select for AI
-                                </button>
-                             )}
-                             {selectedAiDoc?.id === d.id && (
-                                <span className="text-[10px] font-bold text-green-700 text-center block mt-1">✓ Ready for AI Analysis</span>
-                             )}
-                         </div>
-                     ))}
-                     {documents.length === 0 && <p className="text-xs text-slate-400 italic text-center py-4 bg-slate-50 border border-dashed rounded">No files uploaded yet.</p>}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Editable AI Outputs & Chat */}
-              <div className="flex-1 bg-slate-50 flex flex-col overflow-hidden">
-                <div className="flex justify-between items-center p-2 border-b border-slate-200 bg-white shrink-0">
-                    <div className="flex gap-1 overflow-x-auto custom-scrollbar">
-                      <button onClick={() => setAiActiveTab('summary')} className={`px-4 py-2 text-sm font-bold rounded-t-lg transition ${aiActiveTab === 'summary' ? 'bg-purple-100 text-purple-800 border-b-2 border-purple-600' : 'text-slate-500 hover:bg-slate-100'}`}>Fact Summary</button>
-                      <button onClick={() => setAiActiveTab('timeline')} className={`px-4 py-2 text-sm font-bold rounded-t-lg transition ${aiActiveTab === 'timeline' ? 'bg-purple-100 text-purple-800 border-b-2 border-purple-600' : 'text-slate-500 hover:bg-slate-100'}`}>Timeline</button>
-                      <button onClick={() => setAiActiveTab('questions')} className={`px-4 py-2 text-sm font-bold rounded-t-lg transition ${aiActiveTab === 'questions' ? 'bg-purple-100 text-purple-800 border-b-2 border-purple-600' : 'text-slate-500 hover:bg-slate-100'}`}>Questions</button>
-                      <button onClick={() => setAiActiveTab('chat')} className={`px-4 py-2 text-sm font-bold rounded-t-lg transition flex items-center gap-1 ${aiActiveTab === 'chat' ? 'bg-blue-100 text-blue-800 border-b-2 border-blue-600' : 'text-slate-500 hover:bg-slate-100'}`}><MessageCircle size={14}/> AI Chat</button>
-                    </div>
-                    <button onClick={handleSaveAiData} className="hidden md:flex bg-green-600 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-green-700 items-center gap-1 shadow-sm">
-                        <Save size={14}/> Save Text
-                    </button>
-                </div>
-                
-                <div className="p-4 md:p-6 flex-1 overflow-y-auto relative bg-slate-50">
-                   
-                   {aiActiveTab === 'chat' ? (
-                       <div className="flex flex-col h-full bg-white rounded-lg border shadow-sm">
-                           <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                               <div className="flex gap-3">
-                                   <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Sparkles size={16} className="text-purple-600"/></div>
-                                   <div className="bg-purple-50 p-3 rounded-lg rounded-tl-none text-sm text-slate-700">হ্যালো! আমি লেক্সসোর্ড এআই। এই মামলার তথ্যের ওপর ভিত্তি করে আপনার যেকোনো প্রশ্নের উত্তর দিতে আমি প্রস্তুত।</div>
-                               </div>
-                               {aiChatLog.map((msg, i) => (
-                                   <div key={i} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                                       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.sender === 'user' ? 'bg-slate-800 text-white' : 'bg-purple-100 text-purple-600'}`}>
-                                           {msg.sender === 'user' ? <User size={16}/> : <Sparkles size={16}/>}
-                                       </div>
-                                       <div className={`p-3 rounded-lg text-sm max-w-[80%] ${msg.sender === 'user' ? 'bg-slate-100 text-slate-800 rounded-tr-none' : 'bg-purple-50 text-slate-700 rounded-tl-none whitespace-pre-wrap'}`}>
-                                           {msg.text}
-                                       </div>
-                                   </div>
-                               ))}
-                               {isAiChatLoading && (
-                                   <div className="flex gap-3">
-                                       <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Sparkles size={16} className="text-purple-600"/></div>
-                                       <div className="bg-purple-50 p-3 rounded-lg rounded-tl-none text-sm text-slate-700 flex items-center gap-2">
-                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></span>
-                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
-                                           <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                                       </div>
-                                   </div>
-                               )}
-                           </div>
-                           <div className="p-3 border-t bg-slate-50 flex gap-2">
-                               <input value={aiChatInput} onChange={e => setAiChatInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleAiChat()} placeholder="Ask a question about this case..." className="flex-1 p-2 rounded border outline-none text-sm"/>
-                               <button onClick={handleAiChat} className="bg-purple-600 text-white px-4 rounded font-bold hover:bg-purple-700"><ArrowRight size={18}/></button>
-                           </div>
-                       </div>
-                   ) : (
-                       isAiLoading ? (
-                          <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
-                              <span className="w-12 h-12 md:w-16 md:h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></span>
-                              <p className="text-purple-600 font-bold animate-pulse">AI নথিপত্র বিশ্লেষণ করছে...</p>
-                          </div>
-                       ) : (!aiResults.summary) ? (
-                          <div className="h-full flex flex-col items-center justify-center text-center">
-                              <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200 max-w-lg w-full flex flex-col items-center">
-                                  <Sparkles size={64} className="text-purple-600 mb-4"/>
-                                  <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Ready for Insights</h2>
-                                  <p className="text-sm text-slate-600 mb-8 whitespace-pre-wrap">
-                                    {selectedAiDoc ? `File: ${selectedAiDoc.doc_name || 'Document'} is selected and ready.\nClick below to generate LexSword insights.` : "বাম পাশ থেকে একটি ডকুমেন্ট 'Select for AI' করুন।"}
-                                  </p>
-                                  <button onClick={handleGenerateAI} disabled={!selectedAiDoc} className={`w-full py-3 md:py-4 rounded-xl text-base md:text-lg font-bold shadow-lg flex justify-center items-center gap-2 transition ${selectedAiDoc ? 'bg-purple-600 text-white hover:bg-purple-700 hover:-translate-y-1' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
-                                     <Sparkles size={20}/> Generate Insights
-                                  </button>
-                              </div>
-                          </div>
-                       ) : (
-                          <div className="h-full flex flex-col relative">
-                             <div className="absolute top-4 right-4 z-10 opacity-50 hover:opacity-100 transition">
-                                <button onClick={handleGenerateAI} disabled={!selectedAiDoc || isAiLoading} className="bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:bg-purple-200 flex items-center gap-1">
-                                   <RefreshCw size={12}/> Regenerate
-                                </button>
-                             </div>
-
-                             {aiActiveTab === 'summary' && (
-                                 <textarea value={aiResults.summary} onChange={e => setAiResults({...aiResults, summary: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="AI will generate highly detailed summary here. You can edit and save it permanently..."></textarea>
-                             )}
-                             {aiActiveTab === 'timeline' && (
-                                 <textarea value={aiResults.timeline} onChange={e => setAiResults({...aiResults, timeline: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="Chronological timeline will appear here..."></textarea>
-                             )}
-                             {aiActiveTab === 'questions' && (
-                                 <textarea value={aiResults.questions} onChange={e => setAiResults({...aiResults, questions: e.target.value})} className="w-full h-full p-6 border border-slate-200 rounded-xl shadow-inner bg-white text-slate-800 leading-relaxed outline-none focus:border-purple-400 font-medium" placeholder="Strategic cross-examination questions will appear here..."></textarea>
-                             )}
-                          </div>
-                       )
-                   )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* ======================= AI RESEARCH MODAL END ========================= */}
 
     </div>
   );
