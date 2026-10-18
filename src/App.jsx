@@ -802,14 +802,14 @@ const ClientDashboard = ({ session, onLogout }) => {
                         <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today <span className="lex-filter-count">{currentCounts.today}</span></button>
                         <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow <span className="lex-filter-count">{currentCounts.tomorrow}</span></button>
                         <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week <span className="lex-filter-count">{currentCounts.week}</span></button>
-                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition lex-needs-update-tab ${currentCounts.update > 0 ? 'has-updates' : ''} ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
                     </>
                 ) : (
                     <>
                         <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All <span className="lex-filter-count">{currentCounts.all}</span></button>
                         <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending <span className="lex-filter-count">{currentCounts.pending}</span></button>
                         <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed <span className="lex-filter-count">{currentCounts.disposed}</span></button>
-                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition lex-needs-update-tab ${currentCounts.update > 0 ? 'has-updates' : ''} ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
                         <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ <span className="lex-filter-count">{currentCounts.writ}</span></button>
                         <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev <span className="lex-filter-count">{currentCounts.civilRev}</span></button>
                         <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev <span className="lex-filter-count">{currentCounts.crimRev}</span></button>
@@ -1019,11 +1019,12 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   // Filters
   const [searchTerm, setSearchTerm] = useState(''); 
   const [mainCaseTab, setMainCaseTab] = useState('judge'); 
-  const [caseFilter, setCaseFilter] = useState('all');
+  const [caseFilter, setCaseFilter] = useState('today');
   const [taskFilter, setTaskFilter] = useState('pending');
    
   // Accounts Filters
   const [accountSearch, setAccountSearch] = useState('');
+  const [accountYear, setAccountYear] = useState(() => String(new Date().getFullYear()));
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
    
@@ -1167,6 +1168,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const todaysHearings = cases.filter(c => c.next_date === today);
   const upcomingTasks = tasks.filter(t => t.due_date && t.due_date >= today && t.status !== 'Done');
   const overdueCaseReminders = cases.filter(c => c.next_date && c.next_date < today && c.status !== 'Disposed').sort((a, b) => a.next_date.localeCompare(b.next_date));
+  const allNeedsUpdateCases = cases.filter(c => c.next_date && c.next_date < today && c.status === 'Ongoing').sort((a, b) => a.next_date.localeCompare(b.next_date));
   const nearTermHearings = cases.filter(c => c.next_date && c.next_date >= today && c.next_date <= addDaysToDateString(today, 3) && c.status !== 'Disposed').sort((a, b) => a.next_date.localeCompare(b.next_date));
   const overdueTaskReminders = tasks.filter(t => t.due_date && t.due_date < today && t.status !== 'Done').sort((a, b) => a.due_date.localeCompare(b.due_date));
   const nearTermTaskReminders = tasks.filter(t => t.due_date && t.due_date >= today && t.due_date <= addDaysToDateString(today, 3) && t.status !== 'Done').sort((a, b) => a.due_date.localeCompare(b.due_date));
@@ -1312,7 +1314,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
 
   const handleClientProgressWhatsApp = (c) => {
-    const msg = `আসসালামু আলাইকুম।\n\nপ্রিয় ${c.party_name || 'সম্মানিত মক্কেল'},\n\nআপনার মামলা নম্বর ${c.case_no || '—'} সম্পর্কে আপনাকে আশ্বস্ত করতে চাই যে, লেক্সসোর্ড চেম্বারস আপনার মামলার নথিপত্র, প্রাসঙ্গিক আইনগত বিষয় এবং পরবর্তী করণীয় গুরুত্বসহকারে পর্যালোচনা ও প্রয়োজনীয় প্রস্তুতির কাজ চালিয়ে যাচ্ছে। আপনার মামলার গুরুত্বপূর্ণ অগ্রগতি, আদালতের নির্দেশনা বা আপনার পক্ষ থেকে কোনো তথ্য/নথি প্রয়োজন হলে আমরা যথাসময়ে আপনাকে জানাব।\n\nআপনার আস্থা ও ধৈর্যের জন্য আন্তরিক ধন্যবাদ। আপনার মামলার বিষয়ে যোগাযোগের ক্ষেত্রে যেন কোনো ঘাটতি না থাকে, সে বিষয়ে আমরা সচেতন।\n\nধন্যবাদান্তে,\nমোঃ আজাদুর রহমান\nঅ্যাডভোকেট, বাংলাদেশ সুপ্রীম কোর্ট\nহেড অব লেক্সসোর্ড চেম্বারস`;
+    const msg = `প্রিয় স্যার/ম্যাডাম,\n\nবিষয়: আপনার মামলার প্রস্তুতি ও অগ্রগতি সম্পর্কে অবহিতকরণ\n\nআসসালামু আলাইকুম।\n\nআপনার মামলা নম্বর ${c.case_no || '—'} সম্পর্কে আপনাকে অবহিত করছি যে, লেক্সসোর্ড চেম্বারস আপনার মামলার নথিপত্র, প্রাসঙ্গিক আইনগত বিষয় এবং পরবর্তী করণীয় গুরুত্বসহকারে পর্যালোচনা করছে। মামলার স্বার্থে প্রয়োজনীয় প্রস্তুতি ও অনুসরণমূলক কাজ চলমান রয়েছে।\n\nআদালতের কোনো গুরুত্বপূর্ণ নির্দেশনা, মামলার উল্লেখযোগ্য অগ্রগতি অথবা আপনার কাছ থেকে কোনো তথ্য/নথি প্রয়োজন হলে আমরা যথাসময়ে আপনাকে জানাব। আপনার মামলা আমাদের নজরদারিতে রয়েছে; এ বিষয়ে যোগাযোগের কোনো ঘাটতি যেন না হয়, সে বিষয়ে আমরা সচেতন।\n\nআপনার আস্থা ও সহযোগিতার জন্য আন্তরিক ধন্যবাদ।\n\nবিনীত,\nমোঃ আজাদুর রহমান\nঅ্যাডভোকেট, বাংলাদেশ সুপ্রীম কোর্ট\nহেড অব লেক্সসোর্ড চেম্বারস`;
     openClientWhatsApp(c, msg);
   };
 
@@ -1583,20 +1585,27 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const todaySavingsWithdraw = todayTxns.filter(a => a.category === 'Savings' && a.txn_type === 'Income').reduce((sum, a) => sum + Number(a.amount), 0);
   const todaySavingsNet = todaySavingsDeposit - todaySavingsWithdraw;
 
-  // 3. Filtered Stats (For the bottom cards)
-  const calcFilteredTotal = (type, excludeSavings = false, status = 'Paid') => 
-      filteredTxns.filter(a => a.txn_type === type && a.payment_status === status && (!excludeSavings || a.category !== 'Savings')).reduce((sum, a) => sum + Number(a.amount), 0);
+  // 3. Year-wise account summaries. The dashboard defaults to the current year;
+  // choosing 'All years' displays the lifetime totals. Table filters remain independent.
+  const accountYears = Array.from(new Set([
+    String(new Date().getFullYear()),
+    ...accounts.map(a => String(a.date || '').slice(0, 4)).filter(y => /^\d{4}$/.test(y))
+  ])).sort((a, b) => b.localeCompare(a));
+  const yearTxns = accounts.filter(a => accountYear === 'all' || String(a.date || '').slice(0, 4) === accountYear);
+  const calcYearTotal = (type, status = 'Paid', excludeSavings = true) =>
+    yearTxns.filter(a => a.txn_type === type && a.payment_status === status && (!excludeSavings || a.category !== 'Savings'))
+      .reduce((sum, a) => sum + Number(a.amount || 0), 0);
 
   const accStats = {
-      income: calcFilteredTotal('Income', true), // Regular income (excludes savings withdrawal)
-      expense: calcFilteredTotal('Expense', true), // Regular expense (excludes savings deposit)
-      dueIncome: calcFilteredTotal('Income', false, 'Due'),
-      dueExpense: calcFilteredTotal('Expense', false, 'Due'),
+    income: calcYearTotal('Income', 'Paid', true),
+    expense: calcYearTotal('Expense', 'Paid', true),
+    dueIncome: calcYearTotal('Income', 'Due', false),
+    dueExpense: calcYearTotal('Expense', 'Due', false),
   };
-  
-  // Cash in Hand = All Income (including from savings) - All Expense (including to savings)
-  const totalFilteredIncome = filteredTxns.filter(a => a.txn_type === 'Income' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount), 0);
-  const totalFilteredExpense = filteredTxns.filter(a => a.txn_type === 'Expense' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount), 0);
+
+  // Cash in hand for the selected year includes paid savings movements, matching the existing ledger convention.
+  const totalFilteredIncome = yearTxns.filter(a => a.txn_type === 'Income' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount || 0), 0);
+  const totalFilteredExpense = yearTxns.filter(a => a.txn_type === 'Expense' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount || 0), 0);
   const cashInHand = totalFilteredIncome - totalFilteredExpense;
 
   const caseFinanceTransactions = selectedCase
@@ -1617,6 +1626,11 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   };
 
   const handlePrint = () => window.print();
+  const printNeedsUpdateCases = () => {
+    document.body.classList.add('lex-print-needs-update');
+    window.print();
+    window.setTimeout(() => document.body.classList.remove('lex-print-needs-update'), 1200);
+  };
   const setMonthFilter = () => {
       const now = new Date();
       const first = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1826,7 +1840,14 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 </button>
               </section>
 
-              <section className="lex-reminder-grid no-print" aria-label="Hearing and task reminders">
+              <section className="lex-reminder-grid no-print" aria-label="Today's cases, overdue items and upcoming schedule">
+                <div className={`lex-reminder-panel lex-reminder-panel-today ${todaysCaseList.length ? 'has-today-cases' : ''}`}>
+                  <div className="lex-reminder-panel-head"><span className="lex-reminder-icon is-today"><CalIcon size={18}/></span><div><p>TODAY · {today.split('-').reverse().join('-')}</p><h3>Today's hearings</h3></div><span className="lex-reminder-count">{todaysCaseList.length}</span></div>
+                  <div className="lex-reminder-list">
+                    {todaysCaseList.map(c => <button type="button" key={`today-case-${c.id}`} onClick={() => openCaseDetails(c)} className="lex-reminder-item"><span className="lex-reminder-date is-today-date">{c.next_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.current_step || c.party_name || 'Court hearing today'}</small></span><ChevronRight size={16}/></button>)}
+                    {!todaysCaseList.length && <div className="lex-reminder-empty"><CheckCircle size={18}/> আজ কোনো মামলা নেই।</div>}
+                  </div>
+                </div>
                 <div className={`lex-reminder-panel ${overdueCaseReminders.length || overdueTaskReminders.length ? 'has-alerts' : ''}`}>
                   <div className="lex-reminder-panel-head"><span className="lex-reminder-icon is-alert"><AlertTriangle size={18}/></span><div><p>ATTENTION REQUIRED</p><h3>Overdue follow-ups</h3></div><span className="lex-reminder-count">{overdueCaseReminders.length + overdueTaskReminders.length}</span></div>
                   <div className="lex-reminder-list">
@@ -1838,18 +1859,18 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 <div className="lex-reminder-panel">
                   <div className="lex-reminder-panel-head"><span className="lex-reminder-icon is-upcoming"><CalIcon size={18}/></span><div><p>NEXT 3 DAYS</p><h3>Upcoming schedule</h3></div><span className="lex-reminder-count">{nearTermHearings.length + nearTermTaskReminders.length}</span></div>
                   <div className="lex-reminder-list">
-                    {nearTermHearings.slice(0, 3).map(c => <button type="button" key={`near-case-${c.id}`} onClick={() => openCaseDetails(c)} className="lex-reminder-item"><span className="lex-reminder-date">{c.next_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.current_step || c.party_name || 'Court hearing'}</small></span><ChevronRight size={16}/></button>)}
-                    {nearTermTaskReminders.slice(0, 2).map(t => <button type="button" key={`near-task-${t.id}`} onClick={() => { setActiveTab('tasks'); setTaskFilter('pending'); }} className="lex-reminder-item"><span className="lex-reminder-date">{t.due_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{t.title || 'Pending task'}</strong><small>Task deadline · {t.priority || 'Normal'} priority</small></span><ChevronRight size={16}/></button>)}
+                    {nearTermHearings.map(c => <button type="button" key={`near-case-${c.id}`} onClick={() => openCaseDetails(c)} className="lex-reminder-item"><span className="lex-reminder-date">{c.next_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{c.case_no || 'Case hearing'}</strong><small>{c.current_step || c.party_name || 'Court hearing'}</small></span><ChevronRight size={16}/></button>)}
+                    {nearTermTaskReminders.map(t => <button type="button" key={`near-task-${t.id}`} onClick={() => { setActiveTab('tasks'); setTaskFilter('pending'); }} className="lex-reminder-item"><span className="lex-reminder-date">{t.due_date?.split('-').reverse().join('-')}</span><span className="lex-reminder-copy"><strong>{t.title || 'Pending task'}</strong><small>Task deadline · {t.priority || 'Normal'} priority</small></span><ChevronRight size={16}/></button>)}
                     {!nearTermHearings.length && !nearTermTaskReminders.length && <div className="lex-reminder-empty"><CalIcon size={18}/> No hearings or task deadlines in the next 3 days.</div>}
                   </div>
                 </div>
               </section>
 
               <div className="lex-case-tabs flex gap-0 mb-4 border-b-2 border-slate-300">
-                  <button onClick={() => { setMainCaseTab('judge'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'judge' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
+                  <button onClick={() => { setMainCaseTab('judge'); setCaseFilter('today'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'judge' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
                       Judge Court ({getCounts('judge').all})
                   </button>
-                  <button onClick={() => { setMainCaseTab('high'); setCaseFilter('all'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'high' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
+                  <button onClick={() => { setMainCaseTab('high'); setCaseFilter('today'); }} className={`px-6 py-3 font-bold text-lg transition-all ${mainCaseTab === 'high' ? 'border-b-4 border-[#c5a059] text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
                       High Court ({getCounts('high').all})
                   </button>
               </div>
@@ -1868,14 +1889,14 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                         <button onClick={() => setCaseFilter('today')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'today' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Today <span className="lex-filter-count">{currentCounts.today}</span></button>
                         <button onClick={() => setCaseFilter('tomorrow')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'tomorrow' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Tomorrow <span className="lex-filter-count">{currentCounts.tomorrow}</span></button>
                         <button onClick={() => setCaseFilter('week')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'week' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>This Week <span className="lex-filter-count">{currentCounts.week}</span></button>
-                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition lex-needs-update-tab ${currentCounts.update > 0 ? 'has-updates' : ''} ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
                     </>
                 ) : (
                     <>
                         <button onClick={() => setCaseFilter('all')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'all' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>All <span className="lex-filter-count">{currentCounts.all}</span></button>
                         <button onClick={() => setCaseFilter('pending')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'pending' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Pending <span className="lex-filter-count">{currentCounts.pending}</span></button>
                         <button onClick={() => setCaseFilter('disposed')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'disposed' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Disposed <span className="lex-filter-count">{currentCounts.disposed}</span></button>
-                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
+                        <button onClick={() => setCaseFilter('update')} className={`px-3 py-1 rounded-full text-sm font-bold border transition lex-needs-update-tab ${currentCounts.update > 0 ? 'has-updates' : ''} ${caseFilter === 'update' || currentCounts.update > 0 ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-600'}`}>Needs Update <span className="lex-filter-count">{currentCounts.update}</span></button>
                         <button onClick={() => setCaseFilter('Writ Petition')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Writ Petition' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Writ <span className="lex-filter-count">{currentCounts.writ}</span></button>
                         <button onClick={() => setCaseFilter('Civil Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Civil Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Civil Rev <span className="lex-filter-count">{currentCounts.civilRev}</span></button>
                         <button onClick={() => setCaseFilter('Criminal Revision')} className={`px-3 py-1 rounded-full text-sm font-bold border ${caseFilter === 'Criminal Revision' ? 'bg-[#c5a059] text-slate-900' : 'bg-white'}`}>Crim Rev <span className="lex-filter-count">{currentCounts.crimRev}</span></button>
@@ -1886,8 +1907,23 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 )}
               </div>
 
-              <div className="lex-case-list grid gap-4 overflow-hidden">
-                {getFilteredCases().length === 0 && <p className="text-slate-500 italic">No cases found.</p>}
+              {caseFilter === 'update' && <div className="lex-needs-update-print-tools no-print">
+                <div><strong>প্রিন্টের জন্য প্রস্তুত · সব আদালত মিলিয়ে {allNeedsUpdateCases.length}টি মামলা</strong><span>এই তালিকাটি A4 কাগজে কম জায়গায় প্রিন্ট হবে, যাতে আদালতে তারিখ আনা সহজ হয়।</span></div>
+                <button type="button" onClick={printNeedsUpdateCases} disabled={!allNeedsUpdateCases.length} title="Print all cases that need an update across both court tabs"><Printer size={17}/> Print Needs Update</button>
+              </div>}
+              <div className={`lex-case-list grid gap-4 overflow-hidden ${caseFilter === 'update' ? 'lex-needs-update-print-target' : ''}`}>
+                {caseFilter === 'update' && <div className="lex-print-all-needs-update">
+                  <div className="lex-print-only-header"><h1>LEXSWORD CHAMBERS</h1><h2>Cases Requiring Update</h2><p>Print date: {today.split('-').reverse().join('-')} · Total: {allNeedsUpdateCases.length}</p></div>
+                  {allNeedsUpdateCases.map(c => <article key={`print-update-${c.id}`} className="lex-case-card lex-case-folder-card lex-print-case-card">
+                    <div className="lex-case-folder-top"><div className="lex-case-folder-main">
+                      <div className="lex-case-folder-tags"><span className="is-court">{c.court_type || 'Court'}</span>{c.case_nature && <span className="is-nature">{c.case_nature}</span>}{c.court_name && <span className="is-bench">{c.court_name}</span>}</div>
+                      <h3 className="lex-case-card-title">{c.case_no || 'মামলা নম্বর উল্লেখ নেই'}</h3><p className="lex-case-card-party">{c.party_name || 'পক্ষের নাম উল্লেখ নেই'}</p>
+                      <div className="lex-case-folder-details"><span className="is-date"><strong>পরবর্তী তারিখ:</strong> {c.next_date ? c.next_date.split('-').reverse().join('-') : 'নির্ধারিত নয়'}</span><span className="is-status is-pending">{c.status || 'Ongoing'}</span>{c.current_step && <span className="is-step">{c.current_step}</span>}{c.section && <span className="is-section">ধারা: {c.section}</span>}</div>
+                    </div></div>
+                  </article>)}
+                </div>}
+                <div className="lex-needs-update-screen-list">
+                {getFilteredCases().length === 0 && <p className="text-slate-500 italic">{caseFilter === 'today' ? 'এই আদালত বিভাগে আজ কোনো মামলা নেই।' : 'No cases found.'}</p>}
                 {getFilteredCases().map(c => (
                   <article key={c.id} className="lex-case-card lex-case-folder-card">
                     <div className="lex-case-folder-top">
@@ -1922,6 +1958,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                     </div>
                   </article>
                 ))}
+                </div>
               </div>
             </div>
           )}
@@ -2194,13 +2231,20 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 </div>
               </div>
 
-              <div className="lex-finance-filter-panel bg-white p-4 rounded shadow border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
+              <div className="lex-finance-filter-panel bg-white p-4 rounded shadow border border-slate-200 grid grid-cols-1 md:grid-cols-5 gap-4 no-print">
                   <div className="col-span-1">
                       <label className="text-xs font-bold text-slate-500 uppercase">Search</label>
                       <div className="relative">
                            <Search className="absolute left-2 top-2.5 text-gray-400" size={16}/>
                           <input placeholder="Client, Category..." value={accountSearch} onChange={e => setAccountSearch(e.target.value)} className="w-full pl-8 p-2 border rounded text-sm text-slate-900"/>
                        </div>
+                  </div>
+                  <div className="col-span-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase">হিসাবের বছর</label>
+                      <select value={accountYear} onChange={e => setAccountYear(e.target.value)} className="w-full p-2 border rounded text-sm text-slate-900 bg-white min-w-0">
+                        <option value="all">সব বছর</option>
+                        {accountYears.map(year => <option key={year} value={year}>{year}</option>)}
+                      </select>
                   </div>
                   <div className="col-span-1">
                       <label className="text-xs font-bold text-slate-500 uppercase">Start Date</label>
@@ -2243,31 +2287,31 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               <div className="lex-finance-stat-grid grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded shadow border-l-4 border-green-500 flex flex-col justify-between">
                     <div>
-                        <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingUp size={14}/> Total Income</p>
-                        <p className="text-2xl font-bold text-slate-900 mt-1">৳{accStats.income}</p>
+                        <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingUp size={14}/> Total Income · {accountYear === 'all' ? 'All years' : accountYear}</p>
+                        <p className="lex-finance-amount text-2xl font-bold text-slate-900 mt-1">৳{formatMoney(accStats.income)}</p>
                     </div>
-                    <p className="text-xs text-green-600 font-bold mt-2 bg-green-50 inline-block px-2 py-1 rounded w-max">Paid: ৳{accStats.income}</p>
+                    <p className="lex-finance-paid-note text-xs text-green-600 font-bold mt-2 bg-green-50 inline-block px-2 py-1 rounded">প্রাপ্ত: ৳{formatMoney(accStats.income)}</p>
                 </div>
                 <div className="bg-white p-4 rounded shadow border-l-4 border-red-500 flex flex-col justify-between">
                     <div>
-                        <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingDown size={14}/> Total Expense</p>
-                        <p className="text-2xl font-bold text-slate-900 mt-1">৳{accStats.expense}</p>
+                        <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingDown size={14}/> Total Expense · {accountYear === 'all' ? 'All years' : accountYear}</p>
+                        <p className="lex-finance-amount text-2xl font-bold text-slate-900 mt-1">৳{formatMoney(accStats.expense)}</p>
                     </div>
-                    <p className="text-xs text-red-600 font-bold mt-2 bg-red-50 inline-block px-2 py-1 rounded w-max">Paid: ৳{accStats.expense}</p>
+                    <p className="lex-finance-paid-note text-xs text-red-600 font-bold mt-2 bg-red-50 inline-block px-2 py-1 rounded">পরিশোধিত: ৳{formatMoney(accStats.expense)}</p>
                  </div>
                 <div className="bg-slate-900 p-4 rounded shadow text-white flex flex-col justify-between">
                     <div>
                         <p className="text-xs font-bold text-[#c5a059] uppercase flex items-center gap-2"><PieChart size={14}/> Cash In Hand</p>
-                        <p className="text-3xl font-bold mt-1">৳{cashInHand}</p>
+                        <p className="lex-finance-amount text-3xl font-bold mt-1">৳{formatMoney(cashInHand)}</p>
                     </div>
                     <p className="text-[10px] text-gray-400 mt-2">Available Balance</p>
                 </div>
                 <div className="bg-white p-4 rounded shadow border-l-4 border-orange-500 flex flex-col justify-between">
                      <div>
                         <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><AlertTriangle size={14}/> Pending Dues</p>
-                        <p className="text-xl font-bold text-slate-900 mt-1">Receivable: ৳{accStats.dueIncome}</p>
+                        <p className="lex-finance-amount text-xl font-bold text-slate-900 mt-1">পাওনা: ৳{formatMoney(accStats.dueIncome)}</p>
                       </div>
-                    <p className="text-xs text-red-600 font-bold mt-2">Payable: ৳{accStats.dueExpense}</p>
+                    <p className="lex-finance-amount text-xs text-red-600 font-bold mt-2">দেনা: ৳{formatMoney(accStats.dueExpense)}</p>
                 </div>
               </div>
 
