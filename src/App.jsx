@@ -629,6 +629,20 @@ const handleDisagreeDisclaimer = () => {
 const ClientDashboard = ({ session, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const lastScrollTopRef = useRef(0);
+  const handleDashboardScroll = (event) => {
+    const currentScrollTop = event.currentTarget.scrollTop;
+    const previousScrollTop = lastScrollTopRef.current;
+    if (currentScrollTop <= 8) {
+      setHeaderHidden(false);
+    } else if (currentScrollTop > previousScrollTop + 4) {
+      setHeaderHidden(true);
+    } else if (currentScrollTop < previousScrollTop - 4) {
+      setHeaderHidden(false);
+    }
+    lastScrollTopRef.current = currentScrollTop;
+  };
   const [myCases, setMyCases] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -748,12 +762,12 @@ const ClientDashboard = ({ session, onLogout }) => {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="lex-mobile-topbar md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print">
+        <div className={`lex-mobile-topbar md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print ${headerHidden ? 'lex-mobile-topbar-hidden' : ''}`}>
            <span className="font-bold font-serif text-[#c5a059]">My Case Portal</span>
            <button onClick={() => setMobileMenuOpen(true)}><Menu size={24}/></button>
         </div>
 
-        <main className="lex-main flex-1 overflow-y-auto relative p-4 md:p-6 print-container">
+        <main className="lex-main flex-1 overflow-y-auto relative p-4 md:p-6 print-container" onScroll={handleDashboardScroll}>
           
           {activeTab === 'dashboard' && (
             <div>
@@ -1002,6 +1016,20 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refresh, setRefresh] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const lastScrollTopRef = useRef(0);
+  const handleDashboardScroll = (event) => {
+    const currentScrollTop = event.currentTarget.scrollTop;
+    const previousScrollTop = lastScrollTopRef.current;
+    if (currentScrollTop <= 8) {
+      setHeaderHidden(false);
+    } else if (currentScrollTop > previousScrollTop + 4) {
+      setHeaderHidden(true);
+    } else if (currentScrollTop < previousScrollTop - 4) {
+      setHeaderHidden(false);
+    }
+    lastScrollTopRef.current = currentScrollTop;
+  };
 
   // Security check for Admin rights (makes it case insensitive and removes spaces)
   const role = (userRole || '').trim().toLowerCase();
@@ -1732,12 +1760,12 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="lex-mobile-topbar md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print">
+        <div className={`lex-mobile-topbar md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0 no-print ${headerHidden ? 'lex-mobile-topbar-hidden' : ''}`}>
            <span className="font-bold font-serif text-[#c5a059]">LEXSWORD</span>
            <button onClick={() => setMobileMenuOpen(true)}><Menu size={24}/></button>
         </div>
 
-        <main className="lex-main flex-1 overflow-y-auto relative p-4 md:p-6 print-container">
+        <main className="lex-main flex-1 overflow-y-auto relative p-4 md:p-6 print-container" onScroll={handleDashboardScroll}>
           
           {activeTab === 'dashboard' && (
             <div className={caseFilter === 'update' ? '' : 'no-print'}>
