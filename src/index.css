@@ -2230,8 +2230,8 @@ textarea:focus-visible {
 .lex-dashboard .lex-reminder-panel {
   display: flex !important;
   flex-direction: column !important;
-  height: 384px !important;
-  min-height: 384px !important;
+  height: 330px !important;
+  min-height: 330px !important;
   min-width: 0 !important;
 }
 .lex-dashboard .lex-reminder-panel-today { grid-column: auto !important; }
@@ -2246,6 +2246,7 @@ textarea:focus-visible {
   overscroll-behavior: contain;
 }
 .lex-dashboard .lex-reminder-list::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+.lex-dashboard .lex-reminder-item { padding-top: 8px !important; padding-bottom: 8px !important; }
 .lex-dashboard .lex-main { scrollbar-width: none; -ms-overflow-style: none; }
 .lex-dashboard .lex-main::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .lex-dashboard .lex-needs-update-tab.has-updates {
