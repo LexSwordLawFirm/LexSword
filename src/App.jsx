@@ -2444,7 +2444,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
               <div className="flex items-center gap-3"><span className="lex-modal-icon"><RefreshCw size={19}/></span><div><p>CASE WORKFLOW</p><h3>Update hearing & order</h3></div></div>
               <button type="button" aria-label="Close update dialog" onClick={() => setModalMode(null)}><X size={21}/></button>
             </div>
-            <div className="p-5 md:p-7 space-y-5">
+            <div className="lex-update-modal-body p-5 md:p-7 space-y-5">
               <div className="lex-update-case-summary"><span>CASE NUMBER</span><strong>{formData.case_no || 'N/A'}</strong><small>{formData.party_name || formData.court_name || 'Case record'}</small></div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="lex-form-field"><label>Order / hearing date</label><input type="date" value={formData.order_date || formData.next_date || today} onChange={e => setFormData({...formData, order_date: e.target.value})} className="w-full"/><small>যে তারিখের আদেশের সারাংশ সংরক্ষণ করছেন।</small></div>
@@ -2452,7 +2452,7 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                 <div className="lex-form-field sm:col-span-2"><label>Next step / পদক্ষেপ <span>*</span></label><input value={formData.current_step || ''} onChange={e => setFormData({...formData, current_step: e.target.value})} placeholder="যেমন: সাক্ষ্য গ্রহণ, যুক্তিতর্ক, আদেশের জন্য" className="w-full" required/></div>
                 <div className="lex-form-field sm:col-span-2"><label>Order summary / আদেশের সারাংশ</label><textarea rows="5" value={formData.note || ''} onChange={e => setFormData({...formData, note: e.target.value})} placeholder="আজকের আদেশ, আদালতের নির্দেশনা, সম্পন্ন কাজ এবং পরবর্তী করণীয় লিখুন..." className="w-full"/><small>সেভ করলে সারাংশটি মামলার History-তে থাকবে; বর্তমান তারিখ ও পদক্ষেপও আপডেট হবে।</small></div>
               </div>
-              <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end border-t border-slate-100 pt-4">
+              <div className="lex-update-modal-actions flex flex-col-reverse sm:flex-row gap-3 justify-end border-t border-slate-100 pt-4">
                 <button type="button" onClick={() => setModalMode(null)} className="lex-secondary-action">Cancel</button>
                 <button type="button" onClick={handleUpdateStatus} disabled={isUpdating} className="lex-primary-action"><Save size={17}/>{isUpdating ? 'Saving history…' : 'Save update & order history'}</button>
               </div>
