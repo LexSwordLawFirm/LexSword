@@ -2596,3 +2596,30 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .lex-dashboard .lex-loan-add-button, .lex-dashboard .lex-loan-card, .lex-dashboard .lex-loan-tab { transition: none !important; }
 }
+
+
+/* Hide the mobile dashboard header while scrolling down; reveal it while scrolling up. */
+.lex-mobile-topbar {
+  transition: transform 240ms ease, margin-bottom 240ms ease, opacity 180ms ease;
+  will-change: transform, margin-bottom;
+}
+
+.lex-mobile-topbar.lex-mobile-topbar-hidden {
+  transform: translateY(-105%);
+  margin-bottom: -66px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .lex-mobile-topbar.lex-mobile-topbar-hidden {
+    transform: none;
+    margin-bottom: 0;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lex-mobile-topbar { transition: none; }
+}
