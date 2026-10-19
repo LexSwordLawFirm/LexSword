@@ -2242,59 +2242,67 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
           )}
 
           {activeTab === 'loans' && isAdmin && (
-            <div className="space-y-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
-                <h2 className="text-3xl font-bold text-slate-900">Loan & Debt Management</h2>
+            <div className="lex-loan-page space-y-6">
+              <div className="lex-loan-page-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
+                <div className="lex-loan-heading-group">
+                  <span className="lex-loan-eyebrow"><Landmark size={14}/> LEXSWORD · FINANCIAL OVERVIEW</span>
+                  <h2 className="lex-loan-page-title">Loans &amp; Debts</h2>
+                  <p>ঋণ, পাওনা, পরিশোধ ও প্রতিটি লেনদেনের হিসাব এক জায়গায় পরিচালনা করুন।</p>
+                </div>
                 <div className="flex gap-2 w-full md:w-auto">
-                    <button onClick={() => { setFormData({ loan_category: loanTab, action: 'Add', date: today, person_name: '', amount: '', note: '' }); setModalMode('addLoanTxn'); }} className="bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] flex items-center gap-2">
+                    <button onClick={() => { setFormData({ loan_category: loanTab, action: 'Add', date: today, person_name: '', amount: '', note: '' }); setModalMode('addLoanTxn'); }} className="lex-loan-add-button bg-slate-900 text-white px-6 py-2 rounded font-bold hover:bg-[#c5a059] flex items-center gap-2">
                         <Plus size={18}/> Add Record
                     </button>
                 </div>
               </div>
 
-              <div className="flex gap-0 mb-4 border-b-2 border-slate-300">
-                  <button onClick={() => setLoanTab('Taken')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Taken' ? 'border-b-4 border-red-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      My Debts
+              <div className="lex-loan-tabs flex gap-0 mb-4 border-b-2 border-slate-300" role="tablist" aria-label="Loan category">
+                  <button role="tab" aria-selected={loanTab === 'Taken'} onClick={() => setLoanTab('Taken')} className={`lex-loan-tab is-debt px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Taken' ? 'is-active border-b-4 border-red-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
+                      <span className="lex-loan-tab-icon"><TrendingUp size={17}/></span> My Debts
                   </button>
-                  <button onClick={() => setLoanTab('Given')} className={`px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Given' ? 'border-b-4 border-green-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
-                      Loans Given
+                  <button role="tab" aria-selected={loanTab === 'Given'} onClick={() => setLoanTab('Given')} className={`lex-loan-tab is-given px-6 py-3 font-bold text-lg transition-all ${loanTab === 'Given' ? 'is-active border-b-4 border-green-600 text-slate-900 bg-white' : 'text-gray-500 hover:text-slate-700'}`}>
+                      <span className="lex-loan-tab-icon"><Landmark size={17}/></span> Loans Given
                   </button>
               </div>
 
-              <div className="bg-white p-6 rounded shadow border-l-4 border-[#c5a059]">
-                  <p className="text-sm font-bold text-gray-500 uppercase">Total Outstanding Balance</p>
-                  <p className={`text-3xl font-bold ${loanTab === 'Taken' ? 'text-red-600' : 'text-green-600'}`}>৳{totalLoanBalance}</p>
+              <div className={`lex-loan-summary-card ${loanTab === 'Taken' ? 'is-debt' : 'is-given'}`}>
+                  <div className="lex-loan-summary-icon">{loanTab === 'Taken' ? <TrendingUp size={23}/> : <Landmark size={23}/>}</div>
+                  <div className="lex-loan-summary-copy">
+                    <p className="lex-loan-summary-label">Total Outstanding Balance</p>
+                    <p className="lex-loan-summary-value">৳{Number(totalLoanBalance || 0).toLocaleString('en-BD', { maximumFractionDigits: 2 })}</p>
+                    <span>{loanTab === 'Taken' ? 'আপনার পরিশোধযোগ্য মোট ঋণ' : 'অন্যদের কাছে আপনার মোট পাওনা'}</span>
+                  </div>
+                  <div className="lex-loan-summary-chip">{currentLoans.length} {currentLoans.length === 1 ? 'record' : 'records'}</div>
               </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="lex-loan-grid grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {currentLoans.map((l, idx) => (
-                      <div key={idx} className="bg-white p-5 rounded shadow border border-slate-200 flex flex-col justify-between hover:shadow-lg transition">
-                          <div className="flex justify-between items-start mb-4">
-                              <div>
-                                  <h3 className="text-xl font-bold text-slate-900">{l.person_name}</h3>
-                                  <p className="text-xs font-bold text-slate-500 uppercase">{l.loan_category === 'Taken' ? 'Lender' : 'Borrower'}</p>
-                              </div>
-                              <div className="text-right">
-                                  <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Current Balance</p>
-                                  <p className={`text-2xl font-bold ${l.balance === 0 ? 'text-slate-500' : loanTab === 'Taken' ? 'text-red-600' : 'text-green-600'}`}>
-                                      ৳{l.balance}
-                                  </p>
-                               </div>
+                      <article key={idx} className={`lex-loan-card ${l.balance === 0 ? 'is-settled' : loanTab === 'Taken' ? 'is-debt' : 'is-given'}`}>
+                          <div className="lex-loan-card-topline"><span className="lex-loan-card-type">{l.loan_category === 'Taken' ? 'DEBT ACCOUNT' : 'LOAN RECEIVABLE'}</span><span className={`lex-loan-card-status ${l.balance === 0 ? 'is-settled' : 'is-open'}`}>{l.balance === 0 ? 'Settled' : 'Outstanding'}</span></div>
+                          <div className="lex-loan-card-main">
+                            <div className="lex-loan-person">
+                              <span className="lex-loan-person-icon"><Landmark size={18}/></span>
+                              <div className="lex-loan-person-copy"><h3>{l.person_name || 'Unnamed contact'}</h3><p>{l.loan_category === 'Taken' ? 'Lender / যাঁর কাছ থেকে ঋণ' : 'Borrower / যাঁকে ঋণ দেওয়া হয়েছে'}</p></div>
+                            </div>
+                            <div className="lex-loan-balance-block">
+                              <p>Current Balance</p>
+                              <strong>৳{Number(l.balance || 0).toLocaleString('en-BD', { maximumFractionDigits: 2 })}</strong>
+                            </div>
                           </div>
-                          <div className="flex gap-2 border-t pt-4">
-                              <button onClick={() => { setFormData({ person_name: l.person_name, loan_category: l.loan_category, action: 'Add', date: today, amount: '', note: '' }); setModalMode('addLoanTxn'); }} className="flex-1 bg-slate-100 text-slate-900 py-2 rounded text-xs font-bold hover:bg-slate-200 flex justify-center items-center gap-1">
-                                  <TrendingUp size={14}/> Add Amount
+                          <div className="lex-loan-card-actions">
+                              <button onClick={() => { setFormData({ person_name: l.person_name, loan_category: l.loan_category, action: 'Add', date: today, amount: '', note: '' }); setModalMode('addLoanTxn'); }} className="is-primary">
+                                  <TrendingUp size={15}/> Add Amount
                               </button>
-                              <button onClick={() => { setFormData({ person_name: l.person_name, loan_category: l.loan_category, action: 'Repay', date: today, amount: '', note: '' }); setModalMode('addLoanTxn'); }} className="flex-1 bg-slate-100 text-slate-900 py-2 rounded text-xs font-bold hover:bg-slate-200 flex justify-center items-center gap-1">
-                                  <CheckCircle size={14}/> Repay / Adjust
+                              <button onClick={() => { setFormData({ person_name: l.person_name, loan_category: l.loan_category, action: 'Repay', date: today, amount: '', note: '' }); setModalMode('addLoanTxn'); }} className="is-secondary">
+                                  <CheckCircle size={15}/> Repay
                               </button>
-                              <button onClick={() => { setSelectedCase(l); setModalMode('viewLoanHistory'); }} className="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100" title="History">
-                                  <History size={18}/>
+                              <button onClick={() => { setSelectedCase(l); setModalMode('viewLoanHistory'); }} className="is-icon" title="View transaction history" aria-label={`View history for ${l.person_name}`}>
+                                  <History size={17}/>
                               </button>
                           </div>
-                       </div>
+                       </article>
                   ))}
-                  {currentLoans.length === 0 && <p className="text-slate-500 italic p-4 col-span-full">No records found in this category.</p>}
+                  {currentLoans.length === 0 && <div className="lex-loan-empty"><span><Landmark size={23}/></span><strong>No records in this category yet</strong><p>নতুন ঋণ বা পাওনার হিসাব যোগ করতে “Add Record” বাটনে ক্লিক করুন।</p></div>}
               </div>
             </div>
           )}
