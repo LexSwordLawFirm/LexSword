@@ -2434,3 +2434,165 @@ textarea:focus-visible {
 .lex-dashboard .lex-quick-empty { display:flex; min-height:180px; flex-direction:column; align-items:center; justify-content:center; gap:9px; padding:24px 12px; color:#9aa5b5; text-align:center; }
 .lex-dashboard .lex-quick-empty strong { color:#42516a; font-size:13px; }
 .lex-dashboard .lex-quick-empty span { max-width:320px; color:#8995a8; font-size:10px; line-height:1.6; }
+
+/* v4.4 — Standard-height pending-task popup: show about four tasks, then scroll invisibly. */
+.lex-dashboard .lex-pending-task-modal {
+  width: min(100%, 610px);
+  max-height: min(620px, calc(100dvh - 32px));
+  min-height: 0;
+}
+.lex-dashboard .lex-pending-task-list {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 284px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-y;
+}
+.lex-dashboard .lex-pending-task-list::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.lex-dashboard .lex-pending-task-row {
+  min-height: 59px;
+  padding: 8px 2px;
+}
+.lex-dashboard .lex-pending-task-copy { min-width: 0; }
+.lex-dashboard .lex-pending-task-copy strong {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  line-height: 1.35;
+}
+.lex-dashboard .lex-pending-task-copy small {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  line-height: 1.4;
+}
+.lex-dashboard .lex-pending-task-modal > footer { flex: 0 0 auto; }
+
+/* v4.4 — Premium Loans & Debts section, preserving the existing Supabase actions. */
+.lex-dashboard .lex-loan-page { width: 100%; min-width: 0; padding-bottom: 24px; }
+.lex-dashboard .lex-loan-page-header { align-items: center; gap: 18px; margin-bottom: 4px; }
+.lex-dashboard .lex-loan-heading-group { min-width: 0; }
+.lex-dashboard .lex-loan-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px; margin-bottom: 9px;
+  color: #a27b32; font-size: 9px; font-weight: 900; letter-spacing: .16em;
+}
+.lex-dashboard .lex-loan-page-title {
+  margin: 0; color: #172541; font-size: clamp(25px, 3vw, 34px); font-weight: 900;
+  letter-spacing: -.04em; line-height: 1.12; overflow-wrap: anywhere;
+}
+.lex-dashboard .lex-loan-heading-group > p { margin: 8px 0 0; color: #77859b; font-size: 12px; line-height: 1.65; }
+.lex-dashboard .lex-loan-add-button {
+  min-height: 44px; flex: 0 0 auto; justify-content: center; border: 1px solid #172541;
+  border-radius: 12px; background: linear-gradient(135deg,#172541,#243d70);
+  box-shadow: 0 8px 20px rgba(23,37,65,.15); transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.lex-dashboard .lex-loan-add-button:hover { transform: translateY(-1px); background: linear-gradient(135deg,#b48a3d,#d0aa62); box-shadow: 0 11px 25px rgba(180,138,61,.22); }
+.lex-dashboard .lex-loan-tabs {
+  display: flex; gap: 8px; padding: 6px; margin: 18px 0 16px; border: 1px solid #e3eaf4;
+  border-radius: 15px; background: #eaf0f8; border-bottom: 1px solid #e3eaf4;
+}
+.lex-dashboard .lex-loan-tab {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 45px;
+  flex: 1 1 0; padding: 10px 16px; border: 1px solid transparent; border-bottom-width: 1px;
+  border-radius: 11px; background: transparent; color: #66758d; font-size: 12px; font-weight: 850;
+  transition: color .18s ease, background .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.lex-dashboard .lex-loan-tab:hover { color: #172541; background: rgba(255,255,255,.7); }
+.lex-dashboard .lex-loan-tab.is-active { border: 1px solid #fff; border-bottom-width: 1px; color: #172541; background: #fff; box-shadow: 0 4px 13px rgba(23,37,65,.07); }
+.lex-dashboard .lex-loan-tab.is-debt.is-active { color: #a92c3b; }
+.lex-dashboard .lex-loan-tab.is-given.is-active { color: #087b59; }
+.lex-dashboard .lex-loan-tab-icon { display: grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; border-radius: 9px; color: #7c8ca5; background: #f1f5fb; }
+.lex-dashboard .lex-loan-tab.is-debt.is-active .lex-loan-tab-icon { color: #bd3445; background: #fff0f1; }
+.lex-dashboard .lex-loan-tab.is-given.is-active .lex-loan-tab-icon { color: #07845d; background: #e7f8ef; }
+.lex-dashboard .lex-loan-summary-card {
+  position: relative; display: flex; align-items: center; gap: 17px; min-width: 0; overflow: hidden;
+  padding: 23px 25px; border: 1px solid #e1e8f2; border-radius: 19px; background: linear-gradient(115deg,#fff 0%,#f8faff 100%);
+  box-shadow: 0 9px 28px rgba(24,43,77,.045);
+}
+.lex-dashboard .lex-loan-summary-card::before { position: absolute; inset: 0 auto 0 0; width: 4px; content: ''; background: #b78b3d; }
+.lex-dashboard .lex-loan-summary-card.is-debt::before { background: #d34a59; }
+.lex-dashboard .lex-loan-summary-card.is-given::before { background: #15976b; }
+.lex-dashboard .lex-loan-summary-icon { display: grid; width: 52px; height: 52px; flex: 0 0 52px; place-items: center; border: 1px solid #e6ebf4; border-radius: 16px; color: #9b762e; background: #fff7e8; }
+.lex-dashboard .lex-loan-summary-card.is-debt .lex-loan-summary-icon { color: #c43c4c; background: #fff0f1; border-color: #f9dfe2; }
+.lex-dashboard .lex-loan-summary-card.is-given .lex-loan-summary-icon { color: #0b8a60; background: #eaf9f1; border-color: #d4f0e1; }
+.lex-dashboard .lex-loan-summary-copy { min-width: 0; flex: 1 1 auto; }
+.lex-dashboard .lex-loan-summary-label { margin: 0; color: #78869d; font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.lex-dashboard .lex-loan-summary-value { margin: 4px 0 2px; color: #172541; font-size: clamp(25px,3vw,34px); font-weight: 900; letter-spacing: -.04em; line-height: 1.2; overflow-wrap: anywhere; word-break: break-word; font-variant-numeric: tabular-nums; }
+.lex-dashboard .lex-loan-summary-card.is-debt .lex-loan-summary-value { color: #b52f40; }
+.lex-dashboard .lex-loan-summary-card.is-given .lex-loan-summary-value { color: #087b59; }
+.lex-dashboard .lex-loan-summary-copy > span { color: #8a97aa; font-size: 10px; line-height: 1.5; }
+.lex-dashboard .lex-loan-summary-chip { flex: 0 0 auto; padding: 8px 11px; border: 1px solid #e4eaf3; border-radius: 999px; color: #64738c; background: #fff; font-size: 10px; font-weight: 850; }
+.lex-dashboard .lex-loan-grid { grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); align-items: stretch; gap: 16px; }
+.lex-dashboard .lex-loan-card {
+  position: relative; display: flex; min-width: 0; flex-direction: column; gap: 18px; overflow: hidden;
+  padding: 19px; border: 1px solid #e1e8f2; border-radius: 18px; background: #fff;
+  box-shadow: 0 7px 22px rgba(24,43,77,.045); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.lex-dashboard .lex-loan-card::before { position: absolute; top: 0; right: 0; left: 0; height: 3px; content: ''; background: #b8c5d8; }
+.lex-dashboard .lex-loan-card.is-debt::before { background: linear-gradient(90deg,#c53b4b,#f19a9f); }
+.lex-dashboard .lex-loan-card.is-given::before { background: linear-gradient(90deg,#0b8b60,#79d8ae); }
+.lex-dashboard .lex-loan-card.is-settled::before { background: linear-gradient(90deg,#9aa7b9,#d2dae5); }
+.lex-dashboard .lex-loan-card:hover { transform: translateY(-2px); border-color: #d1dceb; box-shadow: 0 15px 34px rgba(24,43,77,.09); }
+.lex-dashboard .lex-loan-card-topline { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
+.lex-dashboard .lex-loan-card-type { color: #8592a7; font-size: 8px; font-weight: 900; letter-spacing: .13em; }
+.lex-dashboard .lex-loan-card-status { flex: 0 0 auto; padding: 5px 8px; border-radius: 999px; font-size: 8px; font-weight: 900; }
+.lex-dashboard .lex-loan-card-status.is-open { color: #a92c3b; background: #fff0f1; }
+.lex-dashboard .lex-loan-card.is-given .lex-loan-card-status.is-open { color: #087b59; background: #eaf9f1; }
+.lex-dashboard .lex-loan-card-status.is-settled { color: #69788e; background: #f0f3f8; }
+.lex-dashboard .lex-loan-card-main { display: flex; min-width: 0; flex-direction: column; gap: 17px; }
+.lex-dashboard .lex-loan-person { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.lex-dashboard .lex-loan-person-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border: 1px solid #e3eaf4; border-radius: 13px; color: #516a94; background: #f4f7fc; }
+.lex-dashboard .lex-loan-person-copy { min-width: 0; }
+.lex-dashboard .lex-loan-person-copy h3 { margin: 0; color: #1d2c47; font-size: 15px; font-weight: 900; line-height: 1.4; overflow-wrap: anywhere; }
+.lex-dashboard .lex-loan-person-copy p { margin: 4px 0 0; color: #8290a5; font-size: 9px; line-height: 1.5; overflow-wrap: anywhere; }
+.lex-dashboard .lex-loan-balance-block { padding: 13px 14px; border: 1px solid #e8edf5; border-radius: 13px; background: #f9fbfe; }
+.lex-dashboard .lex-loan-card.is-debt .lex-loan-balance-block { border-color: #f6e2e5; background: linear-gradient(120deg,#fffafa,#fff); }
+.lex-dashboard .lex-loan-card.is-given .lex-loan-balance-block { border-color: #dff1e7; background: linear-gradient(120deg,#f8fffb,#fff); }
+.lex-dashboard .lex-loan-balance-block p { margin: 0 0 5px; color: #8996a9; font-size: 8px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.lex-dashboard .lex-loan-balance-block strong { display: block; color: #263650; font-size: clamp(21px,2vw,27px); font-weight: 900; letter-spacing: -.035em; line-height: 1.25; overflow-wrap: anywhere; word-break: break-word; font-variant-numeric: tabular-nums; }
+.lex-dashboard .lex-loan-card.is-debt .lex-loan-balance-block strong { color: #b52f40; }
+.lex-dashboard .lex-loan-card.is-given .lex-loan-balance-block strong { color: #087b59; }
+.lex-dashboard .lex-loan-card-actions { display: flex; align-items: stretch; gap: 7px; margin-top: auto; padding-top: 14px; border-top: 1px solid #edf1f6; }
+.lex-dashboard .lex-loan-card-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 37px; padding: 8px 10px; border: 1px solid #e0e7f1; border-radius: 10px; color: #53647e; background: #fbfcff; font-size: 9px; font-weight: 850; transition: background .16s ease, border-color .16s ease, color .16s ease; }
+.lex-dashboard .lex-loan-card-actions button:first-child, .lex-dashboard .lex-loan-card-actions button:nth-child(2) { flex: 1 1 auto; }
+.lex-dashboard .lex-loan-card-actions button.is-primary { border-color: #d9e4f5; color: #244b8c; background: #f2f6ff; }
+.lex-dashboard .lex-loan-card-actions button.is-primary:hover { border-color: #b9cbed; background: #e8f0ff; }
+.lex-dashboard .lex-loan-card-actions button.is-secondary:hover { border-color: #b8e7d0; color: #087b59; background: #effbf4; }
+.lex-dashboard .lex-loan-card-actions button.is-icon { width: 38px; flex: 0 0 38px; padding: 8px; color: #6d55b6; border-color: #e4dcff; background: #f7f4ff; }
+.lex-dashboard .lex-loan-card-actions button.is-icon:hover { color: #5637a4; background: #eee8ff; }
+.lex-dashboard .lex-loan-empty { grid-column: 1/-1; display: flex; min-height: 210px; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 24px; border: 1px dashed #d4deec; border-radius: 18px; color: #8190a6; background: rgba(255,255,255,.75); text-align: center; }
+.lex-dashboard .lex-loan-empty > span { display: grid; width: 48px; height: 48px; place-items: center; border: 1px solid #e1e8f2; border-radius: 15px; color: #8b9ab0; background: #f5f8fc; }
+.lex-dashboard .lex-loan-empty strong { color: #34435e; font-size: 13px; font-weight: 900; }
+.lex-dashboard .lex-loan-empty p { max-width: 360px; margin: 0; font-size: 10px; line-height: 1.7; }
+@media (max-width: 767px) {
+  .lex-dashboard .lex-pending-task-modal { width: 100%; max-height: calc(100dvh - 18px); border-radius: 18px; }
+  .lex-dashboard .lex-pending-task-list { max-height: min(284px, 44dvh); padding: 8px 13px; }
+  .lex-dashboard .lex-pending-task-row { min-height: 57px; gap: 7px; }
+  .lex-dashboard .lex-pending-task-modal > footer { gap: 7px; }
+  .lex-dashboard .lex-pending-task-modal > footer button { min-width: 0; padding: 9px 8px; font-size: 9px; }
+  .lex-dashboard .lex-loan-page-header { align-items: stretch; }
+  .lex-dashboard .lex-loan-add-button { width: 100%; }
+  .lex-dashboard .lex-loan-tabs { gap: 5px; padding: 4px; }
+  .lex-dashboard .lex-loan-tab { min-width: 0; gap: 6px; padding: 9px 7px; font-size: 10px; }
+  .lex-dashboard .lex-loan-tab-icon { width: 25px; height: 25px; flex-basis: 25px; }
+  .lex-dashboard .lex-loan-summary-card { align-items: flex-start; gap: 11px; padding: 17px 15px; border-radius: 16px; }
+  .lex-dashboard .lex-loan-summary-icon { width: 41px; height: 41px; flex-basis: 41px; border-radius: 12px; }
+  .lex-dashboard .lex-loan-summary-value { font-size: clamp(22px,7vw,30px); }
+  .lex-dashboard .lex-loan-summary-chip { display: none; }
+  .lex-dashboard .lex-loan-grid { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .lex-dashboard .lex-loan-card { padding: 15px; gap: 14px; border-radius: 16px; }
+  .lex-dashboard .lex-loan-card-actions { gap: 6px; }
+  .lex-dashboard .lex-loan-card-actions button { padding: 8px 7px; font-size: 9px; }
+  .lex-dashboard .lex-loan-card-actions button.is-icon { width: 36px; flex-basis: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lex-dashboard .lex-loan-add-button, .lex-dashboard .lex-loan-card, .lex-dashboard .lex-loan-tab { transition: none !important; }
+}
