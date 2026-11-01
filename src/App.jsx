@@ -1517,6 +1517,50 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
     dueExpense: calcYearTotal('Expense', 'Due', false),
   };
 
+  // Selected-period summary follows the ledger date filters and the existing
+  // reporting convention: paid transactions only, excluding savings movements.
+  const monthlySummaryTxns = accounts.filter(a => {
+    if (startDate || endDate) {
+      return (!startDate || a.date >= startDate) && (!endDate || a.date <= endDate);
+    }
+    return accountYear === 'all' || String(a.date || '').slice(0, 4) === accountYear;
+  }).filter(a => a.payment_status === 'Paid' && a.category !== 'Savings');
+
+  const monthlyIncome = monthlySummaryTxns
+    .filter(a => a.txn_type === 'Income')
+    .reduce((sum, a) => sum + Number(a.amount || 0), 0);
+  const monthlyExpense = monthlySummaryTxns
+    .filter(a => a.txn_type === 'Expense')
+    .reduce((sum, a) => sum + Number(a.amount || 0), 0);
+  const monthlyNetIncome = monthlyIncome - monthlyExpense;
+
+  const summaryDates = monthlySummaryTxns
+    .map(a => String(a.date || ''))
+    .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date))
+    .sort();
+  const summaryPeriodStart = startDate || (accountYear !== 'all' && !endDate
+    ? `${accountYear}-01-01`
+    : summaryDates[0] || today);
+  const summaryPeriodEnd = endDate || (accountYear !== 'all' && !startDate
+    ? `${accountYear}-12-31`
+    : startDate
+      ? (summaryDates[summaryDates.length - 1] > today ? summaryDates[summaryDates.length - 1] : today)
+      : summaryDates[summaryDates.length - 1] || today);
+  const getMonthIndex = date => {
+    const match = String(date || '').match(/^(\d{4})-(\d{2})/);
+    return match ? Number(match[1]) * 12 + Number(match[2]) - 1 : null;
+  };
+  const startMonthIndex = getMonthIndex(summaryPeriodStart);
+  const endMonthIndex = getMonthIndex(summaryPeriodEnd);
+  const summaryMonthCount = Math.max(1, (endMonthIndex ?? startMonthIndex ?? 0) - (startMonthIndex ?? endMonthIndex ?? 0) + 1);
+  const monthlyAverageIncome = monthlyNetIncome / summaryMonthCount;
+  const isFullCalendarMonth = Boolean(startDate && endDate &&
+    startDate.slice(0, 7) === endDate.slice(0, 7) &&
+    startDate.endsWith('-01') &&
+    Number(endDate.slice(8, 10)) === new Date(Number(endDate.slice(0, 4)), Number(endDate.slice(5, 7)), 0).getDate());
+  const summaryIncomeLabel = isFullCalendarMonth ? 'Monthly Income' : 'Selected Period Income';
+  const summaryExpenseLabel = isFullCalendarMonth ? 'Monthly Expense' : 'Selected Period Expense';
+
   // Cash in hand for the selected year includes paid savings movements, matching the existing ledger convention.
   const totalFilteredIncome = yearTxns.filter(a => a.txn_type === 'Income' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount || 0), 0);
   const totalFilteredExpense = yearTxns.filter(a => a.txn_type === 'Expense' && a.payment_status === 'Paid').reduce((sum, a) => sum + Number(a.amount || 0), 0);
@@ -2158,6 +2202,25 @@ const AdminDashboard = ({ session, userRole, onLogout }) => {
                       <button onClick={setMonthFilter} className="flex-1 bg-blue-50 text-blue-800 text-xs font-bold py-2.5 rounded hover:bg-blue-100">This Month</button>
                       <button onClick={setYearFilter} className="flex-1 bg-blue-50 text-blue-800 text-xs font-bold py-2.5 rounded hover:bg-blue-100">This Year</button>
                       <button onClick={() => {setStartDate(''); setEndDate(''); setAccountSearch('')}} className="p-2.5 bg-gray-200 text-gray-600 rounded hover:bg-gray-300"><RefreshCw size={16}/></button>
+                  </div>
+              </div>
+
+            {/* --- SELECTED PERIOD FINANCIAL SUMMARY --- */}
+              <div className="lex-finance-stat-grid grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-white p-4 rounded shadow border-l-4 border-green-500 flex flex-col justify-between">
+                      <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingUp size={14}/> {summaryIncomeLabel}</p>
+                      <p className="lex-finance-amount text-2xl font-bold text-slate-900 mt-1">৳{formatMoney(monthlyIncome)}</p>
+                      <p className="text-[10px] text-green-600 font-bold mt-2">Paid income · Excludes savings</p>
+                  </div>
+                  <div className="bg-white p-4 rounded shadow border-l-4 border-red-500 flex flex-col justify-between">
+                      <p className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><TrendingDown size={14}/> {summaryExpenseLabel}</p>
+                      <p className="lex-finance-amount text-2xl font-bold text-slate-900 mt-1">৳{formatMoney(monthlyExpense)}</p>
+                      <p className="text-[10px] text-red-600 font-bold mt-2">Paid expenses · Excludes savings</p>
+                  </div>
+                  <div className="bg-slate-900 p-4 rounded shadow text-white flex flex-col justify-between border-l-4 border-[#c5a059]">
+                      <p className="text-xs font-bold text-[#c5a059] uppercase flex items-center gap-2"><PieChart size={14}/> Monthly Average Income</p>
+                      <p className="lex-finance-amount text-2xl font-bold mt-1">৳{formatMoney(monthlyAverageIncome)}</p>
+                      <p className="text-[10px] text-gray-400 mt-2">Average net income after expenses</p>
                   </div>
               </div>
 
